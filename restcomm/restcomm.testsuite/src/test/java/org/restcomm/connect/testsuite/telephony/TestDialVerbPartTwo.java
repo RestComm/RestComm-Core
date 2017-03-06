@@ -661,6 +661,83 @@ public class TestDialVerbPartTwo {
 //        }
     }
 
+    private String dialClientWithActionRcml = "<Response><Dial action=\"http://127.0.0.1:8090/action\"><Client>alice</Client></Dial></Response>";
+    private String hangupActionRcml = "<Response><Hangup /></Response>";
+
+    @Test // (customised from testDialClientAliceWithRecordAndStatusCallbackForApp)
+    public synchronized void testDialClientAliceWithActionAndStatusCallbackForApp() throws InterruptedException, ParseException {
+        stubFor(get(urlPathEqualTo("/1111"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "text/xml")
+                        .withBody(dialClientWithActionRcml)));
+
+        stubFor(get(urlPathEqualTo("/action"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "text/xml")
+                        .withBody(hangupActionRcml)));
+
+        stubFor(get(urlPathMatching("/StatusCallBack.*"))
+                .willReturn(aResponse()
+                        .withStatus(200)));
+
+        // Phone2 register as alice
+        SipURI uri = aliceSipStack.getAddressFactory().createSipURI(null, "127.0.0.1:5080");
+        assertTrue(alicePhone.register(uri, "alice", "1234", aliceContact, 3600, 3600));
+
+        // Prepare second phone to receive call
+        SipCall aliceCall = alicePhone.createSipCall();
+        aliceCall.listenForIncomingCall();
+
+        // Create outgoing call with first phone
+        final SipCall bobCall = bobPhone.createSipCall();
+        bobCall.initiateOutgoingCall(bobContact, dialRestcommWithStatusCallback, null, body, "application", "sdp", null, null);
+        assertLastOperationSuccess(bobCall);
+        assertTrue(bobCall.waitOutgoingCallResponse(5 * 1000));
+        final int response = bobCall.getLastReceivedResponse().getStatusCode();
+        assertTrue(response == Response.TRYING || response == Response.RINGING);
+
+        if (response == Response.TRYING) {
+            assertTrue(bobCall.waitOutgoingCallResponse(5 * 1000));
+            assertEquals(Response.RINGING, bobCall.getLastReceivedResponse().getStatusCode());
+        }
+
+        assertTrue(bobCall.waitOutgoingCallResponse(5 * 1000));
+        assertEquals(Response.OK, bobCall.getLastReceivedResponse().getStatusCode());
+
+        bobCall.sendInviteOkAck();
+        assertTrue(!(bobCall.getLastReceivedResponse().getStatusCode() >= 400));
+
+        assertTrue(aliceCall.waitForIncomingCall(3 * 1000));
+        assertTrue(aliceCall.sendIncomingCallResponse(Response.RINGING, "Ringing-Alice", 3600));
+        String receivedBody = new String(aliceCall.getLastReceivedRequest().getRawContent());
+        assertTrue(aliceCall.sendIncomingCallResponse(Response.OK, "OK-Alice", 3600, receivedBody, "application", "sdp", null,
+                null));
+        assertTrue(aliceCall.waitForAck(5 * 1000));
+
+        Thread.sleep(7000);
+
+        // hangup (must be as alice, the callee, hanging up in order to test the specific issue found)
+        aliceCall.disconnect();
+        bobCall.listenForDisconnect();
+        assertTrue(bobCall.waitForDisconnect(3 * 1000));
+        // NOTE: If you have bob hang up first instead of alice, this test will pass
+//        bobCall.disconnect();
+//        aliceCall.listenForDisconnect();
+//        assertTrue(aliceCall.waitForDisconnect(3 * 1000));
+
+        Thread.sleep(5000);
+
+        logger.info("About to check the Status Callback Requests");
+        List<LoggedRequest> requests = findAll(getRequestedFor(urlPathMatching("/StatusCallBack.*")));
+
+        for (LoggedRequest loggedRequest : requests) {
+            logger.info("Status callback received: " + loggedRequest.getUrl());
+        }
+        assertTrue(requests.size()==3);
+    }    
+
     @Test //Test case for issue 320
     public synchronized void testDialClientAliceWithRecordAndStatusCallbackForAppForThreeCalls() throws InterruptedException, ParseException, MalformedURLException {
         stubFor(get(urlPathEqualTo("/1111"))
