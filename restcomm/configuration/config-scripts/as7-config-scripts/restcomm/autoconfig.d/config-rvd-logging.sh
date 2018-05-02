@@ -23,8 +23,9 @@ STANDALONE_SIP=$RESTCOMM_HOME/standalone/configuration/standalone-sip.xml
 LOG_FILE="rvd/rvd.log"; # this is relative to "jboss.server.log.dir"
 RVD_LOG_LEVEL=INFO # logging level that will be used if handlers/loggers are missing
 LOGGING_HANDLER=RVD # the handler to be used for RVD logging. Set this to 'FILE' to redirect all messages to the main restcomm log (server.log)
+LOGGING_NS=`sed -n 's/.*\(urn:jboss:domain:logging:[^"]*\).*/\1/p' $STANDALONE_SIP` # sed hack that allows xmlstarlet work both with logging:1.2 and logging:1.5 namespaces
 
-# Variables 
+# Variables
 XML_UPDATED=false # flag to format xml file only if updated
 OVERRIDE=false
 
@@ -36,11 +37,11 @@ error(){
 createHandler(){
 
     # create the RVD handler if it is missing
-    xmlstarlet sel -Q -N logns=urn:jboss:domain:logging:1.2 -t -m "//logns:periodic-rotating-file-handler[@name='RVD']" -o "found" $STANDALONE_SIP 
+    xmlstarlet sel -Q -N logns=$LOGGING_NS -t -m "//logns:periodic-rotating-file-handler[@name='RVD']" -o "found" $STANDALONE_SIP
     result=$?
     if [ "$result" -eq 1 ]; then
 	echo "adding RVD handler"
-	xmlstarlet ed -P -N logns=urn:jboss:domain:logging:1.2 -d "//logns:periodic-rotating-file-handler[@name='RVD']" -s "//logns:subsystem" -t elem -n periodic-rotating-file-handler_TMP -v "" \
+	xmlstarlet ed -P -N logns=$LOGGING_NS -d "//logns:periodic-rotating-file-handler[@name='RVD']" -s "//logns:subsystem" -t elem -n periodic-rotating-file-handler_TMP -v "" \
     -i //periodic-rotating-file-handler_TMP -t attr -n name -v RVD \
     -i //periodic-rotating-file-handler_TMP -t attr -n autoflush -v true \
     -s //periodic-rotating-file-handler_TMP -t elem -n formatter_TMP -v "" \
@@ -62,7 +63,7 @@ createHandler(){
 	$STANDALONE_SIP > ${STANDALONE_SIP}_tmp
 	mv ${STANDALONE_SIP}_tmp $STANDALONE_SIP
         XML_UPDATED=true
-    else 
+    else
         if [ "$result" -eq 3 ];
         then
             error
@@ -74,11 +75,11 @@ createHandler(){
 createLoggers(){
 
     # create RVD local logger if it is missing
-    xmlstarlet sel -Q -N logns=urn:jboss:domain:logging:1.2 -t -m "//logns:logger[@category='org.restcomm.connect.rvd.LOCAL']" -o "found" $STANDALONE_SIP 
+    xmlstarlet sel -Q -N logns=$LOGGING_NS -t -m "//logns:logger[@category='org.restcomm.connect.rvd.LOCAL']" -o "found" $STANDALONE_SIP
     result=$?
     if [ "$result" -eq 1 -o \( "$result" = 0 -a "$OVERRIDE" = true \) ]; then
 	echo "adding RVD local logger - $RVD_LOG_LEVEL/$LOGGING_HANDLER handler"
-    xmlstarlet ed -P -N logns=urn:jboss:domain:logging:1.2 -d "//logns:logger[@category='org.restcomm.connect.rvd.LOCAL']" \
+    xmlstarlet ed -P -N logns=$LOGGING_NS -d "//logns:logger[@category='org.restcomm.connect.rvd.LOCAL']" \
     -s "//logns:subsystem" -t elem -n logger_TMP -v "" \
     -i //logger_TMP -t attr -n category -v "org.restcomm.connect.rvd.LOCAL" \
     -s //logger_TMP -t elem -n level_TMP -v "" \
@@ -101,11 +102,11 @@ createLoggers(){
     fi
 
     # create RVD global logger if it is missing
-    xmlstarlet sel -Q -N logns=urn:jboss:domain:logging:1.2 -t -m "//logns:logger[@category='org.restcomm.connect.rvd.GLOBAL']" -o "found" $STANDALONE_SIP 
+    xmlstarlet sel -Q -N logns=$LOGGING_NS -t -m "//logns:logger[@category='org.restcomm.connect.rvd.GLOBAL']" -o "found" $STANDALONE_SIP
     result=$?
     if [ "$result" -eq 1 -o \( "$result" = 0 -a "$OVERRIDE" = true \) ]; then
 	echo "adding RVD global logger - $RVD_LOG_LEVEL/$LOGGING_HANDLER handler"
-    xmlstarlet ed -P -N logns=urn:jboss:domain:logging:1.2 -d "//logns:logger[@category='org.restcomm.connect.rvd.GLOBAL']" \
+    xmlstarlet ed -P -N logns=$LOGGING_NS -d "//logns:logger[@category='org.restcomm.connect.rvd.GLOBAL']" \
      -s "//logns:subsystem" -t elem -n logger_TMP -v "" \
     -i //logger_TMP -t attr -n category -v "org.restcomm.connect.rvd.GLOBAL" \
     -s //logger_TMP -t elem -n level_TMP -v "" \
@@ -131,7 +132,7 @@ createLoggers(){
 formatXml(){
     tmpfile=$(mktemp -t rvdconfigXXX)
     xmlstarlet fo "$STANDALONE_SIP" > "$tmpfile"
-    mv "$tmpfile" "$STANDALONE_SIP" 
+    mv "$tmpfile" "$STANDALONE_SIP"
 }
 
 # MAIN
@@ -167,13 +168,13 @@ else
                         exit 1
                     ;;
                 esac
-            fi    
+            fi
             RVD_LOG_LEVEL=$1
             OVERRIDE=true
             createHandler
             createLoggers
         ;;
-        *) 
+        *)
             echo "invalid arguments: level should be one of FATAL|ERROR|WARN|INFO|DEBUG|TRACE|ALL|OFF"
             exit 1
         ;;
@@ -187,4 +188,3 @@ then
     formatXml
     echo "$STANDALONE_SIP updated"
 fi
-
