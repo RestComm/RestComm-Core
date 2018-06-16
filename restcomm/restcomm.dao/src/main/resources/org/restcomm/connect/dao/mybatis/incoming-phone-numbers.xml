@@ -197,6 +197,6 @@
         "voice_capable"=#{voice_capable},
         "sms_capable"=#{sms_capable}, "mms_capable"=#{mms_capable}, "fax_capable"=#{fax_capable}, "ussd_url"=#{ussd_url}, "ussd_method"=#{ussd_method},
         "ussd_fallback_url"=#{ussd_fallback_url}, "ussd_fallback_method"=#{ussd_fallback_method}, "ussd_application_sid"=#{ussd_application_sid},
-        "refer_url"=#{refer_url}, "refer_method"=#{refer_method}, "refer_application_sid"=#{refer_application_sid}, "organization_sid"=#{organization_sid} WHERE "sid"=#{sid};
+        "refer_url"=#{refer_url}, "refer_method"=#{refer_method}, "refer_application_sid"=#{refer_application_sid},"organization_sid"=#{organization_sid}  WHERE "sid"=#{sid};
     </update>
 </mapper>

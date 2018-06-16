@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.restcomm</groupId>
     <artifactId>restcomm-connect</artifactId>
-    <version>8.3.0-SNAPSHOT</version>
+    <version>9.0.0-SNAPSHOT</version>
   </parent>
   <artifactId>restcomm-connect.sms.api</artifactId>
 
@@ -11,6 +11,16 @@
 	<dependency>
 	    <groupId>org.restcomm.smpp</groupId>
 	    <artifactId>smpp-extensions</artifactId>
+        <exclusions>
+            <exclusion>
+                <groupId>org.restcomm.smpp</groupId>
+                <artifactId>ch-commons-util</artifactId>
+            </exclusion>
+            <exclusion>
+                <groupId>org.restcomm.smpp</groupId>
+                <artifactId>ch-commons-charset</artifactId>
+            </exclusion>
+        </exclusions>
 	</dependency>
     <dependency>
 	  <groupId>org.restcomm</groupId>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--  @author maria farooq -->
+<mapper namespace="org.mobicents.servlet.sip.restcomm.dao.ProfilesDao">
+  <insert id="addProfile" parameterType="org.restcomm.connect.dao.entities.Profile">
+    INSERT INTO "restcomm_profiles" ("sid", "document", "date_created", "date_updated")
+    VALUES(#{sid, jdbcType=VARCHAR}, #{profileDocument, jdbcType=LONGVARCHAR}, #{dateCreated, jdbcType=TIMESTAMP}, #{dateUpdated, jdbcType=TIMESTAMP});
+  </insert>
+
+  <select id="getProfile" parameterType="string" resultType="hashmap">
+    SELECT * FROM "restcomm_profiles" WHERE "sid"=#{sid};
+  </select>
+
+  <select id="getAllProfiles" resultType="hashmap">
+    SELECT * FROM "restcomm_profiles";
+  </select>
+
+  <update id="updateProfile" parameterType="org.restcomm.connect.dao.entities.Profile">
+    UPDATE "restcomm_profiles" SET "date_updated"=#{dateUpdated, jdbcType=TIMESTAMP},
+    "document"=#{profileDocument, jdbcType=LONGVARCHAR}
+    WHERE "sid"=#{sid, jdbcType=VARCHAR};
+  </update>
+
+  <update id="deleteProfile" parameterType="string">
+    DELETE from "restcomm_profiles"
+    WHERE "sid"=#{sid, jdbcType=VARCHAR};
+  </update>
+</mapper>

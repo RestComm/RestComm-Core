@@ -69,11 +69,6 @@ public final class MybatisRecordingsDao implements RecordingsDao {
     }
 
     @Override
-    public S3AccessTool getS3AccessTool () {
-        return s3AccessTool;
-    }
-
-    @Override
     public void addRecording(Recording recording, MediaAttributes.MediaType mediaType) {
         final String fileExtension = mediaType.equals(MediaAttributes.MediaType.AUDIO_ONLY) ? ".wav" : ".mp4";
         if (s3AccessTool != null && ec != null) {

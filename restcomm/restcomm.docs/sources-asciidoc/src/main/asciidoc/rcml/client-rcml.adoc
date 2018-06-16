@@ -37,6 +37,13 @@ Client's name with `<Video>` noun nesting.
 
 For more information, please read <<video-rcml.adoc#video,Video noun documentation>>.
 
+This attribute may contain URI params to declare propietary SIP headers to be 
+included in the outgoing INVITE message.
+
+----
+<Client>alice?X-Custom-Header1=1234&X-Custom-Header2=4321</Client>
+----
+
 ==== url
 
 The 'url' attribute allows you to specify a url for a RCML document that will run on the called party's end, after she answers, but before the parties are connected. You can use this RCML to privately play or say information to the called party, or provide a chance to decline the phone call using <Gather> and <Hangup>. The current caller will continue to hear ringing while the RCML document executes on the other end. RCML documents executed in this manner are not allowed to contain the <Dial> verb. method

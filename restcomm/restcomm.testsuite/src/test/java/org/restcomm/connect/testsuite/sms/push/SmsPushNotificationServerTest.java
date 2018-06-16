@@ -61,6 +61,7 @@ import org.junit.runners.MethodSorters;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.restcomm.connect.commons.annotations.ParallelClassTests;
+import org.restcomm.connect.commons.annotations.UnstableTests;
 import org.restcomm.connect.commons.annotations.WithInSecsTests;
 import org.restcomm.connect.testsuite.NetworkPortAssigner;
 import org.restcomm.connect.testsuite.WebArchiveUtil;
@@ -161,6 +162,7 @@ public class SmsPushNotificationServerTest {
     }
 
     @Test
+    @Category(UnstableTests.class)
     public void testB2BUAMessage() throws ParseException, InterruptedException, IOException {
         stubFor(post(urlPathEqualTo("/api/notifications"))
                 .withHeader("Content-Type", matching("application/json;.*"))

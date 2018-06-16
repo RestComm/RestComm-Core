@@ -74,6 +74,10 @@ When the call progress events are fired, the Status Callback request also passes
 |SequenceNumber |The order in which the events were fired, starting from `0`. Although events are fired in order, they are made as separate HTTP requests and there is no guarantee they will arrive in the same order.
 |===================================================================================================================================================================================================================================================================
 
+=== Including propietary SIP headers
+This noun allows to customize propietary SIP headers to be included in the outgoing
+SIP message. Those will be include following SIP URI params syntax. See example below.
+
 === Examples 
 For an example of how to use the *<Number>* noun see below.
 
@@ -84,3 +88,13 @@ For an example of how to use the *<Number>* noun see below.
     </Dial>
 </Response>
 ----
+
+Dialing with propietary SIP headers
+----
+<Response>
+    <Dial>
+    <Number sendDigits="wwww1234">1-444-555-6666?X-Custom-Header1=1234&X-Custom-Header2=4321</Number>
+    </Dial>
+</Response>
+----
+

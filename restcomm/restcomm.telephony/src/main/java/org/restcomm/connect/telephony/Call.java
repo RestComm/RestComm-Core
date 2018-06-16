@@ -254,6 +254,7 @@ public final class Call extends RestcommUntypedActor implements TransitionEndLis
     private Configuration runtimeSettings;
     private Configuration configuration;
     private boolean disableSdpPatchingOnUpdatingMediaSession;
+    private boolean useSbc;
 
     private Sid inboundCallSid;
     private boolean inboundConfirmCall;
@@ -435,6 +436,14 @@ public final class Call extends RestcommUntypedActor implements TransitionEndLis
         this.configuration = configuration;
         final Configuration runtime = this.configuration.subset("runtime-settings");
         this.disableSdpPatchingOnUpdatingMediaSession = runtime.getBoolean("disable-sdp-patching-on-updating-mediasession", false);
+        this.useSbc = runtime.getBoolean("use-sbc", false);
+        if(useSbc) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Call: use-sbc is true, disable-sdp-patching-on-updating-mediasession to true");
+            }
+            disableSdpPatchingOnUpdatingMediaSession = true;
+        }
+
         this.enable200OkDelay = runtime.getBoolean("enable-200-ok-delay",false);
         if(!runtime.subset("ims-authentication").isEmpty()){
             final Configuration imsAuthentication = runtime.subset("ims-authentication");
@@ -1001,7 +1010,9 @@ public final class Call extends RestcommUntypedActor implements TransitionEndLis
             } else {
                 invite = ((SipFactoryExt)factory).createRequestWithCallID(application, "INVITE", from, to, callId);
             }
-            invite.pushRoute(uri);
+            if(!useSbc) {
+                invite.pushRoute(uri);
+            }
 
             if(userAgent!=null){
                 invite.setHeader("User-Agent", userAgent);
@@ -1068,7 +1079,12 @@ public final class Call extends RestcommUntypedActor implements TransitionEndLis
         private void addHeadersToMessage(SipServletRequest message, Map<String, String> headers, String keyPrepend) {
             try {
                 for (Map.Entry<String, String> entry : headers.entrySet()) {
-                    String headerName = keyPrepend + entry.getKey();
+                    String headerName = null;
+                    if (entry.getKey().startsWith("X-")) {
+                        headerName = entry.getKey();
+                    } else {
+                        headerName = keyPrepend + entry.getKey();
+                    }
                     message.addHeader(headerName , entry.getValue());
                 }
             } catch (IllegalArgumentException iae) {
@@ -2180,6 +2196,8 @@ public final class Call extends RestcommUntypedActor implements TransitionEndLis
                         uri.setLrParam(true);
                         challengeRequest.pushRoute(uri);
                     }
+                    //FIXME:should check for the Ims pushed Route?
+                    B2BUAHelper.addHeadersToMessage(challengeRequest, extensionHeaders, factory);
                     challengeRequest.send();
                 }
                 break;

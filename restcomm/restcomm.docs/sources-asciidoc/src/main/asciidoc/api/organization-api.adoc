@@ -92,6 +92,14 @@ Will return single organization resource
 /{Version}/Organizations(.json)/{OrganizationSid}
 ----
 
+====== Response Headers
+[cols=",",options="header",]
+|==============================================================================================
+|Header |Description
+|Link | a link to the effective Profile document with attribute "rel" set to "related"
+|==============================================================================================
+
+
 .Read Organization Example
 ====
 curl -X GET "https://{accountSid}:{authToken}@mycompany.restcomm.com/restcomm/2012-04-24/Organizations/{OrganizationSid}"
@@ -134,4 +142,24 @@ You can filter an organization list resource by providing following parameters.
 .Read Organization List with filter Example
 ====
 curl -X GET "https://{accountSid}:{authToken}@mycompany.restcomm.com/restcomm/2012-04-24/Organizations/{OrganizationSid}.json" -d "Status=active"
+====
+
+
+==== Migrate Client Passwords
+
+===== Rationale 
+
+This will encrypt all associated Clients passwords to a given encryption algorithm.
+At this moment, the target algorithm is hardcoded to MD5.
+
+[source,]
+----
+/{Version}/Organizations(.json)/{OrganizationSid}/Migrate
+----
+
+HTTP PUT to above Uri will encrypt all Client passwords and returns a list of Clients migrated. 
+
+.Migrate Organization Example
+====
+curl -X PUT "https://{accountSid}:{authToken}@mycompany.restcomm.com/restcomm/2012-04-24/Organizations/{OrganizationSid}.json/Migrate"
 ====

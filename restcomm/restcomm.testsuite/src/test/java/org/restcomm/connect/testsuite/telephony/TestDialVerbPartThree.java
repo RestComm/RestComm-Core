@@ -777,7 +777,7 @@ public class TestDialVerbPartThree {
     }
 
     @Test //For github issue #600, At the DB the IncomingPhoneNumber is '+2222' and we dial '2222', Restcomm should find this number even without the '+'
-    @Category(FeatureAltTests.class)
+    @Category({FeatureAltTests.class, UnstableTests.class})
     public synchronized void testDialClientAliceWithoutPlusSign() throws InterruptedException, ParseException {
         stubFor(get(urlPathEqualTo("/1111"))
                 .willReturn(aResponse()

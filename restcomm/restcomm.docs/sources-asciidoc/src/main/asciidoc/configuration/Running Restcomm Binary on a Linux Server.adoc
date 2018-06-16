@@ -80,9 +80,9 @@ and
 [[demo-4---testing-the-dial-sip-noun]]
 == Demo 4 - Testing the Dial Sip Noun
 
-This demo makes a call from one SIP phone to another. The Demo uses the SIP noun. You can calll any SIP account. All you have to do is change the content of the `dial-sip.xml` 
+This demo makes a call from one SIP phone to another. The Demo uses the SIP noun. You can call any SIP account. All you have to do is change the content of the `dial-sip.xml` 
 
-In order to use this demo, you may use the default accounts, Alice and Bob, and register them on two separate SIP phones. Start both SIP phones and make sure Alice and Bob are registerd with the password (1234). These users come pre-configured with Restcomm for test purposes.
+In order to use this demo, you may create 2 new sip clients using adminUI, Alice and Bob, and register them on two separate SIP phones. Start both SIP phones and make sure Alice and Bob are registerd.
 
 [[start-two-sip-phone-sessions]]
 === Start Two SIP Phone Sessions
@@ -111,7 +111,7 @@ $RESTCOMM_HOME/standalone/deployments/restcomm.war/demos/dial/sip/dial-sip.xml.
 
 This demo makes a call from one SIP Client to Another. The demo uses the Client noun
 
-In order to use this demo, you must have user Alice and Bob registered on two separate SIP phones. Start both SIP phones and make sure Alice and Bob are registerd with the password (1234). These users come pre-configured with Restcomm for test purposes.
+In order to use this demo, you must have user Alice and Bob registered on two separate SIP phones. Start both SIP phones and make sure Alice and Bob are registerd.
 
 From the phone on which Bob is registerd, dial the number `1238`. The phone on which Alice is registered will ring and the connection will be made when you answer the call.
 
@@ -125,7 +125,7 @@ From the phone on which Bob is registerd, dial the number `1238`. The phone on w
 
 This demo Lets a user join a conference as a moderator and the other user as a participant. The participant will dial `1310` and will hear a hold music. The moderator will dial `1311` and the hold music will stop and the conference will be started. 
 
-Most SIP phones will require you to register before you can make a call. You can use the default accounts, Alice and Bob with password (1234)to register. 
+Most SIP phones will require you to register before you can make a call. You can create 2 sip clients, Alice and Bob. 
 
 From the phone on which Bob is registerd, dial the number `1310`. From the phone on which Alice is registered, dial `1311`
 

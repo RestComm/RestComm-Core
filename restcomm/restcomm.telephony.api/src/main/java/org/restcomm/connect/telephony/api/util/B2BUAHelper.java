@@ -18,15 +18,23 @@
  *
  */package org.restcomm.connect.telephony.api.util;
 
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.net.InetAddress;
-import java.net.URI;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Currency;
-import java.util.Map;
-import java.util.Vector;
+import akka.actor.ActorSystem;
+import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
+import org.mobicents.javax.servlet.sip.SipSessionExt;
+import org.restcomm.connect.commons.configuration.RestcommConfiguration;
+import org.restcomm.connect.commons.dao.Sid;
+import org.restcomm.connect.commons.util.DNSUtils;
+import org.restcomm.connect.dao.CallDetailRecordsDao;
+import org.restcomm.connect.dao.DaoManager;
+import org.restcomm.connect.dao.RegistrationsDao;
+import org.restcomm.connect.dao.common.OrganizationUtil;
+import org.restcomm.connect.dao.entities.CallDetailRecord;
+import org.restcomm.connect.dao.entities.Client;
+import org.restcomm.connect.dao.entities.Registration;
+import org.restcomm.connect.telephony.api.CallInfo;
+import org.restcomm.connect.telephony.api.CallInfoStreamEvent;
+import org.restcomm.connect.telephony.api.CallStateChanged;
 
 import javax.sdp.Connection;
 import javax.sdp.MediaDescription;
@@ -42,24 +50,17 @@ import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipServletResponse;
 import javax.servlet.sip.SipSession;
 import javax.servlet.sip.SipURI;
-
- import akka.actor.ActorSystem;
- import org.apache.log4j.Logger;
-import org.joda.time.DateTime;
-import org.mobicents.javax.servlet.sip.SipSessionExt;
-import org.restcomm.connect.commons.configuration.RestcommConfiguration;
-import org.restcomm.connect.commons.dao.Sid;
-import org.restcomm.connect.commons.util.DNSUtils;
-import org.restcomm.connect.dao.CallDetailRecordsDao;
-import org.restcomm.connect.dao.DaoManager;
-import org.restcomm.connect.dao.RegistrationsDao;
-import org.restcomm.connect.dao.common.OrganizationUtil;
-import org.restcomm.connect.dao.entities.CallDetailRecord;
-import org.restcomm.connect.dao.entities.Client;
-import org.restcomm.connect.dao.entities.Registration;
- import org.restcomm.connect.telephony.api.CallInfo;
- import org.restcomm.connect.telephony.api.CallInfoStreamEvent;
- import org.restcomm.connect.telephony.api.CallStateChanged;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Currency;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Vector;
 
 /**
   * Helper methods for proxying SIP messages between Restcomm clients that are connecting in peer to peer mode
@@ -119,20 +120,37 @@ import org.restcomm.connect.dao.entities.Registration;
                  final String aor = registration.getAddressOfRecord();
                  SipURI to;
                  SipURI from;
-                 to = (SipURI) sipFactory.createURI(location);
+                 SipURI locationURI = null;
+
                  Sid fromOrganizationSid = OrganizationUtil.getOrganizationSidBySipURIHost(storage, (SipURI) request.getFrom().getURI());
                  // if both clients don't belong to same organization, call should not be allowed.
                  if(!toOrganizationSid.equals(fromOrganizationSid)){
                      logger.warn(String.format("B2B clients do not belong to same organization. from-client: %s belong to %s . where as to-client %s belong to %s", client.getLogin(), fromOrganizationSid, user, toOrganizationSid));
                      return false;
                  }
-                 from = (SipURI) sipFactory.createURI((registrations.getRegistration(client.getLogin(), fromOrganizationSid)).getLocation());
+                 if(patchForNat) {
+                     to = (SipURI) sipFactory.createURI(location);
+                     from = (SipURI) sipFactory.createURI((registrations.getRegistration(client.getLogin(), fromOrganizationSid)).getLocation());
+                 } else {
+                     // https://github.com/RestComm/Restcomm-Connect/issues/2741 support for SBC
+                     if (logger.isDebugEnabled()) {
+                         logger.debug("B2BUA not patched for NAT, using address of record for to and from");
+                     }
+                     to = (SipURI) sipFactory.createURI(aor);
+                     locationURI = (SipURI) sipFactory.createURI(location);
+                     from = (SipURI) sipFactory.createURI((registrations.getRegistration(client.getLogin(), fromOrganizationSid)).getAddressOfRecord());
+                 }
+
                  final SipSession incomingSession = request.getSession();
                  // create and send the outgoing invite and do the session linking
                  incomingSession.setAttribute(B2BUA_LAST_REQUEST, request);
                  SipServletRequest outRequest = sipFactory.createRequest(request.getApplicationSession(), request.getMethod(),
                          from, to);
-                 outRequest.setRequestURI(to);
+                 if(patchForNat) {
+                     outRequest.setRequestURI(to);
+                 } else {
+                     outRequest.setRequestURI(locationURI);
+                 }
 
                  if (request.getContent() != null) {
                      final byte[] sdp = request.getRawContent();
@@ -158,6 +176,8 @@ import org.restcomm.connect.dao.entities.Registration;
                          outRequest.setContent(sdp, request.getContentType());
                      }
                  }
+
+                 addHeadersToMessage(outRequest, getCustomHeaders(request, "X-"));
 
                  final SipSession outgoingSession = outRequest.getSession();
                  if (request.isInitial()) {
@@ -229,9 +249,17 @@ import org.restcomm.connect.dao.entities.Registration;
      }
 
      /**
+      * @param system
       * @param request
-      * @param client
-      * @param toClient
+      * @param fromClient
+      * @param from
+      * @param to
+      * @param proxyUsername
+      * @param proxyPassword
+      * @param storage
+      * @param sipFactory
+      * @param callToSipUri
+      * @param patchForNat
       * @throws IOException
       */
      // https://telestax.atlassian.net/browse/RESTCOMM-335
@@ -303,6 +331,8 @@ import org.restcomm.connect.dao.entities.Registration;
                      outRequest.setContent(sdp, request.getContentType());
                  }
              }
+
+             addHeadersToMessage(outRequest, getCustomHeaders(request, "X-"));
 
              final SipSession outgoingSession = outRequest.getSession();
              if (request.isInitial()) {
@@ -587,6 +617,9 @@ import org.restcomm.connect.dao.entities.Registration;
                  clonedResponse.setContent(sdp, response.getContentType());
              }
          }
+
+         addHeadersToMessage(clonedResponse, getCustomHeaders(response, "X-"));
+
          clonedResponse.send();
 
          // CallDetailRecord callRecord = records.getCallDetailRecord((Sid) request.getSession().getAttribute(CDR_SID));
@@ -666,13 +699,43 @@ import org.restcomm.connect.dao.entities.Registration;
          return (linkedB2BUASession != null);
      }
 
+     private static Map<String, String> getCustomHeaders (SipServletMessage message, String prefix) {
+         Map<String, String> customHeaders = new HashMap<>();
+
+         Iterator<String> headersIter = message.getHeaderNames();
+         while (headersIter.hasNext()) {
+             String header = headersIter.next();
+             if (header.toUpperCase().startsWith(prefix)) {
+                 customHeaders.put(header, message.getHeader(header).toString());
+             }
+         }
+
+         return customHeaders;
+     }
+
+    /**
+     * Method adds custom headers to a SipServlet message
+     * @param message
+     * @param customHeaders
+     */
+     private static void addHeadersToMessage(SipServletMessage message, Map<String, String> customHeaders) {
+         for (Map.Entry<String, String> entry: customHeaders.entrySet()) {
+             String headerName = entry.getKey();
+             String headerVal = entry.getValue();
+             message.addHeader(headerName, headerVal);
+         }
+     }
+
      /**
       * Modify Messages with new headers and header attributes
       * Moved from CallManager and Call
+      *
+      * The method deals with custom and standard headers, such as R-URI, Route etc
+      *
       * TODO: refactor/rename/handle more specific headers
       * @param sipFactory SipFactory
-      * @param SipServletRequest message
-      * @param Map<String,ArrayList<String>> headers
+      * @param message
+      * @param headers
       */
      public static void addHeadersToMessage(SipServletRequest message, Map<String, ArrayList<String>> headers, SipFactory sipFactory) {
          if (headers != null && sipFactory != null) {
@@ -684,7 +747,7 @@ import org.restcomm.connect.dao.entities.Registration;
                      logger.debug("headerName=" + headerName + " headerVal=" + message.getHeader(headerName));
                  }
 
-                 if( headerName.equalsIgnoreCase("Request-URI") ) {
+                 if(headerName.equalsIgnoreCase("Request-URI")) {
                      //handle Request-URI
                      javax.servlet.sip.URI reqURI = message.getRequestURI();
                      if(logger.isDebugEnabled()) {

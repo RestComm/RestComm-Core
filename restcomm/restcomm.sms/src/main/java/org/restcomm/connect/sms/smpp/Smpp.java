@@ -1,5 +1,9 @@
 package org.restcomm.connect.sms.smpp;
 
+import org.apache.log4j.Logger;
+
+import com.cloudhopper.commons.charset.Charset;
+import com.cloudhopper.commons.charset.CharsetUtil;
 import com.cloudhopper.smpp.SmppBindType;
 import com.cloudhopper.smpp.impl.DefaultSmppSession;
 import com.cloudhopper.smpp.type.Address;
@@ -11,6 +15,10 @@ import com.cloudhopper.smpp.type.Address;
  */
 public class Smpp {
 
+    private static final Logger logger = Logger.getLogger(Smpp.class);
+
+    private static final String DEFAULT_SMPP_INBOUND_ENCODING = "MODIFIED-UTF8";
+    private static final String DEFAULT_SMPP_OUTBOUND_ENCODING = "GSM";
     private String name;
     private String systemId;
     private String peerIp;
@@ -37,6 +45,11 @@ public class Smpp {
 
     private long enquireLinkDelay;
 
+    private Charset inboundCharacterEncoding;
+    private Charset outboundCharacterEncoding;
+    private boolean messagePayloadFlag;
+    private boolean autoDetectDcsFlag;
+
     // not used as of today, but later we can allow users to stop each SMPP
     private boolean started = true;
 
@@ -45,7 +58,7 @@ public class Smpp {
     public Smpp(String name, String systemId, String peerIp, int peerPort, SmppBindType smppBindType, String password,
             String systemType, byte interfaceVersion, Address address, long connectTimeout, int windowSize,
             long windowWaitTimeout, long requestExpiryTimeout, long windowMonitorInterval, boolean countersEnabled,
-            boolean logBytes, long enquireLinkDelay) {
+            boolean logBytes, long enquireLinkDelay, String inboundCharacterEncoding, String outboundCharacterEncoding, boolean messagePayloadFlag, boolean autoDetectDcsFlag) {
         super();
         this.name = name;
         this.systemId = systemId;
@@ -64,6 +77,24 @@ public class Smpp {
         this.countersEnabled = countersEnabled;
         this.logBytes = logBytes;
         this.enquireLinkDelay = enquireLinkDelay;
+        try {
+            this.inboundCharacterEncoding = CharsetUtil.map(inboundCharacterEncoding);
+        } catch (Exception e) {
+            this.inboundCharacterEncoding = CharsetUtil.map(DEFAULT_SMPP_INBOUND_ENCODING);
+            if(logger.isInfoEnabled()) {
+                logger.info("Charset " + inboundCharacterEncoding + " does not exist. Inbound encoding is set to default " + DEFAULT_SMPP_INBOUND_ENCODING + "\n" + e.getMessage());
+            }
+        }
+        try {
+            this.outboundCharacterEncoding = CharsetUtil.map(outboundCharacterEncoding);
+        } catch (Exception e) {
+            this.outboundCharacterEncoding = CharsetUtil.map(DEFAULT_SMPP_OUTBOUND_ENCODING);
+            if(logger.isInfoEnabled()) {
+                logger.info("Charset " + outboundCharacterEncoding+ " does not exist. Outbound encoding is set to default " + DEFAULT_SMPP_OUTBOUND_ENCODING + "\n" + e.getMessage());
+            }
+        }
+        this.messagePayloadFlag = messagePayloadFlag;
+        this.autoDetectDcsFlag = autoDetectDcsFlag;
     }
 
     public String getName() {
@@ -202,6 +233,21 @@ public class Smpp {
         this.enquireLinkDelay = enquireLinkDelay;
     }
 
+    public Charset getInboundDefaultEncoding() {
+        return inboundCharacterEncoding;
+    }
+    public Charset getOutboundDefaultEncoding() {
+        return outboundCharacterEncoding;
+    }
+
+    public boolean getMessagePayloadFlag() {
+        return messagePayloadFlag;
+    }
+
+    public boolean getAutoDetectDcsFlag() {
+        return autoDetectDcsFlag;
+    }
+
     public boolean isStarted() {
         return started;
     }
@@ -228,7 +274,10 @@ public class Smpp {
                 + ", interfaceVersion=" + interfaceVersion + ", address=" + address + ", connectTimeout=" + connectTimeout
                 + ", windowSize=" + windowSize + ", windowWaitTimeout=" + windowWaitTimeout + ", requestExpiryTimeout="
                 + requestExpiryTimeout + ", windowMonitorInterval=" + windowMonitorInterval + ", countersEnabled="
-                + countersEnabled + ", logBytes=" + logBytes + ", enquireLinkDelay=" + enquireLinkDelay + "]";
+                + countersEnabled + ", logBytes=" + logBytes + ", enquireLinkDelay=" + enquireLinkDelay
+                + ", inboundCharacterEncoding=" + inboundCharacterEncoding.toString()
+                + ", outboundCharacterEncoding=" + outboundCharacterEncoding.toString()
+                + "]";
     }
 
     @Override
@@ -255,5 +304,4 @@ public class Smpp {
             return false;
         return true;
     }
-
 }

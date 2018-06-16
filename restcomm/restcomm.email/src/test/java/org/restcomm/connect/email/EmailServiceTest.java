@@ -26,6 +26,7 @@ import akka.actor.Props;
 import akka.actor.UntypedActorFactory;
 import akka.testkit.JavaTestKit;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.concurrent.TimeUnit;
 
@@ -45,6 +46,7 @@ import scala.concurrent.duration.FiniteDuration;
 import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.ServerSetupTest;
 
+import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 
@@ -110,9 +112,36 @@ public final class EmailServiceTest {
                 assertEquals(emailMsg.subject(), m.getSubject());
                 assertTrue(String.valueOf(m.getContent()).contains(emailMsg.body()));
                 assertEquals(emailMsg.from(), m.getFrom()[0].toString());
+                assertEquals(emailMsg.contentType(), "text/plain");
                 } catch(Exception e){
                     assertTrue(false);
             }
+            }
+        };
+    }
+
+    @Test
+    public void testSendHTMLEmail() throws IOException, MessagingException {
+        new JavaTestKit(system) {
+            {
+                final ActorRef observer = getRef();
+
+                // Send the email.
+                final Mail emailMsg = new Mail("hascode@localhost", "someone@localhost.com","Testing Email Service" ,"This is the subject of the email service testing", "someone2@localhost.com, test@localhost.com, test3@localhost.com", "someone3@localhost.com, test2@localhost.com", null, null, "text/html");
+                emailService.tell(new EmailRequest(emailMsg), observer);
+
+                final EmailResponse response = expectMsgClass(FiniteDuration.create(60, TimeUnit.SECONDS), EmailResponse.class);
+                assertTrue(response.succeeded());
+
+                // fetch messages from server
+                MimeMessage[] messages = mailServer.getReceivedMessages();
+                assertNotNull(messages);
+                assertEquals(6, messages.length);
+                MimeMessage m = messages[0];
+                assertEquals(emailMsg.subject(), m.getSubject());
+                assertTrue(String.valueOf(m.getContent()).contains(emailMsg.body()));
+                assertEquals(emailMsg.from(), m.getFrom()[0].toString());
+                assertEquals(emailMsg.contentType(), "text/html");
             }
         };
     }

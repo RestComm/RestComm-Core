@@ -20,6 +20,7 @@
 package org.restcomm.connect.testsuite.sms;
 
 import gov.nist.javax.sip.header.SIPHeader;
+
 import org.apache.log4j.Logger;
 import org.cafesip.sipunit.Credential;
 import org.cafesip.sipunit.SipCall;
@@ -42,6 +43,7 @@ import org.junit.runner.RunWith;
 import org.restcomm.connect.commons.Version;
 import org.restcomm.connect.commons.annotations.FeatureAltTests;
 import org.restcomm.connect.commons.annotations.ParallelClassTests;
+import org.restcomm.connect.commons.annotations.UnstableTests;
 import org.restcomm.connect.commons.annotations.WithInSecsTests;
 import org.restcomm.connect.testsuite.NetworkPortAssigner;
 import org.restcomm.connect.testsuite.WebArchiveUtil;
@@ -50,6 +52,7 @@ import javax.sip.address.SipURI;
 import javax.sip.header.Header;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
+
 import java.net.URL;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -524,6 +527,7 @@ public class SmsTest {
     }
 
     @Test
+    @Category(UnstableTests.class)
     public void testP2PSendSMS_GeorgeClient_ToFotiniClient() throws ParseException {
         SipURI uri = aliceSipStack.getAddressFactory().createSipURI(null, restcommContact);
         //Register George phone
@@ -559,6 +563,7 @@ public class SmsTest {
     }
 
     @Test
+    @Category(UnstableTests.class)
     public void testP2PSendSMS_GeorgeClient_ToFotiniClientOrg2() throws ParseException {
         SipURI uri = georgeSipStackOrg2.getAddressFactory().createSipURI(null, restcommContact);
         //Register George phone

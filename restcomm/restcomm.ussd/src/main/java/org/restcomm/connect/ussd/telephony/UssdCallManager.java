@@ -19,12 +19,26 @@
  */
 package org.restcomm.connect.ussd.telephony;
 
-import akka.actor.ActorRef;
-import akka.actor.Props;
-import akka.actor.UntypedActor;
-import akka.actor.UntypedActorFactory;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
+import static javax.servlet.sip.SipServlet.OUTBOUND_INTERFACES;
+import static javax.servlet.sip.SipServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.sip.SipServletResponse.SC_FORBIDDEN;
+import static javax.servlet.sip.SipServletResponse.SC_NOT_FOUND;
+import static javax.servlet.sip.SipServletResponse.SC_OK;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import javax.servlet.ServletContext;
+import javax.servlet.sip.ServletParseException;
+import javax.servlet.sip.SipApplicationSession;
+import javax.servlet.sip.SipFactory;
+import javax.servlet.sip.SipServletRequest;
+import javax.servlet.sip.SipServletResponse;
+import javax.servlet.sip.SipURI;
+
 import org.apache.commons.configuration.Configuration;
 import org.joda.time.DateTime;
 import org.restcomm.connect.commons.configuration.RestcommConfiguration;
@@ -32,6 +46,7 @@ import org.restcomm.connect.commons.configuration.sets.RcmlserverConfigurationSe
 import org.restcomm.connect.commons.dao.Sid;
 import org.restcomm.connect.commons.faulttolerance.RestcommUntypedActor;
 import org.restcomm.connect.commons.util.UriUtils;
+import org.restcomm.connect.core.service.api.NumberSelectorService;
 import org.restcomm.connect.dao.AccountsDao;
 import org.restcomm.connect.dao.ApplicationsDao;
 import org.restcomm.connect.dao.DaoManager;
@@ -47,7 +62,6 @@ import org.restcomm.connect.extension.api.IExtensionFeatureAccessRequest;
 import org.restcomm.connect.extension.api.RestcommExtensionGeneric;
 import org.restcomm.connect.extension.controller.ExtensionController;
 import org.restcomm.connect.http.client.rcmlserver.resolver.RcmlserverResolver;
-import org.restcomm.connect.interpreter.NumberSelectorService;
 import org.restcomm.connect.interpreter.SIPOrganizationUtil;
 import org.restcomm.connect.interpreter.StartInterpreter;
 import org.restcomm.connect.telephony.api.CallManagerResponse;
@@ -59,24 +73,12 @@ import org.restcomm.connect.telephony.api.util.CallControlHelper;
 import org.restcomm.connect.ussd.interpreter.UssdInterpreter;
 import org.restcomm.connect.ussd.interpreter.UssdInterpreterParams;
 
-import javax.servlet.ServletContext;
-import javax.servlet.sip.ServletParseException;
-import javax.servlet.sip.SipApplicationSession;
-import javax.servlet.sip.SipFactory;
-import javax.servlet.sip.SipServletRequest;
-import javax.servlet.sip.SipServletResponse;
-import javax.servlet.sip.SipURI;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.List;
-import java.util.regex.Pattern;
-
-import static javax.servlet.sip.SipServlet.OUTBOUND_INTERFACES;
-import static javax.servlet.sip.SipServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.sip.SipServletResponse.SC_FORBIDDEN;
-import static javax.servlet.sip.SipServletResponse.SC_NOT_FOUND;
-import static javax.servlet.sip.SipServletResponse.SC_OK;
+import akka.actor.ActorRef;
+import akka.actor.Props;
+import akka.actor.UntypedActor;
+import akka.actor.UntypedActorFactory;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
 
 /**
  * @author <a href="mailto:gvagenas@gmail.com">gvagenas</a>
@@ -122,7 +124,7 @@ public class UssdCallManager extends RestcommUntypedActor {
         this.ussdGatewayUri = ussdGatewayConfig.getString("ussd-gateway-uri");
         this.ussdGatewayUsername = ussdGatewayConfig.getString("ussd-gateway-user");
         this.ussdGatewayPassword = ussdGatewayConfig.getString("ussd-gateway-password");
-        numberSelector = (NumberSelectorService) context.getAttribute(NumberSelectorService.class.getName());
+        numberSelector = (NumberSelectorService)context.getAttribute(NumberSelectorService.class.getName());
 
         extensions = ExtensionController.getInstance().getExtensions(ExtensionType.FeatureAccessControl);
     }

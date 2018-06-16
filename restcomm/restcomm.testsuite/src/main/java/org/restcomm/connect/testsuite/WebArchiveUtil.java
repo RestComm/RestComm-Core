@@ -12,7 +12,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.jboss.shrinkwrap.resolver.api.maven.archive.ShrinkWrapMaven;
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.restcomm.connect.commons.Version;
 
 public class WebArchiveUtil {
@@ -20,23 +20,26 @@ public class WebArchiveUtil {
     public static File tweakFilePorts(String filePath, Map<String, String> portReplaments) {
         try {
             InputStream resourceAsStream = WebArchiveUtil.class.getClassLoader().getResourceAsStream(filePath);
-            StringWriter writer = new StringWriter();
-            IOUtils.copy(resourceAsStream, writer, java.nio.charset.Charset.defaultCharset());
-            String confStr = writer.toString();
-            for (String key : portReplaments.keySet()) {
-                confStr = confStr.replace(key, portReplaments.get(key));
+            if (resourceAsStream != null) {
+                StringWriter writer = new StringWriter();
+                IOUtils.copy(resourceAsStream, writer, java.nio.charset.Charset.defaultCharset());
+                String confStr = writer.toString();
+                for (String key : portReplaments.keySet()) {
+                    confStr = confStr.replace(key, portReplaments.get(key));
+                }
+                String targetFilePath = "target" + File.separator;
+                if (System.getProperty("arquillian_sip_port") != null) {
+                    targetFilePath = targetFilePath + System.getProperty("arquillian_sip_port");
+                }
+                targetFilePath = targetFilePath + File.separator + filePath;
+                File f = new File(targetFilePath);
+                FileUtils.writeStringToFile(f, confStr);
+                return f;
             }
-            String targetFilePath = "target" + File.separator;
-            if (System.getProperty("arquillian_sip_port") != null) {
-                targetFilePath = targetFilePath + System.getProperty("arquillian_sip_port");
-            }
-            targetFilePath = targetFilePath + File.separator + filePath;
-            File f = new File(targetFilePath);
-            FileUtils.writeStringToFile(f, confStr);
-            return f;
         } catch (IOException ex) {
             return null;
         }
+        return null;
     }
 
     public static WebArchive createWebArchiveNoGw(String restcommConf, String dbScript, Map<String, String> replacements) {
@@ -49,6 +52,7 @@ public class WebArchiveUtil {
         webInfResources.put(dbScript, "data/hsql/restcomm.script");
         webInfResources.put("akka_application.conf", "classes/application.conf");
         webInfResources.put("sip.xml", "/sip.xml");
+        webInfResources.put("web.xml", "web.xml");
         return createWebArchiveNoGw(webInfResources, resources, replacements);
     }
 
@@ -59,15 +63,17 @@ public class WebArchiveUtil {
     ) {
 
         WebArchive archive = ShrinkWrap.create(WebArchive.class, "restcomm.war");
-        final WebArchive restcommArchive = ShrinkWrapMaven.resolver()
+        final WebArchive restcommArchive = Maven.resolver()
                 .resolve(mavenApp).withoutTransitivity()
                 .asSingle(WebArchive.class);
         archive = archive.merge(restcommArchive);
 
         //by default include Allowing extension to check executionPoints
         File extFile = WebArchiveUtil.tweakFilePorts("org/restcomm/connect/testsuite/extensions/extensions_allowing.xml", replacements);
-        archive.delete("/WEB-INF/" + "conf/extensions.xml");
-        archive.addAsWebInfResource(extFile, "conf/extensions.xml");
+        if (extFile != null) {
+            archive.delete("/WEB-INF/" + "conf/extensions.xml");
+            archive.addAsWebInfResource(extFile, "conf/extensions.xml");
+        }
 
         for (String webdInfFile : webInfResources.keySet()) {
             File f = WebArchiveUtil.tweakFilePorts(webdInfFile, replacements);

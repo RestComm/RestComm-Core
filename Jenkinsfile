@@ -1,6 +1,6 @@
 
-def runTestsuite(exludedGroups = "org.restcomm.connect.commons.annotations.BrokenTests",groups = "", forkCount=1, profile="") {
-        sh "mvn -f restcomm/restcomm.testsuite/pom.xml  install -DskipUTs=false  -Dmaven.test.failure.ignore=true -Dmaven.test.redirectTestOutputToFile=true -Dfailsafe.rerunFailingTestsCount=1 -Dgroups=\"$groups\" -DexcludedGroups=\"$exludedGroups\""
+def runTestsuite(exludedGroups = "org.restcomm.connect.commons.annotations.BrokenTests",groups = "", forkCount=1, profile="defaultProfile") {
+        sh "mvn -f restcomm/restcomm.testsuite/pom.xml  install -DskipUTs=false  -Dmaven.test.failure.ignore=true -Dmaven.test.redirectTestOutputToFile=true -Dfailsafe.rerunFailingTestsCount=1 -P $profile -DforkCount=\"$forkCount\" -Dgroups=\"$groups\" -DexcludedGroups=\"$exludedGroups\""
 }
 
 
@@ -9,9 +9,9 @@ def buildRC() {
         try {
             if (env.BRANCH_NAME == 'master') {
                 //do sonar just in master
-                sh "mvn -f restcomm/pom.xml -pl \\!restcomm.testsuite -Dmaven.test.redirectTestOutputToFile=true -Dsonar.host.url=https://sonarqube.com -Dsonar.login=dd43f79a4bd32b1f2c484362e8a4de676a8388c4 -Dsonar.organization=jaimecasero-github -Dsonar.branch=master install sonar:sonar"
+                sh "mvn -f restcomm/pom.xml -pl \\!restcomm.testsuite -Dmaven.test.redirectTestOutputToFile=true -Dsonar.host.url=https://sonarqube.com -Dsonar.login=dd43f79a4bd32b1f2c484362e8a4de676a8388c4 -Dsonar.organization=jaimecasero-github -Dsonar.branch=master clean install sonar:sonar"
             } else {
-                sh "mvn -f restcomm/pom.xml -pl \\!restcomm.testsuite -Dmaven.test.redirectTestOutputToFile=true install"
+                sh "mvn -f restcomm/pom.xml -pl \\!restcomm.testsuite -Dmaven.test.redirectTestOutputToFile=true clean install"
             }
         } catch(err) {
             publishRCResults()

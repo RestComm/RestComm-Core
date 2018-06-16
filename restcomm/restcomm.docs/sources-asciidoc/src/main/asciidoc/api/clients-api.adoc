@@ -29,7 +29,7 @@ The CDR records generated for calls made by Clients, will have account SID the a
 |FriendlyName |A friendly name for this client.
 |AccountSid |The unique id of the Account that owns this phone number.
 |ApiVersion |Calls to this phone number will create a new RCML session with this API version.
-|Login |The name that is used inside the <Client> noun. This is also used by the user agent as the user name used for registration and outbound dialing.
+|Login |The name that is used inside the <Client> noun. This is also used by the user agent as the user name used for registration and outbound dialing. This must conform to "userinfo" part as defined in RFC2396.
 |Password |The password used by the user agent during registration and outbound dialing.
 |Status |The client status the possible values are 0 for disabled and 1 for enabled.
 |VoiceUrl |The URL RestComm will request when this client makes an outbound call.

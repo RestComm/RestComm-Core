@@ -45,12 +45,12 @@ public class SmsMessageFilter {
     private final String instanceid;
 
     public SmsMessageFilter(String accountSid, List<String> accountSidSet, String recipient, String sender, String startTime, String endTime,
-                                  String body, Integer limit, Integer offset) throws ParseException {
+                            String body, Integer limit, Integer offset) throws ParseException {
         this(accountSid, accountSidSet, recipient,sender,startTime,endTime, body, limit,offset,null);
     }
 
     public SmsMessageFilter(String accountSid, List<String> accountSidSet, String recipient, String sender, String startTime, String endTime,
-                                  String body, Integer limit, Integer offset, String instanceId) throws ParseException {
+                            String body, Integer limit, Integer offset, String instanceId) throws ParseException {
         this.accountSid = accountSid;
         this.accountSidSet = accountSidSet;
 

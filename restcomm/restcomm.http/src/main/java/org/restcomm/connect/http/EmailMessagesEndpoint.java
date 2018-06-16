@@ -9,10 +9,31 @@ import akka.actor.UntypedActorContext;
 import akka.actor.UntypedActorFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.sun.jersey.spi.resource.Singleton;
 import com.thoughtworks.xstream.XStream;
+import javax.annotation.PostConstruct;
+import javax.mail.internet.ContentType;
+import javax.mail.internet.ParseException;
+import javax.servlet.ServletContext;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import static javax.ws.rs.core.MediaType.*;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static javax.ws.rs.core.Response.ok;
+import static javax.ws.rs.core.Response.status;
+import javax.ws.rs.core.SecurityContext;
 import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
+import org.restcomm.connect.commons.annotations.concurrency.ThreadSafe;
 import org.restcomm.connect.commons.faulttolerance.RestcommUntypedActor;
 import org.restcomm.connect.commons.patterns.Observe;
 import org.restcomm.connect.commons.patterns.Observing;
@@ -26,25 +47,17 @@ import org.restcomm.connect.email.api.EmailResponse;
 import org.restcomm.connect.email.api.Mail;
 import org.restcomm.connect.http.converter.EmailMessageConverter;
 import org.restcomm.connect.http.converter.RestCommResponseConverter;
-
-import javax.annotation.PostConstruct;
-import javax.servlet.ServletContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-
-import static javax.ws.rs.core.MediaType.*;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-import static javax.ws.rs.core.Response.ok;
-import static javax.ws.rs.core.Response.status;
+import org.restcomm.connect.http.security.ContextUtil;
+import org.restcomm.connect.identity.UserIdentityContext;
 
 
 /**
  *  @author lefty .liblefty@telestax.com (Lefteris Banos)
  */
-public class EmailMessagesEndpoint extends SecuredEndpoint {
+@Path("/Accounts/{accountSid}/Email/Messages")
+@ThreadSafe
+@Singleton
+public class EmailMessagesEndpoint extends AbstractEndpoint {
     private static Logger logger = Logger.getLogger(EmailMessagesEndpoint.class);
     @Context
     protected ServletContext context;
@@ -58,6 +71,9 @@ public class EmailMessagesEndpoint extends SecuredEndpoint {
 
     // Send the email.
     protected Mail emailMsg;
+
+
+
 
     public EmailMessagesEndpoint() {
         super();
@@ -105,6 +121,21 @@ public class EmailMessagesEndpoint extends SecuredEndpoint {
             data.putSingle("Subject", subject.substring(0, 160));
         }
 
+        if (data.containsKey("Type")) {
+            final String contentType = data.getFirst("Type");
+            try {
+                ContentType cType = new ContentType(contentType);
+                if (cType.getParameter("charset") == null) {
+                    cType.setParameter("charset", "UTF-8");
+                }
+                data.remove("Type");
+                data.putSingle("Type", cType.toString());
+            }
+            catch (ParseException exception) {
+                throw new IllegalArgumentException(exception);
+            }
+        }
+
         if (data.containsKey("CC")) {
             final String cc = data.getFirst("CC");
             data.remove("CC");
@@ -128,8 +159,13 @@ public class EmailMessagesEndpoint extends SecuredEndpoint {
     }
 
     @SuppressWarnings("unchecked")
-    protected Response putEmailMessage(final String accountSid, final MultivaluedMap<String, String> data, final MediaType responseType) {
-        secure(accountsDao.getAccount(accountSid), "RestComm:Create:EmailMessages"); //need to fix for Emails.
+    protected Response putEmailMessage(final String accountSid,
+            final MultivaluedMap<String, String> data,
+            final MediaType responseType,
+            UserIdentityContext userIdentityContext) {
+        permissionEvaluator.secure(accountsDao.getAccount(accountSid),
+                "RestComm:Create:EmailMessages",
+                userIdentityContext); //need to fix for Emails.
         try {
             validate(data);
             normalize(data);
@@ -140,22 +176,23 @@ public class EmailMessagesEndpoint extends SecuredEndpoint {
         final String recipient = data.getFirst("To");
         final String body = data.getFirst("Body");
         final String subject = data.getFirst("Subject");
+        final String type = data.containsKey("Type") ? data.getFirst("Type") : "text/plain";
         final String cc = data.containsKey("CC")?data.getFirst("CC"):" ";
         final String bcc = data.containsKey("BCC")?data.getFirst("BCC"):" ";
 
         try {
 
             // Send the email.
-            emailMsg = new Mail(sender, recipient, subject, body ,cc,bcc, DateTime.now(),accountSid);
+            emailMsg = new Mail(sender, recipient, subject, body ,cc, bcc, DateTime.now(), accountSid, type);
             if (mailerService == null){
                 mailerService = session(confemail);
             }
 
             final ActorRef observer = observer();
             mailerService.tell(new Observe(observer), observer);
-            if (APPLICATION_JSON_TYPE == responseType) {
+            if (APPLICATION_JSON_TYPE.equals(responseType)) {
                 return ok(gson.toJson(emailMsg), APPLICATION_JSON).build();
-            } else if (APPLICATION_XML_TYPE == responseType) {
+            } else if (APPLICATION_XML_TYPE.equals(responseType)) {
                 final RestCommResponse response = new RestCommResponse(emailMsg);
                 return ok(xstream.toXML(response), APPLICATION_XML).build();
             } else {
@@ -176,7 +213,7 @@ public class EmailMessagesEndpoint extends SecuredEndpoint {
         } else if (!data.containsKey("Body")) {
             throw new NullPointerException("Body can not be null.");
         } else if (!data.containsKey("Subject")) {
-            throw new NullPointerException("Body can not be null.");
+            throw new NullPointerException("Subject can not be null.");
         }
     }
 
@@ -273,6 +310,16 @@ public class EmailMessagesEndpoint extends SecuredEndpoint {
         public InvalidEmailException(String message) {
             super(message);
         }
+    }
+
+    @POST
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response putEmailMessage(@PathParam("accountSid") final String accountSid,
+            final MultivaluedMap<String, String> data,
+            @HeaderParam("Accept") String accept,
+            @Context SecurityContext sec) {
+        return putEmailMessage(accountSid, data, retrieveMediaType(accept),
+                ContextUtil.convert(sec));
     }
 
 }

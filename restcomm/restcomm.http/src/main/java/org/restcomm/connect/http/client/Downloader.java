@@ -22,6 +22,8 @@ package org.restcomm.connect.http.client;
 import akka.actor.ActorRef;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
@@ -39,7 +41,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.restcomm.connect.commons.common.http.CustomHttpClientBuilder;
 import org.restcomm.connect.commons.configuration.RestcommConfiguration;
 import org.restcomm.connect.commons.faulttolerance.RestcommUntypedActor;
-import org.restcomm.connect.commons.util.StringUtils;
 import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -86,6 +87,7 @@ public final class Downloader extends RestcommUntypedActor {
         try {
             do {
                 request = request(temp);
+                //FIXME:should we externalize RVD encoding default?
                 request.setHeader("http.protocol.content-charset", "UTF-8");
                 if (descriptor.getTimeout() > 0){
                     HttpContext httpContext = new BasicHttpContext();
@@ -161,6 +163,7 @@ public final class Downloader extends RestcommUntypedActor {
                 // parse an XML document into a DOM tree
                 String xml = descriptor.getContentAsString().trim().replaceAll("&([^;]+(?!(?:\\w|;)))", "&amp;$1");
                 DocumentBuilder parser = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+                //FIXME:should we externalize RVD encoding default?
                 parser.parse(new InputSource(new ByteArrayInputStream(xml.getBytes("utf-8"))));
                 return descriptor;
             } catch (final Exception e) {
@@ -218,6 +221,7 @@ public final class Downloader extends RestcommUntypedActor {
         } else if ("POST".equalsIgnoreCase(method)) {
             final List<NameValuePair> parameters = descriptor.getParameters();
             final HttpPost post = new HttpPost(uri);
+            //FIXME:should we externalize RVD encoding default?
             post.setEntity(new UrlEncodedFormEntity(parameters, "UTF-8"));
             return post;
         } else {
@@ -237,14 +241,17 @@ public final class Downloader extends RestcommUntypedActor {
             InputStream stream = entity.getContent();
             try {
                 final Header contentEncoding = entity.getContentEncoding();
-                if (contentEncoding != null) {
-                    builder.setContentEncoding(contentEncoding.getValue());
+                //FIXME:should we externalize RVD encoding default?
+                String encodingValue = "UTF-8";
+                if (contentEncoding != null && !contentEncoding.getValue().isEmpty()) {
+                    encodingValue = contentEncoding.getValue();
+                    builder.setContentEncoding(encodingValue);
                 }
                 final Header contentType = entity.getContentType();
                 if (contentType != null) {
                     builder.setContentType(contentType.getValue());
                 }
-                builder.setContent(StringUtils.toString(stream));
+                builder.setContent(IOUtils.toString(stream, encodingValue));
                 builder.setContentLength(entity.getContentLength());
                 builder.setIsChunked(entity.isChunked());
             } finally {

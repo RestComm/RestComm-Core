@@ -17,19 +17,25 @@
                 </form>
             </div>
             <div  class="col-md-4 col-md-offset-4 col-xs-6">
-                <button id="register-sub-account" class="rc-btn btn-primary pull-right hidden-xs" ng-click="showRegisterAccountModal()"><b>+</b> New Account</button>
+                <button id="register-sub-account" class="rc-btn btn-primary pull-right hidden-xs" rc-fac="fac.SubAccountsLimit" ng-click="showRegisterAccountModal()"><b>+</b> New Account</button>
                 <button id="register-sub-account-mobile" class="rc-btn btn-primary rc-btn-sm pull-right visible-xs" ng-click="showRegisterAccountModal()"><b>+</b> New Account</button>
             </div>
         </div>
         <hr>
 
-        <div ng-hide="filtered.length > 0" class="jumbotron rc-no-items">
+        <div ng-show="!search.friendly_name && (!subAccountsList || (filtered.length === 0))" class="jumbotron rc-no-items">
             <h1><i class="fa fa-users"></i> </h1>
             <h2>No Sub Accounts</h2>
             <h5>Why don't you get some friends in?</h5>
         </div>
 
-        <table ng-show="(subAccountsList | filter:search).length > 0" class="table table-hover rc-list sub-accounts-list" ng-cloak>
+        <div ng-show="search.friendly_name && (!subAccountsList || (filtered.length === 0))" class="jumbotron rc-no-items">
+            <h1><i class="fa fa-search"></i> </h1>
+            <h2>No accounts found for "{{ search.friendly_name }}"</h2>
+            <h5>Please update your search and try again.</h5>
+        </div>
+
+        <table ng-show="filtered.length > 0" class="table table-hover rc-list sub-accounts-list" ng-cloak>
             <thead>
             <th class="sub-accounts-list-name" rc-list-sort by="predicate" order="'friendly_name'" reverse="reverse">Name</th>
             <th class="sub-accounts-list-account-sid">Account SID</th>

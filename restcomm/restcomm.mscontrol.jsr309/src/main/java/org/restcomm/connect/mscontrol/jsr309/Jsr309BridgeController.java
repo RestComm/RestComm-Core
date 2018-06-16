@@ -273,6 +273,7 @@ public class Jsr309BridgeController extends MediaServerController {
                 final Recording recording = builder.build();
                 RecordingsDao recordsDao = daoManager.getRecordingsDao();
                 recordsDao.addRecording(recording, MediaAttributes.MediaType.AUDIO_ONLY);
+                getContext().system().eventStream().publish(recording);
             } else {
                 if(logger.isInfoEnabled()) {
                     logger.info("Call wraping up recording. File doesn't exist since duration is 0");

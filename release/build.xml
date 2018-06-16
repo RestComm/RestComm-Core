@@ -29,11 +29,11 @@
   <!--<property name="mobicents-media.download.url" value="https://github.com/Mobicents/mediaserver/releases/download/3.0.2.FINAL/mms-server-3.0.2.Final.zip" />-->
   <!--property name="mobicents-media.download.url" value="https://mobicents.ci.cloudbees.com/view/MediaServer/job/Mobicents-MediaServer-2.x/lastSuccessfulBuild/artifact/bootstrap/target/mms-server.zip" /-->
   <!--property name="mobicents-media.download.url" value="https://mobicents.ci.cloudbees.com/view/MediaServer/job/Mobicents-MediaServer-4.x/lastSuccessfulBuild/artifact/bootstrap/target/mms-server.zip"/-->
-  <property name="restcomm-media.download.url" value="https://mobicents.ci.cloudbees.com/view/MediaServer/job/Restcomm-MediaServer-6.x/${restcomm-media.build}/artifact/bootstrap/target/restcomm-media-server.zip"/>
+  <property name="restcomm-media.download.url" value="https://app.box.com/shared/static/apsn1ho3blmfuixxyekm7ql0mmw7ybbr.zip"/>
   <property name="restcomm-media.distro.zip.path" value="${checkout.dir}/${restcomm-media.download.distro.file}"/>
 
   <!-- <property name="restcomm-olympus.download.url" value="https://mobicents.ci.cloudbees.com/job/Olympus/${olympus.build}/artifact/target/olympus.war"/> -->
-  <property name="restcomm-olympus.download.url" value="https://app.box.com/shared/static/xd8enx5wjxy3ofy8movo2gske7ofx6bp.war"/>
+  <property name="restcomm-olympus.download.url" value="https://app.box.com/shared/static/p78uyxuuzg4fa8kl68ljiyzjkl9ei3r8.war"/>
   <property name="restcomm-olympus.path" value="${configuration.directory}/olympus.war"/>
 
   <!-- Determine RVD retrieval URL
@@ -135,8 +135,8 @@
     <exec executable="wget" failonerror="true">
       <arg value="${restcomm-media.download.url}"/>
     </exec>
-    <move file="${base.dir}/restcomm-media-server.zip" todir="${checkout.dir}"/>
-    <move file="${checkout.dir}/restcomm-media-server.zip" tofile="${checkout.dir}/${restcomm-media.download.distro.file}"/>
+    <move file="${base.dir}/apsn1ho3blmfuixxyekm7ql0mmw7ybbr.zip" todir="${checkout.dir}"/>
+    <move file="${checkout.dir}/apsn1ho3blmfuixxyekm7ql0mmw7ybbr.zip" tofile="${checkout.dir}/${restcomm-media.download.distro.file}"/>
   </target>
 
   <!--Olympus-->

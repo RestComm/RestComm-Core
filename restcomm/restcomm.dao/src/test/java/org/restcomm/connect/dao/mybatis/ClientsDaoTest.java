@@ -19,6 +19,7 @@
  */
 package org.restcomm.connect.dao.mybatis;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -40,15 +41,21 @@ import org.restcomm.connect.commons.dao.Sid;
  * @author quintana.thomas@gmail.com (Thomas Quintana)
  * @author maria farooq
  */
-public final class ClientsDaoTest {
+public final class ClientsDaoTest extends DaoTest {
     private static MybatisDaoManager manager;
+    private final String realm = "org1.restcomm.com";
 
     public ClientsDaoTest() {
         super();
     }
 
     @Before
-    public void before() {
+    public void before() throws IOException {
+
+        sandboxRoot = createTempDir("accountsTest");
+        String mybatisFilesPath = getClass().getResource("/accountsDao").getFile();
+        setupSandbox(mybatisFilesPath, sandboxRoot);
+    	
         final InputStream data = getClass().getResourceAsStream("/mybatis.xml");
         final SqlSessionFactoryBuilder builder = new SqlSessionFactoryBuilder();
         final SqlSessionFactory factory = builder.build(data);
@@ -74,7 +81,7 @@ public final class ClientsDaoTest {
         builder.setApiVersion("2012-04-24");
         builder.setFriendlyName("Alice");
         builder.setLogin("alice");
-        builder.setPassword("1234");
+        builder.setPassword("alice", "1234", realm, "");
         builder.setStatus(Client.ENABLED);
         builder.setVoiceUrl(url);
         builder.setVoiceMethod(method);
@@ -110,7 +117,7 @@ public final class ClientsDaoTest {
         method = "POST";
         String newClientIdentity = "newClientIdentity";
         client = client.setFriendlyName("Bob");
-        client = client.setPassword("4321");
+        client = client.setPassword(client.getLogin(), "4321", realm);
         client = client.setStatus(Client.DISABLED);
         client = client.setVoiceApplicationSid(application);
         client = client.setVoiceUrl(url);
@@ -161,7 +168,7 @@ public final class ClientsDaoTest {
         builder.setApiVersion("2012-04-24");
         builder.setFriendlyName("Tom");
         builder.setLogin("tom");
-        builder.setPassword("1234");
+        builder.setPassword("tom", "1234", realm, "");
         builder.setStatus(Client.ENABLED);
         builder.setVoiceUrl(url);
         builder.setVoiceMethod(method);
@@ -208,7 +215,7 @@ public final class ClientsDaoTest {
         builder.setApiVersion("2012-04-24");
         builder.setFriendlyName("Tom");
         builder.setLogin("tom");
-        builder.setPassword("1234");
+        builder.setPassword("tom", "1234", realm, "");
         builder.setStatus(Client.ENABLED);
         builder.setVoiceUrl(url);
         builder.setVoiceMethod(method);

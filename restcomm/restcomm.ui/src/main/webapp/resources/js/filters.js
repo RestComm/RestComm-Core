@@ -29,7 +29,7 @@ rcFilters.filter('noHTML', function () {
   }
 });
 
-rcFilters.filter("toDuration", function () {
+rcFilters.filter('toDuration', function () {
   return function(timeInSeconds) {
     if (timeInSeconds < 60) {
       return timeInSeconds + 's';
@@ -39,14 +39,12 @@ rcFilters.filter("toDuration", function () {
       var seconds = timeInSeconds % 60;
       return minutes + 'm' + seconds + 's';
     }
-    else if (seconds < 60 * 60 * 60) {
+    else {
       var hours = parseInt(timeInSeconds / 60 / 60, 10);
       var minutes = parseInt((timeInSeconds - (hours * 60 * 60)) / 60, 10);
-      var seconds = timeInSeconds % 60;
-      return hours + 'h' + minutes + 'm' + seconds + 's';
+      // var seconds = timeInSeconds % 60;
+      return hours + 'h' + minutes + 'm'; // + seconds + 's';
     }
-
-    return minutes+' minutes'+(seconds ? ' and '+seconds+' seconds' : '');
   }
 });
 
@@ -130,9 +128,9 @@ rcFilters.filter('toTrusted', ['$sce', function($sce){
         };
 }]);
 
-// Determines whethere an rcml-url refers to an 'RVD' or an 'external' application and returned
-rcFilters.filter('appProvider', function () {
-    var r = "/restcomm-rvd/";
+// Determines whether an rcml-url refers to an 'RVD' or an 'external' application and returned
+rcFilters.filter('appProvider', function (PublicConfig) {
+    var r = PublicConfig.rvdUrl + '/';
     return function(rcmlUrl) {
         if (!!rcmlUrl && rcmlUrl.match(r))
             return "rvd";

@@ -20,11 +20,12 @@
 package org.restcomm.connect.commons;
 
 import org.apache.commons.configuration.Configuration;
+import org.restcomm.connect.commons.amazonS3.S3AccessTool;
 import scala.concurrent.ExecutionContext;
 
 /**
  * @author quintana.thomas@gmail.com (Thomas Quintana)
  */
 public interface Configurable {
-    void configure(Configuration configuration, Configuration daoManagerConfiguration, ExecutionContext ec);
+    void configure(Configuration configuration, Configuration daoManagerConfiguration, S3AccessTool s3AccessTool, ExecutionContext ec);
 }

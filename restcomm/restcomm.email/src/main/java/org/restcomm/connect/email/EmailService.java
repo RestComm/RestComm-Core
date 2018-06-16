@@ -159,7 +159,7 @@ public class EmailService extends RestcommUntypedActor {
             email.setFrom(from);
             email.addRecipient(Message.RecipientType.TO, to);
             email.setSubject(mail.subject());
-            email.setText(mail.body());
+            email.setContent(mail.body(), mail.contentType());
             email.addRecipients(Message.RecipientType.CC, InternetAddress.parse(mail.cc(), false));
             email.addRecipients(Message.RecipientType.BCC,InternetAddress.parse(mail.bcc(),false));
             //Transport.send(email);
@@ -185,7 +185,7 @@ public class EmailService extends RestcommUntypedActor {
             email.setFrom(from);
             email.addRecipient(Message.RecipientType.TO, to);
             email.setSubject(mail.subject());
-            email.setText(mail.body());
+            email.setContent(mail.body(), mail.contentType());
             email.addRecipients(Message.RecipientType.CC, InternetAddress.parse(mail.cc(), false));
             email.addRecipients(Message.RecipientType.BCC,InternetAddress.parse(mail.bcc(),false));
             Transport.send(email);

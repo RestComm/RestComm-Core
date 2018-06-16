@@ -11,7 +11,9 @@
 	MA 02110-1301 USA, or see the FSF site: http://www.fsf.org. -->
 <restcomm>
 	<runtime-settings>
-		<!-- The API version that will be used. -->
+        <client-algorithm>MD5</client-algorithm>
+        <client-qop>auth</client-qop>
+        <!-- The API version that will be used. -->
 		<api-version>2012-04-24</api-version>
 
 		<!-- Try to run RVD workspace projects migration to apply new naming
@@ -172,6 +174,10 @@
 		<!-- If set to true RestComm will use the To header to determine the destination.
 			If set to false RestComm will use the Request URI to determine the destination. -->
 		<use-to>true</use-to>
+
+		<!-- if this flag is set to true, it will disable all patching done for NAT
+		 even if they are enabled in the configuration file-->
+		<use-sbc>false</use-sbc>
 
 		<!-- If set to true Restcomm will use the Local Address (or external address
 			if available) in the host part of the From header for calls to the outbound
@@ -666,6 +672,11 @@
 					If no response received for 3 consecutive requests, connection will be killed
 					and attempted to connect again -->
 				<enquirelinkdelay>30000</enquirelinkdelay>
+				<!-- when no values are set, default value from code is MODIFIED-UTF8 inbound, GSM7 for outbound-->
+				<inboundencoding/>
+				<outboundencoding/>
+				<messagepayloadflag/>
+				<autodetectdcsflag/>
 			</connection>
 		</connections>
 	</smpp>

@@ -1,4 +1,6 @@
-Gone are the days when you have to be an expert in a programming language and know everything about telecommunications in order to create a simple voice application. Restcomm Visual Designer (RVD) is taking the pain out of the process. This video tutorial will guide you through how it is done.   
+CAUTION: This piece of documentation is outdated. We're actively re-working Visual Designer documentation <<index.adoc#, here>>
+
+Gone are the days when you have to be an expert in a programming language and know everything about telecommunications in order to create a simple voice application. Restcomm Visual Designer (RVD) is taking the pain out of the process. This video tutorial will guide you through how it is done.  
 
 What will you be able to do with the new Visual Designer? Create applications without
 

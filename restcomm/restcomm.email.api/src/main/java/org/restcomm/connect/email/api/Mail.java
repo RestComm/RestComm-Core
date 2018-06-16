@@ -35,33 +35,21 @@ public final class Mail {
     private final String body;
     private final DateTime dateSent;
     private final String accountSid;
+    private final String contentType;
 
     public Mail(final String from, final String to, final String subject, final String body) {
-        super();
-        this.from = from;
-        this.to = to;
-        this.cc = "";
-        this.bcc = "";
-        this.subject = subject;
-        this.body = body;
-        this.dateSent = DateTime.now();
-        this.accountSid = "";
+        this(from, to, subject, body, "", "", DateTime.now(), "", "text/plain");
     }
 
-    public Mail(final String from, final String to, final String subject, final String body,final String cc,final String bcc) {
-        super();
-        this.from = from;
-        this.to = to;
-        this.cc = cc;
-        this.bcc = bcc;
-        this.subject = subject;
-        this.body = body;
-        this.dateSent = DateTime.now();
-        this.accountSid = "";
+    public Mail(final String from, final String to, final String subject, final String body, final String cc, final String bcc) {
+        this(from, to, subject, body, cc, bcc, DateTime.now(), "", "text/plain");
     }
 
-    public Mail(final String from, final String to, final String subject, final String body,final String cc,final String bcc, final DateTime dateSent ,final String accountSid) {
-        super();
+    public Mail(final String from, final String to, final String subject, final String body, final String cc, final String bcc, final DateTime dateSent, final String accountSid) {
+        this(from, to, subject, body, cc, bcc, dateSent, accountSid, "text/plain");
+    }
+
+    public Mail(final String from, final String to, final String subject, final String body, final String cc, final String bcc, final DateTime dateSent, final String accountSid, final String contentType) {
         this.from = from;
         this.to = to;
         this.cc = cc;
@@ -70,6 +58,7 @@ public final class Mail {
         this.body = body;
         this.dateSent = dateSent;
         this.accountSid = accountSid;
+        this.contentType = contentType;
     }
 
     public String from() {
@@ -94,6 +83,10 @@ public final class Mail {
 
     public String body() {
         return body;
+    }
+
+    public String contentType() {
+        return contentType;
     }
 
     public String accountSid() {

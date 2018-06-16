@@ -12,18 +12,13 @@ A Restcomm installation. Please check http://docs.telestax.com/restcomm-docker-q
 
 First, let’s see how we can make a call to Restcomm and hear a simple announcement
 
-* Open a browser to http://<restcomm ip>/olympus and Sign in as Alice:
-
-image::http://docs.telestax.com/wp-content/uploads/2015/05/olympus-1-1030x656.jpg[olympus-1]
-
+* Open a browser to https://<restcomm ip>/olympus and Sign in as Alice
 * Olympus will request access to Microphone and Camera and then will present the main screen
 
 * When the main screen is presented:
 1. Click on the _Contacts_ icon
 1. Click on number _‘1235’_
 1. Click _dial_ to make a call to Restcomm and hear the announcement associated with ‘1235’
-
-image::http://docs.telestax.com/wp-content/uploads/2015/05/olympus-2-1030x461.jpg[olympus-2]
 
 You could follow these steps to call any Restcomm number by either selecting a number from the list or adding a new one in contacts.
   
@@ -36,34 +31,21 @@ Say your friend Bob has logged in to Olympus and wants to talk:
 *   After you sign in as Bob:
 1. Click on the Contacts icon 
 1. Pick Alice as the desired person to call
-1. Click on the video call icon:
-
-image::http://docs.telestax.com/wp-content/uploads/2015/05/olympus-5.jpg[olympus-5]
+1. Click on the video call icon
 
 At this time, Olympus will start to ring in Alice's window:
 
-image::http://docs.telestax.com/wp-content/uploads/2015/05/olympus-7-1030x420.jpg[olympus-7]
-
-
 *   Pick up from Alice tab and you are ready to talk!
-
-image::http://docs.telestax.com/wp-content/uploads/2015/05/olympus-8-1030x420.jpg[olympus-8]
-
 
 == Chatting with Bob
 
 *   After you sign in as Bob:
-1. click on the Contacts icon
+1. Click on the Contacts icon
 1. Pick Alice
-1. Click on the chat icon:
-
-image::http://docs.telestax.com/wp-content/uploads/2015/05/olympus-3.jpg[olympus-3]
+1. Click on the chat icon
 
 *   Do the same in the Alice window and pick Bob to chat with
-*   From now on all messages from Alice will be sent to Bob and the other way around:
-
-image::http://docs.telestax.com/wp-content/uploads/2015/05/olympus-4.jpg[olympus-4]
-
+*   From now on all messages from Alice will be sent to Bob and the other way around
 
 Give it a try and share your experience with the rest of the Restcomm community! Here are some additional resources:
 

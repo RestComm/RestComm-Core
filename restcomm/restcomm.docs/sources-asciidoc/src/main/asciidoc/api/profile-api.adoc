@@ -20,7 +20,18 @@ REST API. The Default Profile Sid is "PRae6e420f425248d6a26948c17a9e2acf"
 
 Since the Profile configuration is expected to grow as required, the Profile entity
 is defined by a JSON schema, rather than regular properties, representing a 
-document used as generic container.
+document used as generic container. 
+
+The REST API will validate well-known contains
+of the document that are used by RestcommConnect during session handling logic. The
+rest of the document will not be validated, with the only constraint of a 
+maximum size limitation of 10MB. This means the REST API consumer may use the Profile
+document to store/retrieve any kind of arbitrary information as long as the document is 
+a valid JSON document.
+
+All Profiles REST API is only accesible by SuperAdmin credentials. With the exception
+of reading the associated Profile, where all Roles are allowed if the queried profile
+is associated with the requesting Account credentials.
 
 === Profile Resource URI
 
@@ -43,7 +54,7 @@ document used as generic container.
 
 === Supported Operations
 
-*HTTP GET.* Returns the representation of a Profile resource.
+*HTTP GET.* Returns the representation of a Profile resource. All roles are allowed.
 
 ==== Response Status
 [cols=",",options="header",]

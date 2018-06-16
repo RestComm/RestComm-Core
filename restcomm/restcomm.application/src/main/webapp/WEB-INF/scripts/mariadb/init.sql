@@ -199,7 +199,8 @@ voice_fallback_url MEDIUMTEXT,
 voice_fallback_method VARCHAR(4),
 voice_application_sid VARCHAR(34),
 uri MEDIUMTEXT NOT NULL,
-push_client_identity VARCHAR(34)
+push_client_identity VARCHAR(34),
+password_algorithm VARCHAR(34)
 );
 
 CREATE TABLE restcomm_registrations (
@@ -247,7 +248,9 @@ status VARCHAR(20) NOT NULL,
 direction VARCHAR(14) NOT NULL,
 price VARCHAR(8) NOT NULL,
 api_version VARCHAR(10) NOT NULL,
-uri MEDIUMTEXT NOT NULL
+uri MEDIUMTEXT NOT NULL,
+smpp_message_id MEDIUMTEXT,
+error_code BIGINT
 );
 
 CREATE TABLE restcomm_recordings (
@@ -458,15 +461,14 @@ INSERT INTO restcomm_incoming_phone_numbers VALUES('PN268b3f55d3a84a70aae8b78bde
 INSERT INTO restcomm_incoming_phone_numbers VALUES('PNa956a87b060b4b93bf432fce19fe79bf','2017-04-13 22:04:04.258000000','2017-04-13 22:04:04.258000000','This app adds you to a video conf bridge as a moderator and requires XMS media server','ACae6e420f425248d6a26948c17a9e2acf','+1245','2012-04-24',FALSE,'/restcomm/demos/video-conference-moderator.xml','POST',NULL,'POST',NULL,'POST',NULL,NULL,'POST',NULL,'POST',NULL,'/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/IncomingPhoneNumbers/PNa956a87b060b4b93bf432fce19fe79bf', true, false, false, false, true, 0.0, null, null, null, null, null, null, null, null, 'ORafbe225ad37541eba518a74248f0ac4c');
 INSERT INTO restcomm_incoming_phone_numbers VALUES('PN5eadc8c3b26a495a842bbff6aecc9f6c','2017-09-29 19:34:10.679000000','2017-09-29 19:34:10.679000000','This app calls registered restcomm client Alice using XMS for video','ACae6e420f425248d6a26948c17a9e2acf','+1246','2012-04-24',FALSE,'/restcomm/demos/video-dial-client.xml','POST',NULL,'POST',NULL,'POST',NULL,NULL,'POST',NULL,'POST',NULL,'/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/IncomingPhoneNumbers/PN5eadc8c3b26a495a842bbff6aecc9f6c', true, false, false, false, true, 0.0, null, null, null, null, null, null, null, null, 'ORafbe225ad37541eba518a74248f0ac4c');
 
-/* Create demo clients */
-INSERT INTO restcomm_clients VALUES('CLa2b99142e111427fbb489c3de357f60a','2013-11-04 12:52:44.144000000','2013-11-04 12:52:44.144000000','ACae6e420f425248d6a26948c17a9e2acf','2012-04-24','alice','alice','1234',1,NULL,'POST',NULL,'POST',NULL,'/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Clients/CLa2b99142e111427fbb489c3de357f60a', NULL);
-INSERT INTO restcomm_clients VALUES('CL3003328d0de04ba68f38de85b732ed56','2013-11-04 16:33:39.248000000','2013-11-04 16:33:39.248000000','ACae6e420f425248d6a26948c17a9e2acf','2012-04-24','bob','bob','1234',1,NULL,'POST',NULL,'POST',NULL,'/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Clients/CL3003328d0de04ba68f38de85b732ed56', NULL);
-
 /* Create index on restcomm_call_detail_records on conference_sid column */
 CREATE INDEX idx_cdr_conference_sid ON restcomm_call_detail_records (conference_sid);
 
 /* Create index on restcomm_call_detail_records on conference_sid column */
 CREATE INDEX idx_cdr_conference_status ON restcomm_conference_detail_records (status);
+
+/* Create index on restcomm_sms_messages on smpp_message_id column */
+CREATE INDEX idx_restcomm_sms_messages_smpp_message_id ON restcomm_sms_messages (smpp_message_id);
 
 DELIMITER //
 DROP PROCEDURE IF EXISTS addConferenceDetailRecord;

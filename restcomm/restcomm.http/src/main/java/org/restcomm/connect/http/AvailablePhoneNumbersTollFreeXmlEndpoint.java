@@ -20,16 +20,22 @@
 package org.restcomm.connect.http;
 
 import com.sun.jersey.spi.container.ResourceFilters;
+import com.sun.jersey.spi.resource.Singleton;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import static javax.ws.rs.core.Response.*;
 import static javax.ws.rs.core.Response.Status.*;
+import javax.ws.rs.core.SecurityContext;
 import org.restcomm.connect.commons.annotations.concurrency.ThreadSafe;
 import org.restcomm.connect.http.filters.ExtensionFilter;
+import org.restcomm.connect.http.security.ContextUtil;
 import org.restcomm.connect.provisioning.number.api.PhoneNumberSearchFilters;
 import org.restcomm.connect.provisioning.number.api.PhoneNumberType;
 
@@ -39,17 +45,22 @@ import org.restcomm.connect.provisioning.number.api.PhoneNumberType;
  */
 @Path("/Accounts/{accountSid}/AvailablePhoneNumbers/{IsoCountryCode}/TollFree")
 @ThreadSafe
-public final class AvailablePhoneNumbersTollFreeXmlEndpoint extends AvailablePhoneNumbersEndpoint {
+@Singleton
+public class AvailablePhoneNumbersTollFreeXmlEndpoint extends AvailablePhoneNumbersEndpoint {
     public AvailablePhoneNumbersTollFreeXmlEndpoint() {
         super();
     }
 
     @GET
     @ResourceFilters({ ExtensionFilter.class })
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public Response getAvailablePhoneNumber(@PathParam("accountSid") final String accountSid,
             @PathParam("IsoCountryCode") final String isoCountryCode, @QueryParam("AreaCode") String areaCode,
             @QueryParam("Contains") String filterPattern,
-            @QueryParam("RangeSize") String rangeSize, @QueryParam("RangeIndex") String rangeIndex) {
+            @QueryParam("RangeSize") String rangeSize,
+            @QueryParam("RangeIndex") String rangeIndex,
+            @HeaderParam("Accept") String accept,
+            @Context SecurityContext sec) {
         if (isoCountryCode != null && !isoCountryCode.isEmpty()) {
             int rangeSizeInt = -1;
             if (rangeSize != null && !rangeSize.isEmpty()) {
@@ -62,7 +73,9 @@ public final class AvailablePhoneNumbersTollFreeXmlEndpoint extends AvailablePho
             PhoneNumberSearchFilters listFilters = new PhoneNumberSearchFilters(areaCode, null, null,
                     Boolean.TRUE, null, null, null, null, null, null, null, null,
                     null, null, rangeSizeInt, rangeIndexInt, PhoneNumberType.TollFree);
-            return getAvailablePhoneNumbers(accountSid, isoCountryCode, listFilters, filterPattern, MediaType.APPLICATION_XML_TYPE);
+            return getAvailablePhoneNumbers(accountSid, isoCountryCode,
+                    listFilters, filterPattern, retrieveMediaType(accept),
+                    ContextUtil.convert(sec));
         } else {
             return status(BAD_REQUEST).build();
         }

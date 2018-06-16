@@ -1,3 +1,5 @@
+image::https://www.restcomm.com/docs/connect/tutorials/images/voicemail2email-logo3-e14214254549981.jpg[Restcomm - Create a Voicemail to Email app with zero coding]
+
 Restcomm Visual Designer (RVD) is an intuitive web interface designed by Telestax to help developers build  communication applications rapidly. In this tutorial, you will learn how to create a voicemail application without writing a single line of programming language code. The voice message can then be emailed to your desired address.
 
 Use case scenarios:
@@ -17,7 +19,7 @@ Step 1
 
 You must create an RVD project.
 
-* Log into RVD on your Restcomm installation. *http://IP_ADDRESS:8080/* Please go to this link under step 4 and see how to link your RVD post to a Restcomm number. Then use a sip phone to call that number and an email will be sent to your_email@company.com link:/?p=2486[http://www.telestax.com/telephone-survey-with-restcomm-visual-designer/]
+* Log into RVD on your Restcomm installation. *`http\://IP_ADDRESS:8080/`* Please go to this link under step 4 and see how to link your RVD post to a Restcomm number. Then use a sip phone to call that number and an email will be sent to `\your_email@company.com` link:/?p=2486[http://www.telestax.com/telephone-survey-with-restcomm-visual-designer/]
 * Go to Restcomm Visual Designer, Voice and create new project. In this example we will name the project "Voicemail To Email".
 
 image:./images/NewProjectVoicemailTOEmail-845x674.png[NewProjectVoicemailTOEmail,width=845,height=674]
@@ -96,7 +98,7 @@ image:./images/matchupWH-746x684.png[matchupWH,width=746,height=684]
 * Finally, test the Zap.
 * Copy the `Webhook URL` to your web browser and add the following parameters:
 +
-https://zapier.com/hooks/catch/ealwr/?recordingUrl=testurl&destination=miss4eto@gmail.com
+`https\://zapier.com/hooks/catch/ealwr/?recordingUrl=testurl&destination=\miss4eto@gmail.com`
 +
 * Your email will be different
 * This will return a Json object as shown below
@@ -113,7 +115,7 @@ Application is finished. You can call your Restcomm number and test it.
 For more information
 ~~~~~~~~~~~~~~~~~~~~
 
-* For more information what is Restcomm and how it works please read these documents: http://www.telestax.com/restcomm-7-1-4-getting-started-guide/, http://telestax.wpengine.netdna-cdn.com/wp-content/uploads/2013/08/RestComm_API_User_Guide.pdf, http://www.telestax.com/restcomm-sip-tutorial-basic-usage-and-voice-dtmf/
+* For more information what is Restcomm and how it works please read these documents: https://www.restcomm.com/docs/connect/tutorials/index.html, http://telestax.wpengine.netdna-cdn.com/wp-content/uploads/2013/08/RestComm_API_User_Guide.pdf, http://www.telestax.com/restcomm-sip-tutorial-basic-usage-and-voice-dtmf/
 
 * For more information what is Zapier and how it works please follow these links: https://zapier.com/help/what-is-zapier/ https://zapier.com/how-it-works/
 

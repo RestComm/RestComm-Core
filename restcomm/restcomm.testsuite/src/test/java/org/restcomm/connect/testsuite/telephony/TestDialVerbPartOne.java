@@ -664,8 +664,15 @@ public class TestDialVerbPartOne {
         bobCall.initiateOutgoingCall(bobContact, notFoundDialNumber, null, body, "application", "sdp", null, null);
         assertLastOperationSuccess(bobCall);
 
-        // wait for 180 Ringing
-        assertTrue(bobCall.waitOutgoingCallResponse(10000));
+        assertTrue(bobCall.waitOutgoingCallResponse(5 * 1000));
+        final int response = bobCall.getLastReceivedResponse().getStatusCode();
+
+        assertTrue(response == Response.TRYING || response == Response.RINGING);
+
+        if (response == Response.TRYING) {
+            assertTrue(bobCall.waitOutgoingCallResponse(5 * 1000));
+            assertEquals(Response.RINGING, bobCall.getLastReceivedResponse().getStatusCode());
+        }
         // wait for 404 Not Found
         assertTrue(bobCall.waitOutgoingCallResponse(10000));
         SipResponse lastResponse = bobCall.getLastReceivedResponse();

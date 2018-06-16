@@ -6,7 +6,7 @@ The Restcomm REST API allows you to query meta-data about your account, phone nu
 
 All URLs referenced in the documentation have the following base:
 
-https://cloud.restcomm.com/restcomm/2012-04-24
+`\https://cloud.restcomm.com/restcomm/2012-04-24`
 
 The Restcomm REST API is served over HTTPS. To ensure data privacy, unencrypted HTTP is not supported.
 

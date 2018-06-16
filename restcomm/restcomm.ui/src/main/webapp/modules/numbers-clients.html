@@ -16,13 +16,19 @@
 <div class="row">
     <div class="col-md-12">
 
-        <div ng-hide="!clientsList || (clientsList | filter:query).length > 0" class="jumbotron rc-no-items">
-            <h1><i class="fa fa-globe"></i> </h1>
-            <h2>No Restcomm clients</h2>
+        <div ng-show="!query.login && (!clientsList || (filtered.length === 0))" class="jumbotron rc-no-items">
+            <h1><i class="fa fa-id-badge"></i> </h1>
+            <h2>No Restcomm Clients</h2>
             <h5>Register one now!</h5>
         </div>
 
-        <table ng-show="(clientsList | filter:query).length > 0" class="table table-hover rc-list clients-list" ng-cloak>
+        <div ng-show="query.login && (!clientsList || (filtered.length === 0))" class="jumbotron rc-no-items">
+            <h1><i class="fa fa-search"></i> </h1>
+            <h2>No clients found for "{{ query.login }}"</h2>
+            <h5>Please update your search and try again.</h5>
+        </div>
+
+        <table ng-show="filtered.length > 0" class="table table-hover rc-list clients-list" ng-cloak>
             <thead>
             <th class="clients-list-username" rc-list-sort by="predicate" order="'login'" reverse="reverse">Username</th>
             <th class="clients-list-edit-icon hidden-xs">&nbsp;</th>

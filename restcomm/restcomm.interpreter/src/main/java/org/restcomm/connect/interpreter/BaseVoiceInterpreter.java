@@ -262,6 +262,7 @@ public abstract class BaseVoiceInterpreter extends RestcommUntypedActor {
     Boolean processingGather = false;
     Boolean dtmfReceived = false;
     String finishOnKey;
+    String startInputKey;
     int numberOfDigits = Short.MAX_VALUE;
     StringBuffer collectedDigits;
     String speechResult;
@@ -1599,8 +1600,23 @@ public abstract class BaseVoiceInterpreter extends RestcommUntypedActor {
 
             // Parse finish on key.
             finishOnKey = finishOnKey(verb);
+            // Parse start Input key
+            startInputKey = "*0123456789"; // Default value.
+            Attribute attribute = verb.attribute(GatherAttributes.ATTRIBUTE_START_INPUT_KEY);
+            if (attribute != null) {
+                final String value = attribute.value();
+                if (!StringUtils.isEmpty(value)) {
+                    if (!PATTERN.matcher(value).matches()) {
+                        final Notification notification = notification(WARNING_NOTIFICATION, 13315, value
+                                + " is not a valid startInputKey value");
+                        notifications.addNotification(notification);
+                    } else {
+                        startInputKey = value;
+                    }
+                }
+            }
             // Parse the number of digits.
-            Attribute attribute = verb.attribute(GatherAttributes.ATTRIBUTE_NUM_DIGITS);
+            attribute = verb.attribute(GatherAttributes.ATTRIBUTE_NUM_DIGITS);
             if (attribute != null) {
                 final String value = attribute.value();
                 if (!StringUtils.isEmpty(value)) {
@@ -1630,7 +1646,7 @@ public abstract class BaseVoiceInterpreter extends RestcommUntypedActor {
             }
             // Start gathering.
             final Collect collect = new Collect(restcommConfiguration.getMgAsr().getDefaultDriver(), inputType, gatherPrompts,
-                    null, timeout, finishOnKey, numberOfDigits, lang, hints, partialResultCallbackAttr != null && !StringUtils.isEmpty(partialResultCallbackAttr.value()));
+                    null, timeout, finishOnKey, startInputKey, numberOfDigits, lang, hints, partialResultCallbackAttr != null && !StringUtils.isEmpty(partialResultCallbackAttr.value()));
             call.tell(collect, source);
             // Some clean up.
             gatherChildren = null;
@@ -1969,6 +1985,7 @@ public abstract class BaseVoiceInterpreter extends RestcommUntypedActor {
                 recording = builder.build();
                 final RecordingsDao recordings = storage.getRecordingsDao();
                 recordings.addRecording(recording, recordingMediaType);
+                getContext().system().eventStream().publish(recording);
 
                 Attribute attribute = null;
 

@@ -38,6 +38,8 @@ public interface ClientsDao {
 
     List<Client> getAllClients();
 
+    List<Client> getClientsByOrg(Sid organizationSid);
+
     void removeClient(Sid sid);
 
     void removeClients(Sid accountSid);

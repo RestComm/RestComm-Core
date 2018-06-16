@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- This is free software; you can redistribute it and/or modify it under
+	the terms of the GNU Lesser General Public License as published by the Free
+	Software Foundation; either version 2.1 of the License, or (at your option)
+	any later version. This software is distributed in the hope that it will
+	be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General
+	Public License for more details. You should have received a copy of the GNU
+	Lesser General Public License along with this software; if not, write to
+	the Free Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,
+	MA 02110-1301 USA, or see the FSF site: http://www.fsf.org. -->
+<restcomm>
+	<runtime-settings>
+
+		<!-- The API version that will be used. -->
+		<api-version>2012-04-24</api-version><client-algorithm>MD5</client-algorithm><client-qop>auth</client-qop><client-algorithm-sess>false</client-algorithm-sess>
+
+		<!-- Try to run RVD workspace projects migration to apply new naming
+			convention and synchronization with database entities. This execution
+			will occurs max one time per Restcomm version. To force a new run,
+			remove the file .version inside RVD workspace. -->
+		<rvd-workspace-migration-enabled>false</rvd-workspace-migration-enabled>
+
+		<!-- The location where the audio prompts are located. -->
+		<prompts-uri>/restcomm/audio</prompts-uri>
+
+		<!-- Cache settings. -->
+		<cache-path>${restcomm:home}/cache</cache-path>
+		<cache-uri>/restcomm/cache</cache-uri>
+
+		<!-- The path where recordings made by the <Record> verb are stored. -->
+		<recordings-path>file://${restcomm:home}/recordings</recordings-path>
+		<recordings-uri>/restcomm/recordings</recordings-uri>
+
+		<!-- The URL to the errors dictionary. -->
+		<error-dictionary-uri>/restcomm/errors</error-dictionary-uri>
+
+		<!-- The IP to use for out-bound SIP REGISTER requests. This is useful
+			when you want to report a different IP than the one RestComm picked by default. -->
+		<external-ip></external-ip>
+
+		<!-- If set to true RestComm will use the To header to determine the destination.
+			If set to false RestComm will use the Request URI to determine the destination. -->
+		<use-to>true</use-to>
+
+		<!-- If set to true Restcomm will use the Local Address (or external address
+			if available) in the host part of the From header for calls to the outbound
+			proxy. Default is False, which means that Restcomm will use outbound proxy
+			for the host part of From header -->
+		<use-local-address>false</use-local-address>
+
+		<!-- If set to true Restcomm will authenticate users and incoming messages
+			from those users -->
+		<authenticate>true</authenticate>
+
+		<!-- Interval time in seconds that Restcomm will send keepalive messages (OPTIONS) to registered clients -->
+		<ping-interval>15</ping-interval>
+
+		<!-- If set to FALSE Restcomm wont normalize phone numbers (prepend +1)
+			when creating an outbound call -->
+		<normalize-numbers-for-outbound-calls>true</normalize-numbers-for-outbound-calls>
+		<!--If set to TRUE Restcomm will use the From address of initial call to
+			proxied calls Caller A dials DID XYZ that is bind to RCML that Dials Number
+			4321. If from-address-to-proxied-calls is TRUE Restcomm will pass callerId
+			A to the created call -->
+		<from-address-to-proxied-calls>true</from-address-to-proxied-calls>
+
+		<!-- Control whether Restcomm will try to patch the Request-URI and SDP
+			for B2BUA sessions with the discovered external IP Address of the peer -->
+		<!-- Default value: true -->
+		<patch-for-nat-b2bua-sessions>true</patch-for-nat-b2bua-sessions>
+
+		<!-- Set to true so Restcomm will send 100 Trying on initial Request-->
+		<!-- Used only for testing. !!! Don't enable this for production -->
+		<send-trying-for-initial-requests>true</send-trying-for-initial-requests>
+
+		<!--Play background music for conference rooms with 1 participant even if startConference=true? Music will stop after the second participant joins-->
+		<!--Default value: false -->
+		<play-music-for-conference>false</play-music-for-conference>
+
+		<!-- Set to true so Restcomm won't patch the SDP answer answered received trying to cope with NAT -->
+		<!-- Default value: false -->
+		<disable-sdp-patching-on-updating-mediasession>true</disable-sdp-patching-on-updating-mediasession>
+
+		<outbound-proxy>
+			<!-- Parameters for primary outbound proxy. -->
+			<outbound-proxy-user></outbound-proxy-user>
+			<outbound-proxy-password></outbound-proxy-password>
+			<outbound-proxy-uri>127.0.0.1:5070</outbound-proxy-uri>
+
+			<!-- Parameters for fallback outbound proxy. -->
+			<fallback-outbound-proxy-user></fallback-outbound-proxy-user>
+			<fallback-outbound-proxy-password></fallback-outbound-proxy-password>
+			<fallback-outbound-proxy-uri>127.0.0.1:5090</fallback-outbound-proxy-uri>
+
+			<!-- When set to true, Restcomm will use the username of the outbound
+				proxy when -->
+			<!-- creating the From header, as the userpart of the sip uri. Example:
+				From: "Alice" <sip:PROXY_USERNAME@PROXY> -->
+			<outboudproxy-user-at-from-header>true</outboudproxy-user-at-from-header>
+			<!-- When set to true, Restcomm will use the original user for the display
+				name of the From header -->
+			<!-- Example: From: "Alice" <sip:PROXY_USERNAME@PROXY> -->
+			<user-at-displayed-name>true</user-at-displayed-name>
+
+			<!-- Allow fallback to backup proxy -->
+			<allow-fallback>true</allow-fallback>
+			<!-- Number of maximum failed calls before switching from primary to the
+				fallback outbound proxy -->
+			<max-failed-calls>20</max-failed-calls>
+			<!-- Allow fallback to Primary proxy in case backup proxy fails also -->
+			<allow-fallback-to-primary>true</allow-fallback-to-primary>
+		</outbound-proxy>
+
+		<telestax-proxy>
+			<enabled>false</enabled>
+			<login>restcomm</login>
+			<password>restcomm</password>
+			<endpoint>restcomm_instance_id</endpoint>
+			<uri>http://127.0.0.1:2080</uri>
+		</telestax-proxy>
+
+		<!-- TelScale USSD Gateway -->
+		<ussd-gateway>
+			<ussd-gateway-uri>127.0.0.1:5090</ussd-gateway-uri>
+			<ussd-gateway-user></ussd-gateway-user>
+			<ussd-gateway-password></ussd-gateway-password>
+		</ussd-gateway>
+
+		<!-- Each permission is represented as three columns Domain:Action:Target
+			Possible actions are Create, Read, Modify, Delete. -->
+		<security-roles>
+			<role name="Developer">
+				<permission>RestComm:*:Accounts</permission>
+				<permission>RestComm:*:Applications</permission>
+				<permission>RestComm:*:Announcements</permission>
+				<permission>RestComm:Read:AvailablePhoneNumbers</permission>
+				<permission>RestComm:*:Calls</permission>
+				<permission>RestComm:*:Clients</permission>
+				<permission>RestComm:*:Conferences</permission>
+				<permission>RestComm:Create,Delete,Read:Faxes</permission>
+				<permission>RestComm:*:IncomingPhoneNumbers</permission>
+				<permission>RestComm:Read:Notifications</permission>
+				<permission>RestComm:*:OutgoingCallerIds</permission>
+				<permission>RestComm:Delete,Read:Recordings</permission>
+				<permission>RestComm:Read,Modify:SandBoxes</permission>
+				<permission>RestComm:*:ShortCodes</permission>
+				<permission>RestComm:Read:SmsMessages</permission>
+				<permission>RestComm:Read:Transcriptions</permission>
+				<permission>RestComm:*:OutboundProxies</permission>
+			</role>
+		</security-roles>
+	</runtime-settings>
+
+	<!-- Configuration for the VoIP Innovations provisioning API. -->
+	<phone-number-provisioning
+		class="org.restcomm.connect.provisioning.number.vi.VoIPInnovationsNumberProvisioningManager">
+		<callback-urls>
+			<voice url="localhost:5080" method="SIP" />
+			<sms url="localhost:5080" method="SIP" />
+			<fax url="localhost:5080" method="SIP" />
+			<ussd url="localhost:5080" method="SIP" />
+		</callback-urls>
+		<voip-innovations>
+			<login></login>
+			<password></password>
+			<endpoint></endpoint>
+			<uri>https://backoffice.voipinnovations.com/api2.pl</uri>
+		</voip-innovations>
+	</phone-number-provisioning>
+
+	<smtp-notify>
+		<host></host>
+		<user></user>
+		<password></password>
+		<port></port>
+		<!-- Default mail address used to report issues related to Restcomm management,
+		mostly associated with bootstrap executions, like workspace migration, etc. -->
+		<default-email-address></default-email-address>
+	</smtp-notify>
+
+	<smtp-service>
+		<host>
+		</host>
+		<user></user>
+		<password></password>
+		<port></port>
+	</smtp-service>
+
+	<amazon-s3>
+		<enabled>false</enabled>
+		<bucket-name>restcomm-recordings</bucket-name>
+		<folder></folder>
+		<access-key></access-key>
+		<security-key></security-key>
+		<reduced-redundancy>false</reduced-redundancy>
+		<minutes-to-retain-public-url>7</minutes-to-retain-public-url>
+		<remove-original-file>true</remove-original-file>
+	</amazon-s3>
+
+	<!-- Defines how RestComm communicates with the Media Server Control layer.
+		Accepted values: XMS (Dialogic XMS using JSR-309 driver) or RMS (RestComm
+		Media Server using MGCP driver) -->
+	<mscontrol>
+		<compatibility>rms</compatibility>
+		<media-server name="Dialogic XMS" class="com.dialogic.dlg309">
+			<address>127.0.0.1</address>
+			<port>5060</port>
+			<transport>udp</transport>
+			<timeout>5</timeout>
+		</media-server>
+	</mscontrol>
+	<dns-util class="org.restcomm.connect.commons.util.mock.InetAddressMock"/>
+
+	<!-- The media server manager is responsible for managing the media servers
+		in use by RestComm. The default way to control media servers is using the
+		MGCP stack. The MGCP stack MUST have a name and the following parameters:
+		<stack-address> - The local IP address for the MGCP stack. <stack-port> -
+		The local port for the MGCP stack. <remote-address> - The IP address for
+		the media server. <remote-port> - The port for the media server. <external-address>
+		- Sometimes there is interest to use a different address in the SDP than
+		the IP address the media server is reporting. This parameter if set tells
+		RestComm to patch the Connection attribute in the SDP on behalf of the media
+		server to the specified IP address. Note: RestComm will only do NAT resolution
+		when necessary so if your server already has a routable IP address setting
+		this parameter will have no effect. <max-response-time> - In milliseconds
+		the maximum amount of time to wait for a response from the media server before
+		abandoning the request. This does NOT apply to RQNT/NOTIFY request/response. -->
+	<media-server-manager>
+		<mgcp-server class="org.restcomm.connect.mgcp.MockMediaGateway"
+			name="Mobicents Media Server">
+				<local-address>127.0.0.1</local-address>
+				<local-port>2727</local-port>
+				<remote-address>127.0.0.1</remote-address>
+				<remote-port>2427</remote-port>
+				<response-timeout>1500</response-timeout>
+				<!-- <external-address></external-address> -->
+			</mgcp-server>
+		<mrb class="org.restcomm.connect.mrb.MediaResourceBrokerGeneric" name="Community MediaResourceBroker">
+		</mrb>
+	</media-server-manager>
+
+		<!-- Adjust http client behaviour for outgoing requests -->
+	<http-client>
+		<response-timeout>5000</response-timeout>
+		<!-- Control peer certificate verification for https connections. Two modes are supported:
+			'allowall' : Disables peer certificate verification. Use it when testing.
+			'strict' : Fails requests if peer certificate is not trusted. Use it in production. -->
+		<ssl-mode>strict</ssl-mode>
+		<!-- Control whether relative URL should be resolved using hostname instead of IP Address.
+		If for any reason hostname resolution fails, IP Address will be used -->
+		<use-hostname-to-resolve-relative-url>true</use-hostname-to-resolve-relative-url>
+		<!-- Optionally provide the hostname to be used, otherwise Java will try to get the hostname of the machine JVM is running -->
+		<hostname>refertest.restcomm.com</hostname>
+	</http-client>
+
+	<!-- The SMS aggregator is responsible for the handling of SMS messages
+		inside of RestComm. Refer to the org.mobicents.servlet.sip.restcomm.SmsAggregator
+		interface for more information. -->
+	<sms-aggregator class="org.restcomm.connect.sms.SmsService">
+		<outbound-prefix></outbound-prefix>
+		<outbound-endpoint>127.0.0.1:5090</outbound-endpoint>
+	</sms-aggregator>
+
+	<!-- The Fax Service is used to send and receive faxes on behalf of RestComm. -->
+	<fax-service class="org.restcomm.connect.fax.InterfaxService">
+		<user></user>
+		<password></password>
+	</fax-service>
+
+	<!-- The Speech Recognizer is responsible for turning speech in to text. -->
+	<speech-recognizer class="org.restcomm.connect.asr.ISpeechAsr">
+		<api-key production="false"></api-key>
+	</speech-recognizer>
+
+	<speech-synthesizer active="voicerss"/>
+
+	<!-- The Speech Synthesizer is responsible for turning text in to speech for play back by the media gateway. -->
+	<acapela class="org.restcomm.connect.tts.acapela.AcapelaSpeechSynthesizer">
+		<service-root>http://vaas.acapela-group.com/Services/Synthesizer</service-root>
+		<application></application>
+		<login></login>
+		<password></password>
+		<speakers>
+			<belgium-french> <female>justine8k</female> <male></male> </belgium-french>
+			<brazilian-portuguese> <female>marcia8k</female> <male></male> </brazilian-portuguese>
+			<british-english> <female>rachel8k</female> <male>graham8k</male> </british-english>
+			<canadian-french> <female>louise8k</female> <male></male> </canadian-french>
+			<czech> <female>eliska8k</female> <male></male> </czech>
+			<danish> <female>mette8k</female><male>rasmus8k</male></danish>
+			<english> <female>heather8k</female> <male>ryan8k</male> </english>
+			<finnish> <female>sanna8k</female> <male></male> </finnish>
+			<french> <female>claire8k</female> <male>bruno8k</male> </french>
+			<german> <female>sarah8k</female> <male>klaus8k</male> </german>
+			<greek> <female></female> <male>dimitris8k</male> </greek>
+			<italian> <female>chiara8k</female> <male>vittorio8k</male> </italian>
+			<netherlands-dutch> <female>jasmijn8k</female> <male>daan8k</male> </netherlands-dutch>
+			<norwegian> <female>kari8k</female> <male>olav8k</male> </norwegian>
+			<polish><female>ania8k</female> <male></male> </polish>
+			<portuguese> <female>celia8k</female><male></male> </portuguese>
+			<russian> <female>alyona8k</female> <male></male></russian>
+			<saudi-arabia-arabic> <female>salma8k</female> <male>mehdi8k</male></saudi-arabia-arabic>
+			<spain-catalan> <female>laia8k</female> <male></male> </spain-catalan>
+			<spanish> <female>maria8k</female> <male>antonio8k</male></spanish>
+			<swedish> <female>elin8k</female> <male>emil8k</male> </swedish>
+			<turkish> <female>ipek8k</female> <male></male> </turkish>
+		</speakers>
+	</acapela>
+
+	<voicerss class="org.restcomm.connect.tts.voicerss.VoiceRSSSpeechSynthesizer">
+		<service-root>http://api.voicerss.org</service-root>
+		<apikey></apikey>
+		<languages>
+			<catalan>ca-es</catalan>
+			<chinese-china>zh-cn</chinese-china>
+			<chinese-hongkong>zh-hk</chinese-hongkong>
+			<chinese-taiwan>zh-tw</chinese-taiwan>
+			<danish>da-dk</danish>
+			<dutch>nl-nl</dutch>
+			<english-australia>en-au</english-australia>
+			<english-canada>en-ca</english-canada>
+			<english-greatbritain>en-gb</english-greatbritain>
+			<english-india>en-in</english-india>
+			<english-us>en-us</english-us>
+			<finish>fi-fi</finish>
+			<french-canada>fr-ca</french-canada>
+			<french-france>fr-fr</french-france>
+			<german>de-de</german>
+			<italian>it-it</italian>
+			<japanese>ja-jp</japanese>
+			<korean>ko-kr</korean>
+			<norwegian>nb-no</norwegian>
+			<polish>pl-pl</polish>
+			<portuguese-brasil>pt-br</portuguese-brasil>
+			<portuguese-portugal>pt-pt</portuguese-portugal>
+			<russian>ru-ru</russian>
+			<spanish-mexico>es-mx</spanish-mexico>
+			<spanish-spain>es-es</spanish-spain>
+			<swedish>sv-se</swedish>
+		</languages>
+	</voicerss>
+	<!-- AT&T Speech Synthesizer plugin -->
+	<!-- <speech-synthesizer class="org.restcomm.connect.tts.att.AttSpeechSynthesizer">
+		<host>127.0.0.1</host> <port>7000</port> <tts-client-directory></tts-client-directory>
+		<verbose-output>false</verbose-output> <speakers> <english> <female>crystal8</female>
+		<male>mike8</male> </english> <english-uk> <female>audrey8</female> <male>charles8</male>
+		</english-uk> <spanish> <female>rosa8</female> <male>alberto8</male> </spanish>
+		<french> <female>juliette8</female> <male>alain8</male> </french> <canadian-french>
+		<male>arnaud8</male> </canadian-french> <german> <female>klara8</female>
+		<male>reiner8</male> </german> <italian> <female>francesca8</female> <male>giovanni8</male>
+		</italian> <brazilian-portuguese> <female>marina8</female> <male>tiago8</male>
+		</brazilian-portuguese> </speakers> </speech-synthesizer> -->
+</restcomm>

@@ -1,8 +1,3 @@
-<!-- title for the sign-in page -->
-<div class="logo-container" ng-if="!!!loggedAccount">
-    <a ng-href=""></a>
-</div>
-
 <!-- title for the signed in page -->
 <div class="logo-container-inside container-fluid" ng-if="!!loggedAccount" ng-controller="UserMenuCtrl">
     <div class="row ">
@@ -26,7 +21,7 @@
     </div>
 
     <div class="row primary-tabs">
-        <div class="col-md-8 col-md-offset-2 col-xs-12 primary-tabs-container">
+        <div class="col-md-10 col-md-offset-1 col-xs-12 primary-tabs-container">
             <span ng-class="{'active': location.indexOf('/applications') === 0}">
                 <a ng-href="#/applications">Applications</a>
             </span>

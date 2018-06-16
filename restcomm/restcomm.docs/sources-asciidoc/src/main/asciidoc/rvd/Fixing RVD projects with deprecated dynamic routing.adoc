@@ -1,3 +1,5 @@
+CAUTION: This piece of documentation is outdated. We're actively re-working Visual Designer documentation <<index.adoc#, here>>
+
 Dynamic routing is a feature of RVD’s External Services that has been deprecated in the Restcomm Conect 7.5.0 release. This article describes how to manually convert your existing projects that rely on dynamic routing to the newer and proposed _mapped_ routing. If your project doesn’t contain ES elements with dynamic routing enabled you can skip reading.
 
 [[is-dynamic-routing-used]]

@@ -54,15 +54,21 @@
             <br class="visible-xs">
         </form>
 
-        <div ng-hide="!recordingsLogsList || (recordingsLogsList | filter:query).length > 0" class="jumbotron rc-no-items">
+        <div ng-show="!hasCriteria && (!recordingsLogsList || recordingsLogsList.length === 0)" class="jumbotron rc-no-items">
             <h1><i class="fa fa-dot-circle-o"></i> </h1>
             <h2>No recordings</h2>
             <h5>Ask the NSA for some!</h5>
         </div>
 
+        <div ng-show="hasCriteria && (!recordingsLogsList || recordingsLogsList.length === 0)" class="jumbotron rc-no-items">
+            <h1><i class="fa fa-search"></i> </h1>
+            <h2>No recordings matching your criteria</h2>
+            <h5>Please update your search and try again.</h5>
+        </div>
+
         <div class="row">
             <div class="col-md-12">
-                <table ng-show="(recordingsLogsList | filter:query).length > 0" class="table table-hover rc-list logs-recordings-list">
+                <table ng-show="recordingsLogsList.length > 0" class="table table-hover rc-list logs-recordings-list">
                     <thead>
                     <th class="logs-recordings-list-date visible-xs">Date</span></th>
                     <!--<th class="logs-recordings-list-from visible-xs">From<br>To</th>-->
@@ -74,7 +80,7 @@
                     <th class="logs-recordings-list-download hidden-xs"> </th>
                     </thead>
                     <tbody>
-                    <tr ng-repeat="recording in filtered = (recordingsLogsList | filter:query | orderBy:sort:reverse)">
+                    <tr ng-repeat="recording in (recordingsLogsList | orderBy:sort:reverse)">
                         <td class="logs-recordings-list-date rc-list-date hidden-xs">
                             <a href="" ng-click="showRecordingDetailsModal(recording)">{{ recording.date_created | toDate:'yyyy-MM-dd HH:mm:ss' }}</a>
                         </td>

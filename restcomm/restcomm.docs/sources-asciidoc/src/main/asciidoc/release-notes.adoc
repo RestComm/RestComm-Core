@@ -1,0 +1,165 @@
+= Restcomm-Connect Release Notes
+
+These notes group both Community and Telscale changes in a single document.
+
+=== Tags
+
+The folowing tags are used to categorize and state the scope of a change
+
+* **security improvement** tags changes related to security
+* **commercial** tags changes that are available only in the commercial RestcommOne product
+
+
+== 8.5.0 version 2018-06-04
+=== New Features
+// New features (whether major or minor) go here
+* SMS CDR Status updates
+* USSD SDR events
+* Allow to specify content-type for Email.
+
+
+=== Breaking Changes
+// draws attention to functionality that is getting removed
+
+
+=== Bug Fixes
+* Allow Proxy-Authorization header without "algortihm" parameter.**security improvement**
+
+
+=== Migration Notes
+// Things to consider during migration from previous release
+
+*Important Note* This version is adding a new column to support SMS CDR updates. 
+
+==== Migration steps - part 1
+
+Follow the steps below to upgrade DB schema
+
+* Use full backup database script to backup database - follow <<configuration/MySQL_Backup_Restore_Scripts.html,Mysql backup/restore scripts>>
+* Use database schema upgrade scripts to move DB schema to the latest - follow <<configuration/How to use Mysql schema upgrade scripts.adoc#mysql-schema-upgrade,How to use Mysql schema upgrade scripts>>
+
+*At this point, you can upgrade Restcomm-Connect instance.*
+
+==== Rollback steps
+In case something goes wrong during the migration/upgrade process, you can rollback changes and run the previous version of Restcomm-Connect
+
+Follow the steps below:
+
+2. Stop 8.5.0 instance
+3. Start old version instance.
+
+*You don't need to migrate DB schema*
+
+
+//add release-notes with newer on top
+== 8.4.1 version 2018-05-11
+=== New Features
+// New features (whether major or minor) go here
+* SMS outbound long messages support
+* New Clients password migration tool
+
+
+=== Breaking Changes
+// draws attention to functionality that is getting removed
+
+
+=== Bug Fixes
+* Profile Service using correct requesting account for organization resolution.
+
+
+=== Migration Notes
+// Things to consider during migration from previous release
+
+*Important Note* Migration notes are applicable to Restcomm-Connect versions before 8.4.0. If you have upgraded to 8.4.0 already, you can ignore the notes here.
+
+With the release of Restcomm-Connect 8.4.1, we provided a new method in the Organization REST API which can be used to migrate existing clients using clear text password to hashed password.
+
+Restcomm-Connect 8.4.1, will work just fine with either hashed or clear text client passwords (this might change in the future by forcing only hashed passwords)
+
+As part of the 8.4.1 release, we also provided a set of DB backup/restore bash scripts <<configuration/MySQL_Backup_Restore_Scripts.adoc#mysql-backup-restore-scripts,Mysql backup/restore scripts>>, that we recommend to use during the migration process.
+
+==== Migration steps - part 1
+
+Follow the steps below to upgrade DB schema
+
+* Use full backup database script to backup database - follow <<configuration/MySQL_Backup_Restore_Scripts.html,Mysql backup/restore scripts>>
+* Use database schema upgrade scripts to move DB schema to the latest - follow <<configuration/How to use Mysql schema upgrade scripts.adoc#mysql-schema-upgrade,How to use Mysql schema upgrade scripts>>
+
+*At this point, you can upgrade Restcomm-Connect instance.*
+
+==== Migration steps - part 2
+
+Migration of client passwords from clear text to hashed password, can be done using Organization REST API, see <<api/organization-api.html#organization,Restcomm API – Organization>>.
+
+Given you want to migrate clients of an Organization follow the steps below to backup `restcomm_clients` table and migrate client passwords from clear test to MD5 algorithm
+
+* Use Client full backup script to backup `restcomm_clients` table - follow <<configuration/MySQL_Backup_Restore_Scripts.html,Mysql backup/restore scripts>>
+* Use Client per Org backup script to backup `restcomm_client` table for the clients that belond to that specific Organization - follow <<configuration/MySQL_Backup_Restore_Scripts.html,Mysql backup/restore scripts>>
+* Use Organization REST API to migrate clients of the given Organization - check <<api/organization-api.html#organization,Restcomm API – Organization>>
+
+Repeat the process for all the Organizations as required
+
+==== Rollback steps
+In case something goes wrong during the migration/upgrade process, you can rollback changes and run the previous version of Restcomm-Connect
+
+Follow the steps below:
+
+1. Use previously generated Clients table backup files and the scripts provided to restore client passwords to clear text - follow <<MySQL_Backup_Restore_Scripts.adoc#mysql-backup-restore-scripts.html,Mysql backup/restore scripts>>
+2. Stop 8.4.1 instance
+3. Start old version instance.
+
+*You don't need to migrate DB schema*
+
+
+=== External Dependencies Updates
+* Console updated to version **__8.4.1__**
+** In tables, differentiate between no items and not matching search
+** Match partial results in logs search
+** Fix pagination issues in Notifications Logs
+** Introduced encrypted password for Clients
+
+== 8.4.0 version 2018-04-19
+=== New Features
+// New features (whether major or minor) go here
+* Clients passwords are now hashed in DB - **security improvement**
+* Profiles allow arbitrary properties to be saved/retrieved.
+* Added configurable SBC mode which if enabled will disable all NAT handling operations
+
+=== Breaking Changes
+// draws attention to functionality that is getting removed
+* Accessing Olympus WebRTC from Console now requires to login again. This because of the new feature to hash passwords
+* Removed default clients `alice` and `bob`
+
+=== Bug Fixes
+// any difference in functionality
+* Dial Timeout does not cancel task when Callee is busy
+* Configurable inbound/outbound SMPP encoding
+* Race condition on sending BYE to incoming call for a dial fork scenario
+* Fixed SDR event for SMS - **commercial**
+* Fixed REFER (Call Transfer) support to work with organizations
+
+
+=== Migration Notes
+// Things to consider during migration from previous release
+* Clients password are considered to be MD5 hashed in DB. Database migration
+scripts are available in **commercial** version. Database migration script will ensure existing clients passwords are properly migrated.
+** Database migration script will automatically take a backup of complete database before making any changes
+** Please take a backup of restcomm clients table (to be used in case we need to rollback as explained below)
+** In case of rollback to older version, kindly restore restcomm clients table only.
+
+=== External Dependencies Updates
+// any dependencies
+* Console updated to version **__8.4.0__**
+** Integrated Feature Access Control (FAC) limitations
+** Updated Console Look & Feel to match new Restcomm branding
+** Implemented new Sign In page in Console
+** Use Designer location in Console from configuration file
+* Designer updated to version **__1.2.0-139__**
+** Integrated Feature Access Control (FAC) limitations
+** Improved Designer performance with better xstream usage
+** Designer Look & Feel to match new Restcomm branding
+* Olympus WebRTC Demo updated to version **__1.1.0-176__**
+** Fixed an issue in WebRTC Demo jain-sip library, parsing some headers
+** Improve WebRTC Demo UX by showing incoming call screen on top even if caller is not the selected contact
+** Add additional configuration to WebRTC Demo for specifying client-specific parameters
+** Improve WebRTC Xirsys integration by checking for actual success response and using domain property as namespace (now required)

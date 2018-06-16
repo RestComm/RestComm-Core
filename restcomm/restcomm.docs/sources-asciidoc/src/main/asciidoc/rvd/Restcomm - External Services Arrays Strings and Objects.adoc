@@ -1,4 +1,6 @@
-In this tutorial, you will learn the  specifics of getting data out of your external services applications using Objects, String and Arrays. We are going to use the PHP snippet below to illustrate the example.   
+CAUTION: This piece of documentation is outdated. We're actively re-working Visual Designer documentation <<index.adoc#, here>>
+
+In this tutorial, you will learn the  specifics of getting data out of your external services applications using Objects, String and Arrays. We are going to use the PHP snippet below to illustrate the example.  
 
 NOTE: Note that the associative array is later Json encoded.
 

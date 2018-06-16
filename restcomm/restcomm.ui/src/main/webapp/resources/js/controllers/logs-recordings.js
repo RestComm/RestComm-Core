@@ -101,8 +101,10 @@ rcMod.controller('LogsRecordingsCtrl', function($scope, $resource, $timeout, $ui
       params["EndTime"] = search.end_time;
     }
     if(search.call_sid) {
-      params["CallSid"] = search.call_sid;
+      // FIXME: using '%' at start doesn't fully work... why?
+      params["CallSid"] = (search.call_sid + '%');
     }
+    $scope.hasCriteria = !_.isEmpty(params);
 
     return params;
   }

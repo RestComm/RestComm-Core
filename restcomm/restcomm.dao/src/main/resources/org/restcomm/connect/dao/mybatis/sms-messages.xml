@@ -6,8 +6,8 @@
 <mapper namespace="org.mobicents.servlet.sip.restcomm.dao.SmsMessagesDao">
   <insert id="addSmsMessage" parameterType="map">
     INSERT INTO "restcomm_sms_messages" ("sid", "date_created", "date_updated", "date_sent", "account_sid", "sender", "recipient", "body", "status", "direction", "price",
-    "api_version", "uri") VALUES (#{sid}, #{date_created}, #{date_updated}, #{date_sent}, #{account_sid}, #{sender}, #{recipient}, #{body},
-    #{status}, #{direction}, #{price}, #{api_version}, #{uri});
+    "api_version", "uri", "smpp_message_id") VALUES (#{sid}, #{date_created}, #{date_updated}, #{date_sent}, #{account_sid}, #{sender}, #{recipient}, #{body},
+    #{status}, #{direction}, #{price}, #{api_version}, #{uri}, #{smpp_message_id});
   </insert>
   
   <select id="getSmsMessage" parameterType="string" resultType="hashmap">
@@ -16,6 +16,10 @@
   
   <select id="getSmsMessages" parameterType="string" resultType="hashmap">
     SELECT * FROM "restcomm_sms_messages" WHERE "account_sid"=#{account_sid};
+  </select>
+
+  <select id="getSmsMessageBySmppMessageId" parameterType="string" resultType="hashmap">
+    SELECT * FROM "restcomm_sms_messages" WHERE "smpp_message_id"=#{smpp_message_id};
   </select>
   
   <delete id="removeSmsMessage" parameterType="string">
@@ -27,7 +31,7 @@
   </delete>
   
   <update id="updateSmsMessage" parameterType="map">
-    UPDATE "restcomm_sms_messages" SET "date_sent"=#{date_sent}, "status"=#{status}, "price"=#{price} WHERE "sid"=#{sid};
+    UPDATE "restcomm_sms_messages" SET "date_sent"=#{date_sent}, "status"=#{status}, "price"=#{price}, "smpp_message_id"=#{smpp_message_id}, "error_code"=#{error_code}, "date_updated"=NOW() WHERE "sid"=#{sid};
   </update>
 
   <select id="getSmsMessagesPerAccountLastPerMinute" parameterType="map" resultType="int">
@@ -113,10 +117,16 @@
                 AND "date_created" &gt;= #{startTime}
             </if>
             <if test="endTime != null">
-                    AND "date_created" &lt;= DATE_ADD(#{endTime},INTERVAL 1 DAY)
+                AND "date_created" &lt;= DATE_ADD(#{endTime},INTERVAL 1 DAY)
             </if>
+
             order by "date_created"
             LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="findBySmppMessageId" parameterType="map" resultType="hashmap">
+        SELECT * FROM "restcomm_sms_messages" AS "restcomm_sms_messages"
+        WHERE "smpp_message_id" = #{smppMessageId}
     </select>
   
 </mapper>

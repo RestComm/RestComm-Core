@@ -121,4 +121,15 @@ public class RecordingEndpointTool {
 
         return jsonObject;
     }
+
+    public void deleteRecording(String deploymentUrl, String username, String authToken, String recordingSid) {
+        Client jerseyClient = Client.create();
+        jerseyClient.addFilter(new HTTPBasicAuthFilter(username, authToken));
+        String url = getAccountsUrl(deploymentUrl, username, true);
+        WebResource webResource = jerseyClient.resource(url);
+
+        webResource = webResource.path(recordingSid);
+
+         webResource.accept(MediaType.APPLICATION_JSON).delete();
+    }
 }

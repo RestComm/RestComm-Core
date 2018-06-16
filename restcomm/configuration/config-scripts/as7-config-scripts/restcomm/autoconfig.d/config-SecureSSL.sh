@@ -147,6 +147,25 @@ MssStackConf(){
    		sed -i '/gov.nist.javax.sip.TLS_CLIENT_AUTH_TYPE='"$TLS_CLIENT_AUTH_TYPE"'/,+5d' $FILE
  	fi
 
+        if [ -n "$SSL_PROTOCOLS" ]; then
+            if  grep -q "gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS" "$FILE"; then
+                 sed -i "s|gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS=.*|gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS=$SSL_PROTOCOLS|" $FILE
+            else
+                echo "gov.nist.javax.sip.TLS_CLIENT_PROTOCOLS=$SSL_PROTOCOLS"'' >> $FILE
+            fi
+
+        fi
+
+        if [ -n "$SSL_CIPHER_SUITES" ]; then
+            if  grep -q "gov.nist.javax.sip.ENABLED_CIPHER_SUITES" "$FILE"; then
+                sed -i "s|gov.nist.javax.sip.ENABLED_CIPHER_SUITES=.*|gov.nist.javax.sip.ENABLED_CIPHER_SUITES=$SSL_CIPHER_SUITES|" $FILE
+            else
+                echo 'gov.nist.javax.sip.ENABLED_CIPHER_SUITES='"$SSL_CIPHER_SUITES"'' >> $FILE
+            fi
+
+        fi
+
+
 	if [[ "$TRUSTSTORE_FILE" = /* ]]; then
 		TRUSTSTORE_LOCATION=$TRUSTSTORE_FILE
 	else

@@ -19,6 +19,21 @@
  */
 package org.restcomm.connect.dao.mybatis;
 
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.joda.time.DateTime;
+import org.restcomm.connect.commons.annotations.concurrency.NotThreadSafe;
+import org.restcomm.connect.commons.configuration.RestcommConfiguration;
+import org.restcomm.connect.commons.dao.Sid;
+import org.restcomm.connect.dao.ClientsDao;
+import org.restcomm.connect.dao.entities.Client;
+
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import static org.restcomm.connect.dao.DaoUtils.readDateTime;
 import static org.restcomm.connect.dao.DaoUtils.readInteger;
 import static org.restcomm.connect.dao.DaoUtils.readSid;
@@ -27,20 +42,6 @@ import static org.restcomm.connect.dao.DaoUtils.readUri;
 import static org.restcomm.connect.dao.DaoUtils.writeDateTime;
 import static org.restcomm.connect.dao.DaoUtils.writeSid;
 import static org.restcomm.connect.dao.DaoUtils.writeUri;
-
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.ibatis.session.SqlSession;
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.joda.time.DateTime;
-import org.restcomm.connect.commons.annotations.concurrency.NotThreadSafe;
-import org.restcomm.connect.commons.dao.Sid;
-import org.restcomm.connect.dao.ClientsDao;
-import org.restcomm.connect.dao.entities.Client;
 
 /**
  * @author quintana.thomas@gmail.com (Thomas Quintana)
@@ -129,6 +130,23 @@ public final class MybatisClientsDao implements ClientsDao {
     }
 
     @Override
+    public List<Client> getClientsByOrg(final Sid organizationSid) {
+        final SqlSession session = sessions.openSession();
+        try {
+            final List<Map<String, Object>> results = session.selectList(namespace + "getAllClientsByOrg", organizationSid.toString());
+            final List<Client> clients = new ArrayList<Client>();
+            if (results != null && !results.isEmpty()) {
+                for (final Map<String, Object> result : results) {
+                    clients.add(toClient(result));
+                }
+            }
+            return clients;
+        } finally {
+            session.close();
+        }
+    }
+
+    @Override
     public void removeClient(final Sid sid) {
         removeClients(namespace + "removeClient", sid);
     }
@@ -176,8 +194,12 @@ public final class MybatisClientsDao implements ClientsDao {
         final Sid voiceApplicationSid = readSid(map.get("voice_application_sid"));
         final URI uri = readUri(map.get("uri"));
         final String pushClientIdentity = readString(map.get("push_client_identity"));
+        String passwordAlgorithm = RestcommConfiguration.getInstance().getMain().getClearTextPasswordAlgorithm();
+        if (map.containsKey("password_algorithm")) {
+            passwordAlgorithm = readString(map.get("password_algorithm"));
+        }
         return new Client(sid, dateCreated, dateUpdated, accountSid, apiVersion, friendlyName, login, password, status,
-                voiceUrl, voiceMethod, voiceFallbackUrl, voiceFallbackMethod, voiceApplicationSid, uri, pushClientIdentity);
+                voiceUrl, voiceMethod, voiceFallbackUrl, voiceFallbackMethod, voiceApplicationSid, uri, pushClientIdentity, passwordAlgorithm);
     }
 
 
@@ -200,6 +222,7 @@ public final class MybatisClientsDao implements ClientsDao {
         map.put("voice_application_sid", writeSid(client.getVoiceApplicationSid()));
         map.put("uri", writeUri(client.getUri()));
         map.put("push_client_identity", client.getPushClientIdentity());
+        map.put("password_algorithm", client.getPasswordAlgorithm());
         return map;
     }
 }

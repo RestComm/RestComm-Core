@@ -370,7 +370,7 @@ public class RestcommProfilesTool {
         final HttpResponse response = client.execute(request);
         logger.info("response is here: " + response);
         return response;
-}
+    }
 
     /**
      * @param request

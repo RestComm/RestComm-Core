@@ -1,65 +1,65 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>org.restcomm</groupId>
-		<artifactId>restcomm-connect</artifactId>
-		<version>8.3.0-SNAPSHOT</version>
-	</parent>
-	<artifactId>restcomm-connect.telephony.api</artifactId>
-	<name>restcomm-connect.telephony.api</name>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.restcomm</groupId>
+        <artifactId>restcomm-connect</artifactId>
+        <version>9.0.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>restcomm-connect.telephony.api</artifactId>
+    <name>restcomm-connect.telephony.api</name>
 
-	<dependencies>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<scope>provided</scope>
-		</dependency>
+    <dependencies>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
-		<dependency>
-			<groupId>org.mobicents.servlet.sip</groupId>
-			<artifactId>sip-servlets-spec</artifactId>
-			<version>${sipservletapi.version}</version>
-			<scope>provided</scope>
-		</dependency>
+        <dependency>
+            <groupId>org.mobicents.servlet.sip</groupId>
+            <artifactId>sip-servlets-spec</artifactId>
+            <version>${sipservletapi.version}</version>
+            <scope>provided</scope>
+        </dependency>
                 
                                
-		<dependency>
-			<groupId>org.mobicents.servlet.sip.containers</groupId>
-			<artifactId>sip-servlets-catalina-7</artifactId>
-			<scope>provided</scope>
-		</dependency>                 
+        <dependency>
+            <groupId>org.mobicents.servlet.sip.containers</groupId>
+            <artifactId>sip-servlets-catalina-7</artifactId>
+            <scope>provided</scope>
+        </dependency>                 
 
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>javax.servlet-api</artifactId>
-			<scope>provided</scope>
-		</dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
-		<dependency>
-			<groupId>org.restcomm</groupId>
-			<artifactId>restcomm-connect.commons</artifactId>
-			<version>${project.version}</version>
-			<scope>provided</scope>
-		</dependency>
+        <dependency>
+            <groupId>org.restcomm</groupId>
+            <artifactId>restcomm-connect.commons</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>org.restcomm</groupId>
             <artifactId>restcomm-connect.extension.api</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
-		<dependency>
-			<groupId>org.restcomm</groupId>
-			<artifactId>restcomm-connect.dao</artifactId>
-			<version>${project.version}</version>
-			<scope>provided</scope>
-		</dependency>
+        <dependency>
+            <groupId>org.restcomm</groupId>
+            <artifactId>restcomm-connect.dao</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
 
-		<dependency>
-			<groupId>javax.sip</groupId>
-			<artifactId>jain-sip-ri</artifactId>
-			<scope>provided</scope>
-		</dependency>
+        <dependency>
+            <groupId>javax.sip</groupId>
+            <artifactId>jain-sip-ri</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
-	</dependencies>
+    </dependencies>
 </project>

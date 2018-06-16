@@ -492,6 +492,10 @@ configSMPPAccount() {
 	peerPort="$6"
 	sourceMap="$7"
 	destinationMap="$8"
+	inboundEncoding="$9"
+	outboundEncoding="${10}"
+	messagePayloadFlag="${11}"
+	autoDetectDcsFlag="${12}"
 
 
 	sed -i "s|<smpp class=\"org.restcomm.connect.sms.smpp.SmppService\" activateSmppConnection =\".*\">|<smpp class=\"org.restcomm.connect.sms.smpp.SmppService\" activateSmppConnection =\"$activate\">|g" $FILE
@@ -528,6 +532,19 @@ configSMPPAccount() {
 		}" $FILE
 
         sed -i "s|<connection activateAddressMapping=\"false\" sourceAddressMap=\"\" destinationAddressMap=\"\" tonNpiValue=\"1\">|<connection activateAddressMapping=\"false\" sourceAddressMap=\"${sourceMap}\" destinationAddressMap=\"${destinationMap}\" tonNpiValue=\"1\">|" $FILE
+
+        if [ ! -z "${inboundEncoding}" ]; then
+            xmlstarlet ed -L -P -u  "/restcomm/smpp/connections/connection/inboundencoding" -v $inboundEncoding $FILE
+        fi
+        if [ ! -z "${outboundEncoding}" ]; then
+            xmlstarlet ed -L -P -u  "/restcomm/smpp/connections/connection/outboundencoding" -v $outboundEncoding $FILE
+        fi
+        if [ ! -z "${messagePayloadFlag}" ]; then
+            xmlstarlet ed -L -P -u  "/restcomm/smpp/connections/connection/messagepayloadflag" -v $messagePayloadFlag $FILE
+        fi
+        if [ ! -z "${autoDetectDcsFlag}" ]; then
+            xmlstarlet ed -L -P -u  "/restcomm/smpp/connections/connection/autodetectdcsflag" -v $autoDetectDcsFlag $FILE
+        fi
 		echo 'Configured SMPP Account Details'
 
 	else
@@ -560,6 +577,10 @@ configSMPPAccount() {
 		}" $FILE
 
         sed -i "s|<connection activateAddressMapping=\"false\" sourceAddressMap=\"\" destinationAddressMap=\"\" tonNpiValue=\"1\">|<connection activateAddressMapping=\"false\" sourceAddressMap=\"\" destinationAddressMap=\"\" tonNpiValue=\"1\">|" $FILE
+
+        xmlstarlet ed -L -P -u  "/restcomm/smpp/connections/connection/inboundencoding" -v "" $FILE
+        xmlstarlet ed -L -P -u  "/restcomm/smpp/connections/connection/outboundencoding" -v "" $FILE
+
 		echo 'Configured SMPP Account Details'
 	fi
 }
@@ -586,11 +607,14 @@ configRestCommURIs() {
 		REMOTE_ADDRESS="${SCHEME}://${PUBLIC_IP}:${PORT}"
 
 		sed -i "s|<prompts-uri>.*</prompts-uri>|<prompts-uri>$REMOTE_ADDRESS/restcomm/audio<\/prompts-uri>|" $FILE
-		sed -i "s|<cache-uri>.*/cache-uri>|<cache-uri>$REMOTE_ADDRESS/restcomm/cache</cache-uri>|" $FILE
+		sed -i "s|<cache-uri>.*</cache-uri>|<cache-uri>$REMOTE_ADDRESS/restcomm/cache</cache-uri>|" $FILE
+		sed -i "s|<cache-path>.*</cache-path>|<cache-path>$CACHE_PATH</cache-path>|" $FILE
 		sed -i "s|<error-dictionary-uri>.*</error-dictionary-uri>|<error-dictionary-uri>$REMOTE_ADDRESS/restcomm/errors</error-dictionary-uri>|" $FILE
 
+                #Equivalent changes in case XML tags are empty after empty values
 		sed -i "s|<prompts-uri/>|<prompts-uri>$REMOTE_ADDRESS/restcomm/audio<\/prompts-uri>|" $FILE
 		sed -i "s|<cache-uri/>|<cache-uri>$REMOTE_ADDRESS/restcomm/cache</cache-uri>|" $FILE
+                sed -i "s|<cache-path/>|<cache-path>$CACHE_PATH</cache-path>|" $FILE
 		sed -i "s|<error-dictionary-uri/>|<error-dictionary-uri>$REMOTE_ADDRESS/restcomm/errors</error-dictionary-uri>|" $FILE
 
 		echo "Updated prompts-uri cache-uri error-dictionary-uri External MSaddress for "
@@ -686,6 +710,10 @@ otherRestCommConf(){
 
     echo "CACHE_NO_WAV $CACHE_NO_WAV"
     sed -i "s|<cache-no-wav>.*</cache-no-wav>|<cache-no-wav>${CACHE_NO_WAV}</cache-no-wav>|" $FILE
+
+    #Configure USESBC
+    echo "USESBC: $RCUSESBC"
+    sed -i "s|<use-sbc>.*</use-sbc>|<use-sbc>${RCUSESBC}</use-sbc>|" $FILE
 
     echo "End Rest RestComm configuration"
 }
@@ -866,7 +894,14 @@ else
 fi
 
 if [ -z "$MS_ADDRESS" ]; then
-		MS_ADDRESS=$BIND_ADDRESS
+    MS_ADDRESS=$BIND_ADDRESS
+fi
+
+if [ "a" == "a$MGCP_LOCAL_ADDRESS" ]; then
+    # $MGCP_LOCAL_ADDRESS is empty, so just use bind address
+    MGCP_ADDRESS=$BIND_ADDRESS
+else
+    MGCP_ADDRESS=$MGCP_LOCAL_ADDRESS
 fi
 
 configDidProvisionManager "$DID_LOGIN" "$DID_PASSWORD" "$DID_ENDPOINT" "$DID_SITEID" "$HOSTFORDID" "$DID_ACCOUNTID" "$SMPP_SYSTEM_TYPE" "$DID_URIPORT"
@@ -875,8 +910,8 @@ configSmsAggregator "$SMS_OUTBOUND_PROXY" "$SMS_PREFIX"
 configSpeechRecognizer "$ISPEECH_KEY"
 configSpeechSynthesizers
 configTelestaxProxy "$ACTIVE_PROXY" "$TP_LOGIN" "$TP_PASSWORD" "$INSTANCE_ID" "$PROXY_IP" "$SITE_ID"
-configMediaServerManager "$BIND_ADDRESS" "$MS_ADDRESS" "$MEDIASERVER_EXTERNAL_ADDRESS"
-configSMPPAccount "$SMPP_ACTIVATE" "$SMPP_SYSTEM_ID" "$SMPP_PASSWORD" "$SMPP_SYSTEM_TYPE" "$SMPP_PEER_IP" "$SMPP_PEER_PORT" "$SMPP_SOURCE_MAP" "$SMPP_DEST_MAP"
+configMediaServerManager "$MGCP_ADDRESS" "$MS_ADDRESS" "$MEDIASERVER_EXTERNAL_ADDRESS"
+configSMPPAccount "$SMPP_ACTIVATE" "$SMPP_SYSTEM_ID" "$SMPP_PASSWORD" "$SMPP_SYSTEM_TYPE" "$SMPP_PEER_IP" "$SMPP_PEER_PORT" "$SMPP_SOURCE_MAP" "$SMPP_DEST_MAP" "$SMPP_INBOUND_ENCODING" "$SMPP_OUTBOUND_ENCODING" "$SMPP_MESSAGE_PAYLOAD_FLAG" "$SMPP_AUTO_DETECT_DCS_FLAG"
 configRestCommURIs
 updateRecordingsPath
 configHypertextPort

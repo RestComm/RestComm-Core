@@ -266,15 +266,21 @@ public final class SmsSession extends RestcommUntypedActor {
         Object record = info.attributes().get("record");
         if (SipServletResponse.SC_ACCEPTED == status || SipServletResponse.SC_OK == status) {
             if (record != null) {
-                record = ((SmsMessage)record).setDateSent(DateTime.now());
-                record = ((SmsMessage)record).setStatus(SmsMessage.Status.SENT);
-                info.attributes().put("record", record);
+                SmsMessage toBeUpdated = ((SmsMessage)record);
+                SmsMessage.Builder builder = SmsMessage.builder();
+                builder.copyMessage(toBeUpdated);
+                builder.setDateSent(DateTime.now());
+                builder.setStatus(SmsMessage.Status.SENT);
+                info.attributes().put("record", builder.build());
             }
             result = new SmsSessionResponse(info, true);
         } else {
             if (record != null) {
-                record = ((SmsMessage)record).setStatus(SmsMessage.Status.FAILED);
-                info.attributes().put("record", record);
+                SmsMessage toBeUpdated = ((SmsMessage)record);
+                SmsMessage.Builder builder = SmsMessage.builder();
+                builder.copyMessage(toBeUpdated);
+                builder.setStatus(SmsMessage.Status.FAILED);
+                info.attributes().put("record", builder.build());
             }
             result = new SmsSessionResponse(info, false);
         }
@@ -290,6 +296,7 @@ public final class SmsSession extends RestcommUntypedActor {
         if (initial == null) {
             initial = last;
         }
+
         final Charset charset;
         if(logger.isInfoEnabled()) {
             logger.info("SMS encoding:  " + last.encoding() );
@@ -327,6 +334,7 @@ public final class SmsSession extends RestcommUntypedActor {
                 if(logger.isInfoEnabled()) {
                     logger.info("Destination is not a local registered client, therefore, sending through SMPP to:  " + last.to() );
                 }
+
                 if (sendUsingSmpp(last.from(), last.to(), last.body(), tlvSet, charset))
                     return;
             }
@@ -350,8 +358,19 @@ public final class SmsSession extends RestcommUntypedActor {
                 logger.info("SMPP session is available and connected, outbound message will be forwarded to :  " + to );
                 logger.info("Encoding:  " + encoding );
             }
+
+            SmsMessage record = (SmsMessage)this.attributes.get("record");
+            Sid sid = null;
+            if(record!=null) {
+                sid = record.getSid();
+                if(logger.isInfoEnabled()) {
+                    logger.info("record sid = "+sid.toString());
+                }
+            }else{
+                logger.error("record is null");
+            }
             try {
-                final SmppOutboundMessageEntity sms = new SmppOutboundMessageEntity(to, from, body, encoding, tlvSet);
+                final SmppOutboundMessageEntity sms = new SmppOutboundMessageEntity(to, from, body, encoding, tlvSet, sid);
                 smppMessageHandler.tell(sms, null);
             }catch (final Exception exception) {
                 // Log the exception.
@@ -416,8 +435,11 @@ public final class SmsSession extends RestcommUntypedActor {
             final SmsSessionResponse error = new SmsSessionResponse(info, false);
             Object record = info.attributes().get("record");
             if (record != null) {
-                record = ((SmsMessage)record).setStatus(SmsMessage.Status.FAILED);
-                info.attributes().put("record", record);
+                SmsMessage toBeUpdated = ((SmsMessage)record);
+                SmsMessage.Builder builder = SmsMessage.builder();
+                builder.copyMessage(toBeUpdated);
+                builder.setStatus(SmsMessage.Status.FAILED);
+                info.attributes().put("record", builder.build());
             }
             for (final ActorRef observer : observers) {
                 observer.tell(error, self());

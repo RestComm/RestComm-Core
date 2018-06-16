@@ -75,6 +75,8 @@ SMPP_PEER_IP=''	#use IP or DNS name of peer SMPP server
 SMPP_PEER_PORT=''
 SMPP_SOURCE_MAP=''
 SMPP_DEST_MAP=''
+SMPP_INBOUND_ENCODING=''
+SMPP_OUTBOUND_ENCODING=''
 ----
 
 * Section *#Restcomm DID provider integration*.

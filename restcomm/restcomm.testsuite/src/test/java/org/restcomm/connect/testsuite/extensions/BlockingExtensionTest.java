@@ -398,6 +398,7 @@ public class BlockingExtensionTest {
         webInfResources.put("org/restcomm/connect/testsuite/extensions/restcomm.script", "data/hsql/restcomm.script");
         webInfResources.put("akka_application.conf", "classes/application.conf");
         webInfResources.put("sip.xml", "/sip.xml");
+        webInfResources.put("web.xml", "web.xml");
         webInfResources.put("org/restcomm/connect/testsuite/extensions/extensions_blocking.xml", "conf/extensions.xml");
 
         return WebArchiveUtil.createWebArchiveNoGw(

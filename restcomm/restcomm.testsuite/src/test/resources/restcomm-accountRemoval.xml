@@ -12,7 +12,7 @@
 <restcomm>
 	<runtime-settings>
 		<!-- The API version that will be used. -->
-		<api-version>2012-04-24</api-version>
+		<api-version>2012-04-24</api-version><client-algorithm>MD5</client-algorithm><client-qop>auth</client-qop><client-algorithm-sess>false</client-algorithm-sess>
 
 		<!-- Try to run RVD workspace projects migration to apply new naming
 			convention and synchronization with database entities. This execution
@@ -240,38 +240,22 @@
 		(host:port) and method (SIP or SIPS) to where a DID for voice should forward
 		the calls ussd url: URL (host:port) and method (SS7, SIP or SIPS) to where
 		a DID for voice should forward the calls Configuration for Nexmo class: NexmoPhoneNumberProvisioningManager -->
-	<phone-number-provisioning class="org.restcomm.connect.provisioning.number.vi.VoIPInnovationsNumberProvisioningManager">
+                
+	<!-- Configuration for the VoIP Innovations provisioning API. -->
+	<phone-number-provisioning
+		class="org.restcomm.connect.provisioning.number.nexmo.NexmoPhoneNumberProvisioningManager">
 		<callback-urls>
-			<voice url="" method="" />
-			<sms url="" method="" />
-			<fax url="" method="" />
-			<ussd url="" method="" />
+			<voice url="localhost:5080" method="SIP" />
+			<sms url="localhost:5080" method="SIP" />
+			<fax url="localhost:5080" method="SIP" />
+			<ussd url="localhost:5080" method="SIP" />
 		</callback-urls>
-		<voip-innovations>
-			<login></login>
-			<password></password>
-			<endpoint></endpoint>
-			<uri>https://backoffice.voipinnovations.com/api2.pl</uri>
-		</voip-innovations>
-		<bandwidth>
-			<username></username>
-			<password></password>
-			<accountId></accountId>
-			<siteId></siteId>
-			<uri>https://api.inetwork.com/v1.0</uri>
-		</bandwidth>
 		<nexmo>
-			<api-key></api-key>
-			<api-secret></api-secret>
-			<uri>https://rest.nexmo.com/</uri>
-			<smpp-system-type></smpp-system-type>
+			<api-key>randomkey</api-key>
+			<api-secret>randomsecret</api-secret>
+			<uri>http://127.0.0.1:8090/nexmo</uri>
 		</nexmo>
-		<voxbone>
-			<username></username>
-			<password></password>
-			<uri>https://api.voxbone.com/ws-voxbone/services/rest</uri>
-		</voxbone>
-	</phone-number-provisioning>
+	</phone-number-provisioning>                
 
 	<smtp-notify>
 		<host></host>
@@ -394,7 +378,7 @@
 		timeout-per-notification: if several notifications are sent in one step, timeout increase for each. Defaults to 500.
 	-->
 	<rcmlserver>
-		<base-url>http://localhost:8089</base-url>
+		<base-url>http://localhost:8090</base-url>
 		<api-path>/restcomm-rvd/services</api-path>
 		<notifications>true</notifications>
 		<timeout>5000</timeout>
@@ -453,7 +437,7 @@
 					server, it sends an 'ENQUIRE_LINK' after every configured enquire-link-delay.
 					If no response received for 3 consecutive requests, connection will be killed
 					and attempted to connect again -->
-				<enquirelinkdelay>30000</enquirelinkdelay>
+				<enquirelinkdelay>30000</enquirelinkdelay><inboundencoding>UTF-8</inboundencoding><outboundencoding>UTF-8</outboundencoding><messagepayloadflag>false</messagepayloadflag><autodetectdcsflag>false</autodetectdcsflag>
 			</connection>
 		</connections>
 	</smpp>

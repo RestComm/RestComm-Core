@@ -125,6 +125,13 @@ You must first create a RestComm client. In the example below, the Restcomm clie
 curl -X POST https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls.json -d "From=+16175551212" -d "To=client:alice" -d "Url=http://127.0.0.1:8080/restcomm/demos/hello-play.xml"
 ....
 
+This Client URI may contain URI params to declare propietary SIP headers to be 
+included in the outgoing INVITE message.
+
+----
+curl -X POST https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls.json -d "From=+16175551212" -d "To=client:alice?X-Custom-Header1=1234&X-Custom-Header2=432" -d "Url=http://127.0.0.1:8080/restcomm/demos/hello-play.xml"
+----
+
 == Calling a DID number
 
 The above example shows how to make a call to a SIP number. If you want to make a call to a DID number, you must can connect Restcomm to a DID provisioning service provider. The quickest way is to use RestComm AMI on Amazon Cloud. Get a list of all available calls. This will return all the available calls linked to the account SID
@@ -166,7 +173,7 @@ The following parameters are available for you to *POST* request when modifying
 [cols=",",options="header",]
 |===================================================================================================================================================================================================================================================
 |Parameter |Description
-|Url |A valid URL that returns RCMLL. Restcomm will immediately redirect the call to the new RCML.
+|Url |A valid URL that returns RCML. Restcomm will immediately redirect the call to the new RCML.
 |Method |The HTTP method Restcomm should use when requesting the above URL. Defaults to POST.
 |Status |Either *canceled* or completed. Specifying canceled will attempt to hangup calls that are queued or ringing but not affect calls already in progress. Specifying completed will attempt to hang up a call even if it's already in progress.
 | Mute | Either *true* or *flase*. Setting value of this parameter to *true* will mute the call. Setting value of this parameter to *false* will unmute the call.
@@ -185,7 +192,7 @@ You may *POST* the following parameters:
 [cols=",",options="header",]
 |==================================================================================================================================
 |Parameter |Description
-|FallbackUrl |A URL that Restcomm will request if an error occurs requesting or executing the RCMLL at Url.
+|FallbackUrl |A URL that Restcomm will request if an error occurs requesting or executing the RCML at Url.
 |FallbackMethod |The HTTP method that Restcomm should use to request the FallbackUrl. Must be either GET or POST. Defaults to POST.
 |StatusCallback |A URL that Restcomm will request when the call ends to notify your app.
 |StatusCallbackMethod |The HTTP method Restcomm should use when requesting the above URL. Defaults to POST.

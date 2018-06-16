@@ -39,10 +39,11 @@ public final class PlayCollect {
     private final long firstDigitTimer;
     private final long interDigitTimer;
     private final String endInputKey;
+    private final String startInputKey;
 
     private PlayCollect(final List<URI> initialPrompts, final boolean clearDigitBuffer, final int maxNumberOfDigits,
             final int minNumberOfDigits, final String digitPattern, final long firstDigitTimer, final long interDigitTimer,
-            final String endInputKey) {
+            final String endInputKey, final String startInputKey) {
         super();
         this.initialPrompts = initialPrompts;
         this.clearDigitBuffer = clearDigitBuffer;
@@ -52,6 +53,7 @@ public final class PlayCollect {
         this.firstDigitTimer = firstDigitTimer;
         this.interDigitTimer = interDigitTimer;
         this.endInputKey = endInputKey;
+        this.startInputKey = startInputKey;
     }
 
     public static Builder builder() {
@@ -89,6 +91,8 @@ public final class PlayCollect {
     public String endInputKey() {
         return endInputKey;
     }
+
+    public String startInputKey() {return startInputKey; }
 
     @Override
     public String toString() {
@@ -133,6 +137,11 @@ public final class PlayCollect {
                 buffer.append(" ");
             buffer.append("idt=").append(interDigitTimer * 10);
         }
+        if (startInputKey != null) {
+            if (buffer.length() > 0)
+                buffer.append(" ");
+            buffer.append("sik=").append(startInputKey);
+        }
         if (endInputKey != null) {
             if (buffer.length() > 0)
                 buffer.append(" ");
@@ -150,6 +159,7 @@ public final class PlayCollect {
         private long firstDigitTimer;
         private long interDigitTimer;
         private String endInputKey;
+        private String startInputKey;
 
         private Builder() {
             super();
@@ -161,11 +171,12 @@ public final class PlayCollect {
             firstDigitTimer = -1;
             interDigitTimer = -1;
             endInputKey = null;
+            startInputKey = null;
         }
 
         public PlayCollect build() {
             return new PlayCollect(initialPrompts, clearDigitBuffer, maxNumberOfDigits, minNumberOfDigits, digitPattern,
-                    firstDigitTimer, interDigitTimer, endInputKey);
+                    firstDigitTimer, interDigitTimer, endInputKey, startInputKey);
         }
 
         public void addPrompt(final URI prompt) {
@@ -199,5 +210,7 @@ public final class PlayCollect {
         public void setEndInputKey(final String endInputKey) {
             this.endInputKey = endInputKey;
         }
+
+        public void setStartInputKey(final String startInputKey) {this.startInputKey = startInputKey; }
     }
 }

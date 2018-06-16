@@ -21,10 +21,23 @@
 
 package org.restcomm.connect.sms.smpp;
 
-import akka.actor.ActorRef;
-import com.cloudhopper.commons.charset.CharsetUtil;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import javax.servlet.ServletException;
+
+import org.apache.log4j.Logger;
+import org.restcomm.connect.sms.smpp.dlr.provider.TelestaxDlrParser;
+import org.restcomm.connect.sms.smpp.dlr.spi.DLRPayload;
+import org.restcomm.connect.sms.smpp.dlr.spi.DlrParser;
+
 import com.cloudhopper.commons.charset.Charset;
+import com.cloudhopper.commons.charset.CharsetUtil;
 import com.cloudhopper.smpp.PduAsyncResponse;
+import com.cloudhopper.smpp.SmppConstants;
 import com.cloudhopper.smpp.SmppSession;
 import com.cloudhopper.smpp.SmppSessionConfiguration;
 import com.cloudhopper.smpp.SmppSessionHandler;
@@ -35,16 +48,12 @@ import com.cloudhopper.smpp.pdu.EnquireLink;
 import com.cloudhopper.smpp.pdu.EnquireLinkResp;
 import com.cloudhopper.smpp.pdu.PduRequest;
 import com.cloudhopper.smpp.pdu.PduResponse;
+import com.cloudhopper.smpp.tlv.Tlv;
 import com.cloudhopper.smpp.type.Address;
 import com.cloudhopper.smpp.type.RecoverablePduException;
 import com.cloudhopper.smpp.type.UnrecoverablePduException;
-import org.apache.log4j.Logger;
 
-import javax.servlet.ServletException;
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import akka.actor.ActorRef;
 
 /**
  * @author amit bhayani
@@ -59,6 +68,12 @@ public class SmppClientOpsThread implements Runnable {
     private Object waitObject = new Object();
     private final DefaultSmppClient clientBootstrap;
     private static SmppSession getSmppSession;
+    //FIXME: like getSmppSession, this is bad design
+    //this assumes singular SMPP connection all the time,so it works
+    private static Charset outboundEncoding;
+    private static Charset inboundEncoding;
+    private static boolean messagePayloadFlag;
+    private static boolean autoDetectDcsFlag;
     protected volatile boolean started = true;
     private static int sipPort;
 
@@ -294,6 +309,10 @@ public class SmppClientOpsThread implements Runnable {
         public ClientSmppSessionHandler(Smpp esme) {
             super();
             this.esme = esme;
+            inboundEncoding = esme.getInboundDefaultEncoding();
+            outboundEncoding = esme.getOutboundDefaultEncoding();
+            messagePayloadFlag = esme.getMessagePayloadFlag();
+            autoDetectDcsFlag = esme.getAutoDetectDcsFlag();
         }
 
         @Override
@@ -320,13 +339,16 @@ public class SmppClientOpsThread implements Runnable {
         }
 
         @Override
-        public void fireExpectedPduResponseReceived(
+        public void fireExpectedPduResponseReceived (
                 PduAsyncResponse pduAsyncResponse) {
             // TODO : SMPP Response received. Does RestComm need confirmation
             // for this?
-            logger.warn("ExpectedPduResponseReceived received for Smpp "
+            logger.info("ExpectedPduResponseReceived received for Smpp "
                     + this.esme.getName() + " PduAsyncResponse="
                     + pduAsyncResponse);
+
+            //forward this to smppMessageHandle so we can potentially update the message status
+            smppMessageHandler.tell(pduAsyncResponse, null);
         }
 
         @Override
@@ -339,33 +361,63 @@ public class SmppClientOpsThread implements Runnable {
 
         @Override
         public PduResponse firePduRequestReceived(PduRequest pduRequest) {
-            // TODO : SMPP request received. Let RestComm know so it calls
-            // coresponding App
-
             PduResponse response = pduRequest.createResponse();
-            //Nexmo keeps sending enquire_link in response that causes
-            //problem with normal PDU request. This tells Restcomm SMPP to do Nothing
-            //with the request
-            if (pduRequest.toString().toLowerCase().contains("enquire_link")) {
-                //logger.info("This is a response to the enquire_link, therefore, do NOTHING ");
-            } else {
 
-                DeliverSm deliverSm = (DeliverSm) pduRequest;
+            if (!pduRequest.toString().toLowerCase().contains("enquire_link")) {
                 try {
-                    String decodedPduMessage = CharsetUtil.CHARSET_MODIFIED_UTF8.decode(deliverSm.getShortMessage());
+                    DeliverSm deliverSm = (DeliverSm) pduRequest;
+                    byte dcs = deliverSm.getDataCoding();
                     String destSmppAddress = deliverSm.getDestAddress().getAddress();
                     String sourceSmppAddress = deliverSm.getSourceAddress().getAddress();
-                    Charset charset;
-                    if (DataCoding.DATA_CODING_UCS2 == deliverSm.getDataCoding()) {
-                        charset = CharsetUtil.CHARSET_UCS_2;
-                    } else {
-                        charset = CharsetUtil.CHARSET_GSM;
+
+                    //this default esme encoding only applies to DCS==0
+                    Charset encoding = esme.getInboundDefaultEncoding();
+                    if(dcs == SmppConstants.DATA_CODING_UCS2) {
+                        encoding = CharsetUtil.CHARSET_UCS_2;
                     }
-                    //send received SMPP PDU message to restcomm
-                    try {
-                        sendSmppMessageToRestcomm(decodedPduMessage, destSmppAddress, sourceSmppAddress, charset);
-                    } catch (IOException | ServletException e) {
-                        logger.error("Exception while trying to dispatch incoming SMPP message to Restcomm: " + e);
+
+                    byte[] pduMessage = deliverSm.getShortMessage();
+                    int smsLength = deliverSm.getShortMessageLength();
+                    byte esmClass = deliverSm.getEsmClass();
+                    byte msgType = (byte)(((esmClass) >> 2) & 0x0f);
+                    if(logger.isDebugEnabled()) {
+                        logger.debug("deliverSm="+deliverSm.toString()+" smsLength="+smsLength+" esmClass="+Byte.toString(esmClass)+" msgType="+Byte.toString(msgType));
+                    }
+                    //check message_payload
+                    if(smsLength > 0) {
+                        if(logger.isInfoEnabled()) {
+                            logger.info("Using message from message body " + Arrays.toString(pduMessage));
+                        }
+
+                    } else {
+                        Tlv msgPayload = deliverSm.getOptionalParameter(SmppConstants.TAG_MESSAGE_PAYLOAD);
+
+                        if(msgPayload!=null) {
+                            pduMessage = msgPayload.getValue();
+                            if(logger.isInfoEnabled()) {
+                                logger.info("Using message from TAG_MESSAGE_PAYLOAD " + Arrays.toString(pduMessage));
+                            }
+                        } else {
+                            //TODO: what else do we do?
+                            logger.error("incoming message has no message body nor message_payload");
+                        }
+                    }
+                    String decodedPduMessage = CharsetUtil.decode(pduMessage, encoding);
+                    //send received SMPP PDU message to restcomm only if not DLR
+                    if (msgType == 0x0) {
+                        try {
+                            sendSmppMessageToRestcomm(decodedPduMessage, destSmppAddress, sourceSmppAddress, encoding);
+                        } catch (IOException | ServletException e) {
+                            logger.error("Exception while trying to dispatch incoming SMPP message to Restcomm: " + e);
+                        }
+                    } else {
+                       if(logger.isInfoEnabled()) {
+                           logger.info("Message is not normal request, esmClass:" + esmClass +", Using message from message body " + decodedPduMessage);
+                       }
+                       DlrParser dlrParser = new TelestaxDlrParser();
+
+                       DLRPayload dlrPayload = dlrParser.parseMessage(decodedPduMessage);
+                       smppMessageHandler.tell(dlrPayload, null);
                     }
                 } catch (Exception e) {
                     logger.error("Exception while trying to process incoming SMPP message to Restcomm: " + e);
@@ -373,7 +425,6 @@ public class SmppClientOpsThread implements Runnable {
             }
             return response;
         }
-
 
         @Override
         public void fireRecoverablePduException(RecoverablePduException e) {
@@ -428,5 +479,22 @@ public class SmppClientOpsThread implements Runnable {
         String inboundMessage = smppMessage;
         SmppInboundMessageEntity smppInboundMessage = new SmppInboundMessageEntity(to, from, inboundMessage, charset);
         smppMessageHandler.tell(smppInboundMessage, null);
+    }
+
+    public static Charset getInboundDefaultEncoding() {
+        return inboundEncoding;
+    }
+
+    public static Charset getOutboundDefaultEncoding() {
+        return outboundEncoding;
+    }
+
+    public static boolean getMessagePayloadFlag() {
+        return messagePayloadFlag;
+    }
+
+
+    public static boolean getAutoDetectDcsFlag() {
+        return autoDetectDcsFlag;
     }
 }

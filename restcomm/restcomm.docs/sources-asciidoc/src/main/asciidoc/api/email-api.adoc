@@ -33,6 +33,7 @@ Using the RestComm API, you can send Emails through a simple request.
 |To(Required) |The destination Email address.
 |Body(Required) |The body of the Email message.
 |Subject(Required) |The subject of the Email message.(Max. 160 chars.)
+|Type |The value to be used in the Content-Type header of the email message. (eg text/html for HTML emails)
 |BCC |The Blind Carbon Copy feature (Bcc).  (Hide addresses when sending an Email to various recipients)
 |CC |The Carbon Copy (Cc). (The list of CCed recipients is visible to all other recipients of the message.)
 |==========================================================================================================

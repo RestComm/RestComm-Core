@@ -26,9 +26,9 @@ IMPORTANT: This REST API is only accessible by the super-admin.
 
 === Supported Operations
 
-*HTTP GET.* Returns the representation of the MultiProvider Extension resource.
+*https GET.* Returns the representation of the MultiProvider Extension resource.
 
-**HTTP POST/PUT**. Adds or modifies MultiProvider configuration for specific Account and returns the representation. Below you will find a list of supported parameters.
+**https POST**. Adds or modifies MultiProvider configuration for specific Account and returns the representation. Below you will find a list of supported parameters.
 
 === Supported Operation Parameters
 
@@ -106,9 +106,9 @@ In the future, injection of other arbitrary TLVs may be enabled.
 === Example SMS Enablement
 
 ----
-curl -X POST http://ACae6e420f425248d6a26948c17a9e2acg:77f8c12cc7b8f8423e5c38b035249166@10.0.0.4:8080/restcomm/2012-04-24/ExtensionsConfiguration.json \ 
+curl -X POST https://<Admin Account Sid>:<Auth token>@cloud.restcomm.com/restcomm/2012-04-24/ExtensionsConfiguration.json \ 
 -d "ExtensionName=multi_provider" -d "Enabled=true"  \
--d "AccountSid=ACae6e420f425248d6a26948c17a9e2acf" \
+-d "AccountSid=<Account Sid to be configured>" \
 -d "ConfigurationData={\"outbound-sms\": [{\"destination_network_id\": \"1000\"}]}"
 ----
 
@@ -235,12 +235,35 @@ MultiProvider Extension voice enablement works three ways
     ]
 }
 ----
-=== Example Voice Enablement
+=== Example Voice Enablement Creation
 
 ----
-curl -X POST http://ACae6e420f425248d6a26948c17a9e2acg:77f8c12cc7b8f8423e5c38b035249166@10.0.0.4:8080/restcomm/2012-04-24/ExtensionsConfiguration.json \ 
+curl -X POST https://<Admin Account Sid>:<Auth token>@cloud.restcomm.com/restcomm/2012-04-24/ExtensionsConfiguration.json \ 
 -d "ExtensionName=multi_provider" -d "Enabled=true"  \
--d "AccountSid=ACae6e420f425248d6a26948c17a9e2acf" \
+-d "AccountSid=<Account Sid to be configured>" \
+-d "ConfigurationData={\"outbound-voice\": [  {\"proxy\": [ \ 
+{\"uri\":\"192.168.0.1;uriprop1=uri_prop_value1;uriprop2=uri_prop_value2"\", \"username\":\"someuser1.com\", \"password\":\"somepassword1.com\", \"match\":\"uri.com\"}, \ 
+{\"uri\":\"192.168.0.1\", \"username\":\"someuser1.com\", \"password\":\"somepassword1.com\", \"match\":\"uri[12]\\.com\", \"headers\": [
+   {\"headerName\":\"Request-URI\", \"key\":\"newkey1\", \"value\":\"newvalue1\"}, \
+   {\"headerName\":\"Request-URI\", \"key\":\"newkey2\", \"value\":\"newvalue2\"}, \
+   {\"headerName\":\"To\",          \"key\":\"newkey3\", \"value\":\"newvalue3\"}, \
+   {\"headerName\":\"X-CustomHeader\", \"key\":\"newkey4\", \"value\":\"newvalue4\"}  \
+]} \
+{\"uri\":\"192.168.0.2\", \"username\":\"someuser2.com\", \"password\":\"somepassword2.com\", \"headers\": [
+   {\"headerName\":\"Request-URI\", \"key\":\"newkey5\", \"value\":\"newvalue5\"}, \
+   {\"headerName\":\"Request-URI\", \"key\":\"newkey6\", \"value\":\"newvalue6\"}, \
+   {\"headerName\":\"To\", \"key\":\"newkey\", \"value7\":\"newvalue7\"}, \
+   {\"headerName\":\"X-CustomHeader\", \"key\":\"newkey8\", \"value\":\"newvalue8\"}  \
+]} \
+] } ] }"
+----
+
+
+=== Example Voice Enablement Update
+----
+curl -X POST https://<Admin Account Sid>:<Auth token>@cloud.restcomm.com/restcomm/2012-04-24/ExtensionsConfiguration.json/EXd1ff6cfa369a436b86c27ec278be196e \ 
+-d "ExtensionName=multi_provider" -d "Enabled=true"  \
+-d "AccountSid=<Account Sid to be configured>" \
 -d "ConfigurationData={\"outbound-voice\": [  {\"proxy\": [ \ 
 {\"uri\":\"192.168.0.1;uriprop1=uri_prop_value1;uriprop2=uri_prop_value2"\", \"username\":\"someuser1.com\", \"password\":\"somepassword1.com\", \"match\":\"uri.com\"}, \ 
 {\"uri\":\"192.168.0.1\", \"username\":\"someuser1.com\", \"password\":\"somepassword1.com\", \"match\":\"uri[12]\\.com\", \"headers\": [

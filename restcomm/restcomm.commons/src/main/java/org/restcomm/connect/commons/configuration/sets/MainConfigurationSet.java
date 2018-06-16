@@ -20,9 +20,10 @@
 
 package org.restcomm.connect.commons.configuration.sets;
 
+import org.restcomm.connect.commons.common.http.SslMode;
+
 import java.net.InetSocketAddress;
 import java.util.Map;
-import org.restcomm.connect.commons.common.http.SslMode;
 
 /**
  * @author orestis.tsakiridis@telestax.com - Orestis Tsakiridis
@@ -59,4 +60,12 @@ public interface MainConfigurationSet {
     long getConferenceTimeout();
 
     void setConferenceTimeout(long conferenceTimeout);
+
+    String getClientAlgorithm();
+
+    String getClientQOP();
+
+    String getClearTextPasswordAlgorithm();
+
+    String getRecordingPath();
 }

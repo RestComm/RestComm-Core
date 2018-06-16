@@ -13,7 +13,6 @@ The *<Sms>* verb sends an SMS message to a phone number during a phone call.
 |from |phone number |see below
 |action |relative or absolute URL |none
 |method |GET, POST |POST
-|statusCallback |relative or absolute URL |none
 |==============================================
 
 ==== to
@@ -27,9 +26,6 @@ The 'action' attribute takes a URL as an argument. After processing the <Sms> ve
 
 ==== method
 The 'method' attribute takes the value 'GET' or 'POST'. This tells RestComm whether to request the 'action' URL via HTTP GET or POST. This attribute is modeled after the HTML form 'method' attribute.
-
-==== statusCallback
-The 'statusCallback' attribute takes a URL as an argument. When the SMS message is actually sent, or if sending fails, RestComm will make an asynchronous POST request to this URL with the parameters 'SmsStatus' and 'SmsSid'. Note, 'statusCallback' always uses HTTP POST to request the given url.
 
 ===== Request Parameters
 

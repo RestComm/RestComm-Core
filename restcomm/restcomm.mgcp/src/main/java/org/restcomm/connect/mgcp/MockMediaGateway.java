@@ -83,7 +83,7 @@ import java.util.concurrent.TimeUnit;
  * @author quintana.thomas@gmail.com (Thomas Quintana)
  */
 public class MockMediaGateway extends RestcommUntypedActor {
-    private final LoggingAdapter logger = Logging.getLogger(getContext().system(), this);
+    protected final LoggingAdapter logger = Logging.getLogger(getContext().system(), this);
 
     // Session description for the mock media gateway.
     private static final String sdp = "v=0\n" + "o=- 1362546170756 1 IN IP4 192.168.1.100\n" + "s=Mobicents Media Server\n"
@@ -108,7 +108,7 @@ public class MockMediaGateway extends RestcommUntypedActor {
     // Runtime stuff.
     private RevolvingCounter requestIdPool;
     private RevolvingCounter sessionIdPool;
-    private RevolvingCounter transactionIdPool;
+    protected RevolvingCounter transactionIdPool;
     protected RevolvingCounter connectionIdPool;
     private RevolvingCounter endpointIdPool;
 
@@ -116,7 +116,7 @@ public class MockMediaGateway extends RestcommUntypedActor {
 
     private ActorRef monitoringService;
 
-    private File recordingFile = null;
+    protected File recordingFile = null;
     private int recordingMaxLength;
 
     private DateTime startTime;
@@ -648,13 +648,15 @@ public class MockMediaGateway extends RestcommUntypedActor {
         }
     }
 
-    private void notify (final Object message, final ActorRef sender) {
+    protected void notify (final Object message, final ActorRef sender) {
         final ActorRef self = self();
         final NotificationRequest request = (NotificationRequest) message;
 
         MgcpEvent event = null;
-        if (request.getSignalRequests()[0].getEventIdentifier().getName().equalsIgnoreCase("es")
-                || request.getSignalRequests()[0].getEventIdentifier().getName().equalsIgnoreCase("pr")) {
+        // Remove case RQNT for stoping media instead of stop recording.
+        if (!request.getSignalRequests()[0].getEventIdentifier().getParms().equalsIgnoreCase("sg=pa") &&
+                (request.getSignalRequests()[0].getEventIdentifier().getName().equalsIgnoreCase("es") ||
+                        request.getSignalRequests()[0].getEventIdentifier().getName().equalsIgnoreCase("pr"))) {
             //Looks like this is either an RQNT AU/ES or
             //recording max length reached and we got the original recording RQNT
             event = AUMgcpEvent.auoc.withParm("AU/pr ri=file://" + recordingFile.toPath() + " rc=100 dc=1");
@@ -700,7 +702,9 @@ public class MockMediaGateway extends RestcommUntypedActor {
             }
         }
 
-        if (events != null && !events[0].getEventIdentifier().getName().equalsIgnoreCase("pr")) {
+        if (events != null && !events[0].getEventIdentifier().getName().equalsIgnoreCase("pr") &&
+                // In real scenario, there is no NTFY for finish ringing immediately.
+                !events[0].getEventIdentifier().getParms().contains("ringing.wav")) {
             if (NotificationRequest.class.equals(command.getClass())) {
                 final NotificationRequest request = (NotificationRequest) command;
                 final String id = Long.toString(requestIdPool.get());

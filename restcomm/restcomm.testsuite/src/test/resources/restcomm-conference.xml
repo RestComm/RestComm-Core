@@ -310,7 +310,7 @@
 					server, it sends an 'ENQUIRE_LINK' after every configured enquire-link-delay.
 					If no response received for 3 consecutive requests, connection will be killed
 					and attempted to connect again -->
-				<enquirelinkdelay>30000</enquirelinkdelay>
+				<enquirelinkdelay>30000</enquirelinkdelay><inboundencoding>UTF-8</inboundencoding><outboundencoding>UTF-8</outboundencoding><messagepayloadflag>false</messagepayloadflag><autodetectdcsflag>false</autodetectdcsflag>
 			</connection>
 		</connections>
 	</smpp>

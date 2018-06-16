@@ -29,6 +29,14 @@ Accounts and sub-accounts are useful for things like segmenting phone numbers an
 
 * Account Resource URI. */2012-04-24/Accounts/\{EmailAddress}*
 
+==== Response Headers
+[cols=",",options="header",]
+|==============================================================================================
+|Header |Description
+|Link | a link to the effective Profile document with attribute "rel" set to "related"
+|==============================================================================================
+
+
 **HTTP POST/PUT**. Modifies an Account resource and returns the representation, including the properties above. Below you will find a list of optional parameters.
 
 ==== Request Parameters
@@ -46,19 +54,43 @@ Accounts and sub-accounts are useful for things like segmenting phone numbers an
 When the Status of an account is modified by invoking the POST method, different
 business constraints will be applied:
 
-* Any modification over a Closed account will be rejected.
+
 * The given Status will be applied to the given Account, and all the subaccount
 tree.
-* The rest of request parameters will be ignored. This means is not possible to
-suspend an account, and change its FriendlyName at the same time.
+
+=== Uninitialized Account Status
+The following conditions will be honored for an Uninitialized account:
+
+* When a new account is created, this Status is the default.
+* An Uninitialized account will reject its Credentials to be used for any REST API invocation.
+* An Uninitialized account will reject any Voice/SMS/USSD traffic. In addition, any
+client registration related to the account, will be rejected.
+* To activate an uninitialized account, a password reset is necessary.
+
+=== Active Account Status
+The following conditions will be honored for an Active account:
+
+* An Active account will allow its Credentials to be used for any REST API invocation.
+* An Active account will allow any Voice/SMS/USSD traffic. In addition, any
+client registration related to the account, will be allowed.
 
 === Suspended Account Status
 The following conditions will be honored for a suspended account:
 
 * A Suspended account will reject its Credentials to be used for any REST API invocation.
 * A Suspended account will reject any Voice/SMS/USSD traffic. In addition, any
-client registration will be rejected.
+client registration related to the accoutn, will be rejected.
+* A Suspended accounts may be reactivate by changing the Status to Active again.
 
+=== Closed Account Status
+The following conditions will be honored for a Closed account:
+
+* A Closed account will reject its Credentials to be used for any REST API invocation.
+* A Closed account will reject any Voice/SMS/USSD traffic. In addition, any
+client registration related to the accoutn, will be rejected.
+* When an account is closed, all related resources are removed.
+* Any modification over a Closed account will be rejected. This means a closed
+account can't be reactivated
 
 === Account Migration to new Organization
 

@@ -19,27 +19,34 @@
  */
 package org.restcomm.connect.dao.mybatis;
 
-import java.io.InputStream;
-import java.math.BigDecimal;
-import java.net.URI;
-import java.text.ParseException;
-import java.util.Currency;
-
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.junit.After;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
-import org.restcomm.connect.dao.SmsMessagesDao;
+import org.restcomm.connect.commons.dao.MessageError;
 import org.restcomm.connect.commons.dao.Sid;
+import org.restcomm.connect.dao.SmsMessagesDao;
 import org.restcomm.connect.dao.entities.SmsMessage;
+
+import java.io.InputStream;
+import java.math.BigDecimal;
+import java.net.URI;
+import java.text.ParseException;
+import java.util.Currency;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
 
 /**
  * @author quintana.thomas@gmail.com (Thomas Quintana)
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public final class SmsMessagesDaoTest {
     private static Logger logger = Logger.getLogger(SmsMessagesDaoTest.class);
     private static MybatisDaoManager manager;
@@ -100,42 +107,52 @@ public final class SmsMessagesDaoTest {
         assertTrue(result.getUri().equals(message.getUri()));
         // Update the message.
         final DateTime now = DateTime.now();
-        message = message.setDateSent(now);
-        message = message.setStatus(SmsMessage.Status.SENT);
-        messages.updateSmsMessage(message);
+        final SmsMessage.Builder builder2 = SmsMessage.builder();
+        builder2.copyMessage(message);
+        builder2.setDateSent(now);
+        builder2.setStatus(SmsMessage.Status.SENT);
+        messages.updateSmsMessage(builder2.build());
         // Read the updated message from the data store.
         result = messages.getSmsMessage(sid);
         // Validate the results.
-        assertTrue(result.getDateSent().equals(message.getDateSent()));
-        assertTrue(result.getStatus() == message.getStatus());
+        assertTrue(result.getDateSent().equals(now));
+        assertEquals(SmsMessage.Status.SENT, result.getStatus());
         // Delete the message.
         messages.removeSmsMessage(sid);
         // Validate that the CDR was removed.
         assertTrue(messages.getSmsMessage(sid) == null);
     }
 
-    private SmsMessage createSms(Sid account, SmsMessage.Direction direction, int i, DateTime date) {
+    private SmsMessage createSms() {
+        return createSms(Sid.generate(Sid.Type.ACCOUNT), SmsMessage.Direction.OUTBOUND_API, 0, DateTime.now());
+    }
+
+    private SmsMessage createSms(Sid account, SmsMessage.Direction direction, int index, DateTime date) {
+        return createSms(account, direction, index, date, null);
+    }
+
+    private SmsMessage createSms(Sid account, SmsMessage.Direction direction, int index, DateTime date, String smppMessageId) {
         final Sid sid = Sid.generate(Sid.Type.SMS_MESSAGE);
         final URI url = URI.create("2012-04-24/Accounts/Acoount/SMS/Messages/unique-id.json");
-        final SmsMessage.Builder builder = SmsMessage.builder();
-        builder.setSid(sid);
-        builder.setAccountSid(account);
-        builder.setApiVersion("2012-04-24");
-        builder.setRecipient("+12223334444");
-        builder.setSender("+17778889999");
-        builder.setBody("Hello World - "+i);
-        builder.setStatus(SmsMessage.Status.SENDING);
-        builder.setDirection(direction);
-        builder.setPrice(new BigDecimal("0.00"));
-        builder.setPriceUnit(Currency.getInstance("USD"));
-        builder.setUri(url);
-        builder.setDateCreated(date);
-        SmsMessage message = builder.build();
-        return message;
+        return SmsMessage.builder()
+                .setSid(sid)
+                .setAccountSid(account)
+                .setApiVersion("2012-04-24")
+                .setRecipient("+12223334444")
+                .setSender("+17778889999")
+                .setBody("Hello World - " + index)
+                .setStatus(SmsMessage.Status.SENDING)
+                .setDirection(direction)
+                .setPrice(new BigDecimal("0.00"))
+                .setPriceUnit(Currency.getInstance("USD"))
+                .setUri(url)
+                .setDateCreated(date)
+                .setSmppMessageId(smppMessageId)
+                .build();
     }
 
     @Test
-    public void testGetSmsMessagesLastMinute() throws InterruptedException, ParseException {
+    public void aaatestGetSmsMessagesLastMinute() throws InterruptedException, ParseException {
         final SmsMessagesDao messages = manager.getSmsMessagesDao();
         final Sid account = Sid.generate(Sid.Type.ACCOUNT);
         DateTime oneMinuteAgo = DateTime.now().minusSeconds(58);
@@ -143,22 +160,22 @@ public final class SmsMessagesDaoTest {
             SmsMessage message = createSms(account, SmsMessage.Direction.OUTBOUND_API, i, oneMinuteAgo);
             // Create a new sms message in the data store.
             messages.addSmsMessage(message);
-            logger.info("Created message: "+message);
+            logger.info("Created message: " + message);
         }
         for (int i = 0; i < 2; i++) {
             SmsMessage message = createSms(account, SmsMessage.Direction.OUTBOUND_CALL, i, oneMinuteAgo);
             // Create a new sms message in the data store.
             messages.addSmsMessage(message);
-            logger.info("Created message: "+message);
+            logger.info("Created message: " + message);
         }
         for (int i = 0; i < 2; i++) {
             SmsMessage message = createSms(account, SmsMessage.Direction.OUTBOUND_REPLY, i, oneMinuteAgo);
             // Create a new sms message in the data store.
             messages.addSmsMessage(message);
-            logger.info("Created message: "+message);
+            logger.info("Created message: " + message);
         }
         int lastMessages = messages.getSmsMessagesPerAccountLastPerMinute(account.toString());
-        logger.info("SMS Messages last minutes: "+lastMessages);
+        logger.info("SMS Messages last minutes: " + lastMessages);
         assertEquals(6, lastMessages);
         Thread.sleep(5000);
         DateTime oneMinuteLater = DateTime.now();
@@ -166,10 +183,10 @@ public final class SmsMessagesDaoTest {
             SmsMessage message = createSms(account, SmsMessage.Direction.OUTBOUND_CALL, i, oneMinuteLater);
             // Create a new sms message in the data store.
             messages.addSmsMessage(message);
-            logger.info("Created message: "+message);
+            logger.info("Created message: " + message);
         }
         lastMessages = messages.getSmsMessagesPerAccountLastPerMinute(account.toString());
-        logger.info("SMS Messages last minutes: "+lastMessages);
+        logger.info("SMS Messages last minutes: " + lastMessages);
         assertEquals(3, lastMessages);
         messages.removeSmsMessages(account);
     }
@@ -203,5 +220,94 @@ public final class SmsMessagesDaoTest {
         messages.removeSmsMessages(account);
         // Validate the results.
         assertTrue(messages.getSmsMessages(account).size() == 0);
+    }
+
+    @Test
+    public void testUpdateSmsMessageDateSentAndStatusAndGetBySmppMsgId() {
+        final DateTime dateSent = DateTime.now();
+        final SmsMessage.Status status = SmsMessage.Status.SENT;
+        final String smppMessageId = "0000058049";
+
+        // add a new msg
+        SmsMessage smsMessage = createSms();
+        final SmsMessagesDao messages = manager.getSmsMessagesDao();
+        messages.addSmsMessage(smsMessage);
+
+        //set status and dateSent
+        final SmsMessage.Builder builder2 = SmsMessage.builder();
+        builder2.copyMessage(smsMessage);
+        builder2.setStatus(status).setDateSent(dateSent).setSmppMessageId(smppMessageId);
+        messages.updateSmsMessage(builder2.build());
+
+        //get SmsMessage By SmppMessageId
+        SmsMessage resultantSmsMessage = messages.getSmsMessageBySmppMessageId(smppMessageId);
+
+        //make assertions
+        assertEquals(smppMessageId, resultantSmsMessage.getSmppMessageId());
+        assertEquals(dateSent, resultantSmsMessage.getDateSent());
+        assertEquals(status, resultantSmsMessage.getStatus());
+    }
+
+    @Test
+    public void testSmsMessageError() {
+    	// add a new msg
+    	SmsMessage smsMessage = createSms();
+    	final SmsMessagesDao messages = manager.getSmsMessagesDao();
+        messages.addSmsMessage(smsMessage);
+
+        //update error message
+        final SmsMessage.Builder builder2 = SmsMessage.builder();
+        builder2.copyMessage(smsMessage);
+        builder2.setError(MessageError.QUEUE_OVERFLOW);
+        messages.updateSmsMessage(builder2.build());
+
+        //get msg from DB
+        SmsMessage resultantSmsMessage = messages.getSmsMessage(smsMessage.getSid());
+
+        //make assertions
+        assertEquals(MessageError.QUEUE_OVERFLOW, resultantSmsMessage.getError());
+    }
+
+    public void testFindBySmppMessageIdAndDateCreatedGreaterOrEqualThanOrderedByDateCreatedDesc() {
+        // given
+        final SmsMessagesDao smsMessagesDao = manager.getSmsMessagesDao();
+        final Sid accountSid = Sid.generate(Sid.Type.ACCOUNT);
+        final String smppMessageId = "12345";
+
+        final DateTime fourDaysAgo = DateTime.now().minusDays(4);
+        final SmsMessage smsMessage1 = createSms(accountSid, SmsMessage.Direction.OUTBOUND_API, 0, fourDaysAgo, smppMessageId);
+        final SmsMessage smsMessage2 = createSms(accountSid, SmsMessage.Direction.OUTBOUND_API, 1, fourDaysAgo, smppMessageId);
+
+        final DateTime threeDaysAgo = DateTime.now().minusDays(3);
+        final SmsMessage smsMessage3 = createSms(accountSid, SmsMessage.Direction.OUTBOUND_API, 2, threeDaysAgo, smppMessageId);
+        final SmsMessage smsMessage4 = createSms(accountSid, SmsMessage.Direction.OUTBOUND_API, 3, threeDaysAgo, null);
+
+        final DateTime yesterday = DateTime.now().minusDays(1);
+        final SmsMessage smsMessage5 = createSms(accountSid, SmsMessage.Direction.OUTBOUND_API, 4, yesterday, smppMessageId);
+
+        final DateTime today = DateTime.now();
+        final SmsMessage smsMessage6 = createSms(accountSid, SmsMessage.Direction.OUTBOUND_API, 5, today, smppMessageId);
+        final SmsMessage smsMessage7 = createSms(accountSid, SmsMessage.Direction.OUTBOUND_API, 6, today, null);
+
+        // when
+        smsMessagesDao.addSmsMessage(smsMessage1);
+        smsMessagesDao.addSmsMessage(smsMessage2);
+        smsMessagesDao.addSmsMessage(smsMessage3);
+        smsMessagesDao.addSmsMessage(smsMessage4);
+        smsMessagesDao.addSmsMessage(smsMessage5);
+        smsMessagesDao.addSmsMessage(smsMessage6);
+        smsMessagesDao.addSmsMessage(smsMessage7);
+
+        final List<SmsMessage> messages = smsMessagesDao.findBySmppMessageId(smppMessageId);
+
+        // then
+        try {
+            assertEquals(5, messages.size());
+            for (SmsMessage message: messages) {
+                assertEquals(smppMessageId, message.getSmppMessageId());
+            }
+        } finally {
+            smsMessagesDao.removeSmsMessages(accountSid);
+        }
     }
 }

@@ -195,4 +195,21 @@ public class SmsEndpointTool {
 
         return jsonObject;
     }
+
+    public JsonObject getSmsMessage(String deploymentUrl, String username, String authToken, String sid) {
+
+        Client jerseyClient = Client.create();
+        jerseyClient.addFilter(new HTTPBasicAuthFilter(username, authToken));
+        String url = getAccountsUrl(deploymentUrl, username, false)+"/"+sid;
+        WebResource webResource = jerseyClient.resource(url);
+
+        MultivaluedMap<String, String> params = new MultivaluedMapImpl();
+        webResource = webResource.queryParams(params);
+
+        String response = webResource.accept(MediaType.APPLICATION_JSON).get(String.class);
+        JsonParser parser = new JsonParser();
+        JsonObject jsonObject = parser.parse(response).getAsJsonObject();
+
+        return jsonObject;
+    }
 }

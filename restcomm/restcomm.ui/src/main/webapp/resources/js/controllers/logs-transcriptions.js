@@ -89,6 +89,7 @@ rcMod.controller('LogsTranscriptionsCtrl', function ($scope, $resource, $timeout
     if(search.transcription_text) {
       params["TranscriptionText"] = search.transcription_text;
     }
+    $scope.hasCriteria = !_.isEmpty(params);
 
     return params;
   }

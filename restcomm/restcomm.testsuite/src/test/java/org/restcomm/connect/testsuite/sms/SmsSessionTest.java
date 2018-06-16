@@ -380,6 +380,7 @@ public final class SmsSessionTest {
         webInfResources.put("restcomm_SmsTest.xml", "conf/restcomm.xml");
         webInfResources.put("restcomm.script_SmsTest", "data/hsql/restcomm.script");
         webInfResources.put("sip.xml", "sip.xml");
+        webInfResources.put("web.xml", "web.xml");
         webInfResources.put("akka_application.conf", "classes/application.conf");
 
         Map<String, String> replacements = new HashMap();

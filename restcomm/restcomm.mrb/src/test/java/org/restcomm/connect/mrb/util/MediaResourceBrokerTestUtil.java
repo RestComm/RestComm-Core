@@ -45,7 +45,7 @@ public class MediaResourceBrokerTestUtil {
     protected ActorRef monitoringService;
 
     protected static final String RESTCOMM_CONFIG = "restcomm.xml";
-    
+
     protected static final String CONFIG_PATH_NODE_1 = "/restcomm.xml";
     protected static final String CONFIG_PATH_NODE_2 = "/restcomm-node2.xml";
     protected static final String CONFIG_PATH_DAO_MANAGER = "/dao-manager.xml";
@@ -92,7 +92,7 @@ public class MediaResourceBrokerTestUtil {
 			dao.updateConferenceDetailRecordStatus(cdr);
 		}
 	}
-    
+
     private ActorRef monitoringService(final Configuration configuration, final DaoManager daoManager, final ClassLoader loader) {
         final Props props = new Props(new UntypedActorFactory() {
             private static final long serialVersionUID = 1L;
@@ -104,7 +104,7 @@ public class MediaResourceBrokerTestUtil {
         });
         return system.actorOf(props);
 
-    }    
+    }
 
 	protected ActorRef mediaResourceBroker(final Configuration configuration, final DaoManager storage, final ClassLoader loader) throws UnknownHostException{
         ActorRef mrb = system.actorOf(new Props(new UntypedActorFactory() {
@@ -127,7 +127,7 @@ public class MediaResourceBrokerTestUtil {
 	protected void startDaoManager() throws ConfigurationException, MalformedURLException{
         daoManagerConf = (XMLConfiguration)createDaoManagerCfg(CONFIG_PATH_DAO_MANAGER);
         daoManager = new MybatisDaoManager();
-        daoManager.configure(configurationNode1, daoManagerConf, null);
+        daoManager.configure(configurationNode1, daoManagerConf, null, null);
         daoManager.start();
 	}
 

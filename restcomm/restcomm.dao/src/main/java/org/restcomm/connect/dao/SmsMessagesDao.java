@@ -19,12 +19,12 @@
  */
 package org.restcomm.connect.dao;
 
-import java.text.ParseException;
-import java.util.List;
-
 import org.restcomm.connect.commons.dao.Sid;
 import org.restcomm.connect.dao.entities.SmsMessage;
 import org.restcomm.connect.dao.entities.SmsMessageFilter;
+
+import java.text.ParseException;
+import java.util.List;
 
 /**
  * @author quintana.thomas@gmail.com (Thomas Quintana)
@@ -33,6 +33,12 @@ public interface SmsMessagesDao {
     void addSmsMessage(SmsMessage smsMessage);
 
     SmsMessage getSmsMessage(Sid sid);
+
+    /**
+     * @param smppMessageId
+     * @return
+     */
+    SmsMessage getSmsMessageBySmppMessageId(String smppMessageId);
 
     List<SmsMessage> getSmsMessages(final Sid accountSid);
 
@@ -47,4 +53,6 @@ public interface SmsMessagesDao {
     // Support for filtering of message list result, Issue 1395
     Integer getTotalSmsMessage(SmsMessageFilter filter);
     List<SmsMessage> getSmsMessages(SmsMessageFilter filter);
+
+    List<SmsMessage> findBySmppMessageId(String smppMessageId);
 }

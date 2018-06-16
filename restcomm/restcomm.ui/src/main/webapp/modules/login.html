@@ -1,33 +1,91 @@
-<div class="row">
-    <div class="col-md-8 col-md-offset-2 col-sm-6 col-sm-offset-3 col-xs-12">
-        <section class="login-form" ng-class="{'shake animated': loginFailed}">
-            <form role="login" ng-submit="login()">
-                <h3 id="sign-in">Sign In</h3>
-                <div class="row">
-                    <div class="col-xs-12">
-                        <label id="rc-email-label" class="sign-in-label" for="rc-email">Email / Account SID</label>
-                        <input type="email" id="rc-email" name="email" placeholder="Enter your email or account SID" class="form-control input-lg" ng-model="credentials.sid" required autofocus />
-                    </div>
-                    <div class="col-xs-12">
-                        <label id="rc-password-label" class="sign-in-label" for="rc-password">Password</label>
-                        <input type="password" id="rc-password" name="password" placeholder="Enter your password" class="form-control input-lg" ng-model="credentials.token" required />
-                        <section ng-show="!!PublicConfig.resetPasswordUrl">
-                            <a id="forgot-password" target="_blank" href="{{PublicConfig.resetPasswordUrl}}">Forgot password?</a>
-                        </section>
-                    </div>
+<div class="row two-sides-container">
+    <div class="col-md-6 two-sides-left-side">
+        <div class="row">
+            <div class="col-md-12 text-right">
+                <div class="logo-container">
+                    <a ng-href=""></a>
                 </div>
+            </div>
+        </div>
+        <h4 class="hidden-xs">&nbsp;</h4>
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <h3 class="fw400">Sign In</h3>
+            </div>
+        </div>
+        <h3>&nbsp;</h3>
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2 col-sm-6 col-sm-offset-3 col-xs-12">
+                <section class="login-form" ng-class="{'shake animated': loginFailed}">
+                    <form role="login" ng-submit="login()">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <input type="email" id="rc-email" name="email" placeholder="Email / Account SID" class="form-control input-lg" ng-model="credentials.sid" required autofocus />
+                            </div>
+                            <br>&nbsp;
+                            <div class="col-xs-12">
+                                <input type="password" id="rc-password" name="password" placeholder="Password" class="form-control input-lg" ng-model="credentials.token" required />
+                                <section ng-show="!!PublicConfig.resetPasswordUrl">
+                                    <a id="forgot-password" href="{{PublicConfig.resetPasswordUrl}}">Forgot password?</a>
+                                </section>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <button class="rc-btn btn-primary sign-in-btn" id="sign-in-button" type="submit">Sign in</button>
+                            <br>&nbsp;
+                            <h4><a href="#" ng-show="!!PublicConfig.registerAccountUrl" href="{{PublicConfig.registerAccountUrl}}"> Don't have an account yet? </a></h4>
+                        </div>
+                    </form>
+                </section>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 two-sides-right-side">
+        <h2>&nbsp;</h2>
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <img src="resources/img/v2/restcomm-cloud.png" width="150px" class="card-logo-tl">
+                <h3 class="fw300">Learn more about <img src="resources/img/v2/restcomm-one-letters.svg" height="25px" class="rc-one-inline all-white-svg"><br>Cloud Plans</h3>
+            </div>
+        </div>
+        <h2>&nbsp;</h2>
+        <div class="row">
+            <div class="col-md-12 text-center">
                 <div class="text-center">
-                    <button class="rc-btn btn-primary sign-in-btn" id="sign-in-button" type="submit">Sign in</button>
+                    <a href="https://www.restcomm.com/pricing/" target="_blank" class="btn rc-btn btn-transparent">Learn more</a>
                 </div>
-            </form>
-        </section>
+            </div>
+        </div>
+        <h2>&nbsp;</h2>
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <a href="https://www.restcomm.com/contact/" target="_blank"> Contact us </a>
+            </div>
+        </div>
     </div>
 </div>
-<div class="row">
-    <div class="col-md-8 col-md-offset-2 col-sm-6 col-sm-offset-3 col-xs-12 hidden" id="sign-up">
-        No account ? Sign Up.
+
+<div id="footer" class="footer">
+    <a href="https://telestax.com" class="pull-left" target="_blank"></a>
+    <span class="pull-right footer-social-media">
+        <a href="https://www.facebook.com/Telestax" target="_blank">
+            <i class="fa fa-facebook"></i>
+        </a>
+        <a href="https://twitter.com/telestax" target="_blank">
+            <i class="fa fa-twitter"></i>
+        </a>
+        <a href="https://www.linkedin.com/company/telestax" target="_blank">
+            <i class="fa fa-linkedin-square"></i>
+        </a>
+        <a href="https://plus.google.com/+TeleStax/posts" target="_blank">
+            <i class="fa fa-google-plus"></i>
+        </a>
+        <a href="https://www.youtube.com/c/TeleStax" target="_blank">
+            <i class="fa fa-youtube-play"></i>
+        </a>
+    </span>
+    <div class="footer-text">
+        <h5>&nbsp;</h5>
     </div>
 </div>
-<div class="row">
-    &nbsp;
-</div>
+

@@ -20,47 +20,55 @@
 
 package org.restcomm.connect.http;
 
+import akka.actor.ActorRef;
 import static akka.pattern.Patterns.ask;
+import akka.util.Timeout;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.sun.jersey.spi.resource.Singleton;
+import com.thoughtworks.xstream.XStream;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.PostConstruct;
+import javax.annotation.security.RolesAllowed;
+import javax.servlet.ServletContext;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
+import javax.ws.rs.core.Response;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.ok;
 import static javax.ws.rs.core.Response.status;
-import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
-
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.PostConstruct;
-import javax.servlet.ServletContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import org.apache.commons.configuration.Configuration;
-import org.restcomm.connect.http.converter.RestCommResponseConverter;
-import org.restcomm.connect.dao.entities.RestCommResponse;
+import org.restcomm.connect.commons.annotations.concurrency.ThreadSafe;
 import org.restcomm.connect.commons.dao.Sid;
+import org.restcomm.connect.dao.entities.RestCommResponse;
+import org.restcomm.connect.http.converter.RestCommResponseConverter;
+import static org.restcomm.connect.http.security.AccountPrincipal.SUPER_ADMIN_ROLE;
 import org.restcomm.connect.telephony.api.GetActiveProxy;
 import org.restcomm.connect.telephony.api.GetProxies;
 import org.restcomm.connect.telephony.api.SwitchProxy;
-
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
-import akka.actor.ActorRef;
-import akka.util.Timeout;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.thoughtworks.xstream.XStream;
 
 /**
  * @author <a href="mailto:gvagenas@gmail.com">gvagenas</a>
  *
  */
-public class OutboundProxyEndpoint extends SecuredEndpoint {
+@Path("/Accounts/{accountSid}/OutboundProxy")
+@ThreadSafe
+@RolesAllowed(SUPER_ADMIN_ROLE)
+@Singleton
+public class OutboundProxyEndpoint extends AbstractEndpoint {
 
     @Context
     protected ServletContext context;
@@ -100,10 +108,10 @@ public class OutboundProxyEndpoint extends SecuredEndpoint {
             return status(INTERNAL_SERVER_ERROR).entity(exception.getMessage()).build();
         }
 
-        if (APPLICATION_XML_TYPE == responseType) {
+        if (APPLICATION_XML_TYPE.equals(responseType)) {
             final RestCommResponse response = new RestCommResponse(proxies);
             return ok(xstream.toXML(response), APPLICATION_XML).build();
-        } else if (APPLICATION_JSON_TYPE == responseType) {
+        } else if (APPLICATION_JSON_TYPE.equals(responseType)) {
             return ok(gson.toJson(proxies), APPLICATION_JSON).build();
         } else {
             return null;
@@ -122,10 +130,10 @@ public class OutboundProxyEndpoint extends SecuredEndpoint {
             return status(INTERNAL_SERVER_ERROR).entity(exception.getMessage()).build();
         }
 
-        if (APPLICATION_XML_TYPE == responseType) {
+        if (APPLICATION_XML_TYPE.equals(responseType)) {
             final RestCommResponse response = new RestCommResponse(proxyAfterSwitch);
             return ok(xstream.toXML(response), APPLICATION_XML).build();
-        } else if (APPLICATION_JSON_TYPE == responseType) {
+        } else if (APPLICATION_JSON_TYPE.equals(responseType)) {
             return ok(gson.toJson(proxyAfterSwitch), APPLICATION_JSON).build();
         } else {
             return null;
@@ -144,13 +152,36 @@ public class OutboundProxyEndpoint extends SecuredEndpoint {
             return status(INTERNAL_SERVER_ERROR).entity(exception.getMessage()).build();
         }
 
-        if (APPLICATION_XML_TYPE == responseType) {
+        if (APPLICATION_XML_TYPE.equals(responseType)) {
             final RestCommResponse response = new RestCommResponse(activeProxy);
             return ok(xstream.toXML(response), APPLICATION_XML).build();
-        } else if (APPLICATION_JSON_TYPE == responseType) {
+        } else if (APPLICATION_JSON_TYPE.equals(responseType)) {
             return ok(gson.toJson(activeProxy), APPLICATION_JSON).build();
         } else {
             return null;
         }
+    }
+
+    @GET
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response getProxies(@PathParam("accountSid") final String accountSid,
+            @HeaderParam("Accept") String accept) {
+        return getProxies(accountSid, retrieveMediaType(accept));
+    }
+
+    @GET
+    @Path("/switchProxy")
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response switchProxy(@PathParam("accountSid") final String accountSid,
+            @HeaderParam("Accept") String accept) {
+        return switchProxy(accountSid, retrieveMediaType(accept));
+    }
+
+    @GET
+    @Path("/getActiveProxy")
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response getActiveProxy(@PathParam("accountSid") final String accountSid,
+            @HeaderParam("Accept") String accept) {
+        return getActiveProxy(accountSid, retrieveMediaType(accept));
     }
 }

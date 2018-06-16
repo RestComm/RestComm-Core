@@ -22,5 +22,6 @@
             "time" : 30,
             "timeUnit" : "days"
         }
-    }    
+    }   
+    ,"planSubscriptionDisplay" : true
 }

@@ -56,6 +56,7 @@ public final class HttpRequestDescriptor {
         }
         final String query = uri.getQuery();
         if (query != null) {
+            //FIXME:should we externalize RVD encoding default?
             final List<NameValuePair> other = URLEncodedUtils.parse(uri, "UTF-8");
             parameters.addAll(other);
         }
@@ -104,6 +105,7 @@ public final class HttpRequestDescriptor {
     }
 
     public String getParametersAsString() {
+        //FIXME:should we externalize RVD encoding default?
         return URLEncodedUtils.format(parameters, "UTF-8");
     }
 

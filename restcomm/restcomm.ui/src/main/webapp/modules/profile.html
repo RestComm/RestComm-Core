@@ -6,7 +6,7 @@
 <div class="row">
     <div class="col-md-2 accounts-tabs hidden-sm hidden-xs">
         <div ng-class="{'active': urlAccount.sid === sid }"><a href="#/profile/{{sid}}">Main Account</a></div>
-        <div ng-class="{'active': urlAccount.sid !== sid }"><a href="#/subaccounts">Sub Accounts</a></div>
+        <div ng-class="{'active': urlAccount.sid !== sid }"><a href="#/subaccounts" rc-fac="fac.SubAccounts">Sub Accounts</a></div>
     </div>
     <div class="col-md-10">
         <div class="row">

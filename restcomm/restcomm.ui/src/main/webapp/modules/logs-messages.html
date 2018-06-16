@@ -54,15 +54,21 @@
             <br class="visible-xs">
         </form>
 
-        <div ng-hide="!messagesLogsList || (messagesLogsList | filter:query).length > 0" class="jumbotron rc-no-items">
+        <div ng-show="!hasCriteria && (!messagesLogsList || messagesLogsList.length === 0)" class="jumbotron rc-no-items">
             <h1><i class="fa fa-comment-o"></i> </h1>
             <h2>No message records</h2>
             <h5>Text your friends!</h5>
         </div>
 
+        <div ng-show="hasCriteria && (!messagesLogsList || messagesLogsList.length === 0)" class="jumbotron rc-no-items">
+            <h1><i class="fa fa-search"></i> </h1>
+            <h2>No messages matching your criteria</h2>
+            <h5>Please update your search and try again.</h5>
+        </div>
+
         <div class="row">
             <div class="col-md-12">
-                <table ng-show="(messagesLogsList | filter:query).length > 0" class="table table-hover rc-list logs-messages-list">
+                <table ng-show="messagesLogsList.length > 0" class="table table-hover rc-list logs-messages-list">
                     <thead class="logs-table-header">
                     <th class="logs-messages-list-date hidden-xs">Date</th>
                     <th class="logs-messages-list-from hidden-xs">From</th>
@@ -78,7 +84,7 @@
                     <th class="logs-messages-list-body visible-xs">Body<br>Cost</th>
                     </thead>
                     <tbody>
-                        <tr ng-repeat="message in filtered = (messagesLogsList | filter:query | orderBy:sort:reverse)" class="logs-table-row">
+                        <tr ng-repeat="message in (messagesLogsList | orderBy:sort:reverse)" class="logs-table-row">
                             <td class="logs-messages-list-date rc-list-date hidden-xs">
                                 <a href="" ng-click="showMessageDetailsModal(message)">{{ message.date_created | toDate:'yyyy-MM-dd HH:mm:ss' }}</a>
                             </td>

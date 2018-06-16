@@ -20,25 +20,29 @@
 
 package org.restcomm.connect.http;
 
+import java.net.URISyntaxException;
+import java.util.HashSet;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.restcomm.connect.dao.AccountsDao;
-import org.restcomm.connect.dao.AccountsDaoMock;
 import org.restcomm.connect.dao.DaoManager;
-import org.restcomm.connect.dao.DaoManagerMock;
 import org.restcomm.connect.dao.entities.Account;
-import org.restcomm.connect.commons.dao.Sid;
 import org.mockito.Mockito;
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.sip.ar.SipApplicationRoutingDirective;
-
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import static org.apache.shiro.web.filter.mgt.DefaultFilter.roles;
 
 import static org.mockito.Mockito.when;
+import org.restcomm.connect.dao.ClientsDao;
+import org.restcomm.connect.dao.OrganizationsDao;
+import static org.restcomm.connect.http.security.AccountPrincipal.ADMIN_ROLE;
+import org.restcomm.connect.http.security.PermissionEvaluator;
+import org.restcomm.connect.identity.IdentityContext;
+import org.restcomm.connect.identity.UserIdentityContext;
 
 /**
  * Base class for unit testing restcomm endpoints by mocking the following dependent components:
@@ -61,9 +65,12 @@ public class EndpointMockedTest {
     AccountsDao accountsDao;
     DaoManager daoManager;
     HttpServletRequest request;
+    OrganizationsDao orgDao;
+    ClientsDao clientsDao;
+    UserIdentityContext userIdentityContext;
 
 
-    void init() {
+    void init() throws URISyntaxException {
         String restcommXmlPath = AccountsEndpointMockedTest.class.getResource("/restcomm.xml").getFile();
         try {
             conf = getConfiguration(restcommXmlPath, "/restcomm", "http://localhost:8080");
@@ -72,14 +79,22 @@ public class EndpointMockedTest {
         }
         // create ServletContext mock
         servletContext = Mockito.mock(ServletContext.class);
+        daoManager = Mockito.mock(DaoManager.class);
+        accountsDao = Mockito.mock(AccountsDao.class);
+        orgDao= Mockito.mock(OrganizationsDao.class);
+        clientsDao= Mockito.mock(ClientsDao.class);
+        userIdentityContext = Mockito.mock(UserIdentityContext.class);
+
+        Set<String> roles = new HashSet();
+        roles.add(ADMIN_ROLE);
+        when (userIdentityContext.getEffectiveAccountRoles()).thenReturn(roles);
+
         when(servletContext.getAttribute(Configuration.class.getName())).thenReturn(conf);
-        // mock accountsDao
-        accounts = new ArrayList<Account>();
-        accounts.add(new Account(new Sid("AC00000000000000000000000000000000"),null,null,"administrator@company.com","Administrator",null,null,null,"77f8c12cc7b8f8423e5c38b035249166",null,null, Sid.generate(Sid.Type.ORGANIZATION)));
-        accountsDao = new AccountsDaoMock(accounts);
-        // mock DaoManager
-        daoManager = new DaoManagerMock(accountsDao);
+        when(daoManager.getAccountsDao()).thenReturn(accountsDao);
+        when(daoManager.getOrganizationsDao()).thenReturn(orgDao);
+        when(daoManager.getClientsDao()).thenReturn(clientsDao);
         when(servletContext.getAttribute(DaoManager.class.getName())).thenReturn(daoManager);
+        when(servletContext.getAttribute(IdentityContext.class.getName())).thenReturn(new IdentityContext(conf));
         // createt request mock
         request = Mockito.mock(HttpServletRequest.class);
         when(request.getHeader("Authorization")).thenReturn("Basic YWRtaW5pc3RyYXRvckBjb21wYW55LmNvbTo3N2Y4YzEyY2M3YjhmODQyM2U1YzM4YjAzNTI0OTE2Ng==");

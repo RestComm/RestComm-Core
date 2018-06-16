@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-04/schema#",
     "id": "resource:/org/restcomm/connect/http/schemas/rc-profile-schema.json#",
-    "additionalProperties": false,
+    "additionalProperties": true,
     "type": "object",
     "properties": {
         "featureEnablement": {

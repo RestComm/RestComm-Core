@@ -8,7 +8,7 @@ Integrating any Android client that is SIP standard compliant with Telscale Rest
 
 = Scenario
 
-* Restcomm clients Alice and Bob are created and activated by default with Restcomm
+* Create 2 Restcomm clients Alice and Bob using Restcomm admin UI.
 * You will configure the first android phone to register as Alice and the Second to register as Bob
 * You will make a call from Alice to Bob
 * You may also choose to dial any SIP clients that is reachable through a public IP address.
@@ -26,7 +26,7 @@ Fill out the identity as follows, where *2.2.194.11:5080 would be the actual Pub
 * Display Name: *alice*
 * Public Identity *sip:alice2.2.194.11:5080*
 * Private Identify: *alice*
-* Password: *1234*
+* Password: *<provide the password that was used to create client>*
 * Realm: *sip:2.2.194.11:5080*
 
 image:./images/export_021.png[export_02,width=472,height=435]

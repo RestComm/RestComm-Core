@@ -15,19 +15,19 @@
     <div class="col-md-12 col-xs-12">
         <form name="clientForm" class="form-horizontal profile-form">
             <h3 class="details-section-title">Authentication</h3>
-            <div class="form-group" ng-class="{'has-error': (passDiffer = !!clientDetails.newPassword && passwordConfirmation && passwordConfirmation !== clientDetails.newPassword)}">
+            <div ng-class="{'has-error': (passDiffer = !!clientDetails.newPassword && passwordConfirmation && passwordConfirmation !== clientDetails.newPassword)}">
                 <div class="row details-box">
                     <div class="col-md-2 col-sm-2 col-xs-12 account-field-title"><h4 class="details-field-title">New Password</h4></div>
                     <div class="col-md-4 col-sm-4 col-xs-12 account-field-value">
                         <div ng-show="clientDetails.newPassword" class="password-strength" ng-password-strength="clientDetails.newPassword" strength="pwdStrength" css-mode="bootstrap" inner-class="progress-bar" inner-class-prefix="progress-bar-">
                             <uib-progressbar value="pwdStrength"></uib-progressbar>
                         </div>
-                        <input id="client-password" type="password" class="form-control input-lg" ng-class="{'password-transparent' : newPassword}" placeholder="Change password" ng-model="clientDetails.newPassword" />
+                        <input id="client-password" type="password" class="form-control rc-textbox" ng-class="{'password-transparent' : newPassword}" placeholder="Change password" ng-model="clientDetails.newPassword" />
                     </div>
                     <div class="clearfix visible-xs">&nbsp;</div>
                     <div class="col-md-2 col-sm-2 col-xs-12 account-field-title"><h4 class="details-field-title">Confirm Password</h4></div>
                     <div class="col-md-4 col-sm-4 col-xs-12 account-field-value">
-                        <input id="client-password-confirmation" type="password" class="form-control input-lg" placeholder="Confirm password" ng-model="passwordConfirmation" />
+                        <input id="client-password-confirmation" type="password" class="form-control rc-textbox" placeholder="Confirm password" ng-model="passwordConfirmation" />
                     </div>
                 </div>
                 <span class="help-block pull-right" ng-show="passDiffer">The passwords do not match</span>

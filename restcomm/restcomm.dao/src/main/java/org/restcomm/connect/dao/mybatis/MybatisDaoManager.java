@@ -66,7 +66,6 @@ import scala.concurrent.ExecutionContext;
 @ThreadSafe
 public final class MybatisDaoManager implements DaoManager {
     private Configuration configuration;
-    private Configuration amazonS3Configuration;
     private Configuration runtimeConfiguration;
     private S3AccessTool s3AccessTool;
     private AccountsDao accountsDao;
@@ -103,10 +102,10 @@ public final class MybatisDaoManager implements DaoManager {
     }
 
     @Override
-    public void configure(final Configuration configuration, Configuration daoManagerConfiguration, final ExecutionContext ec) {
+    public void configure(final Configuration configuration, Configuration daoManagerConfiguration, final S3AccessTool s3AccessTool, final ExecutionContext ec) {
         this.configuration = daoManagerConfiguration.subset("dao-manager");
-        this.amazonS3Configuration = configuration.subset("amazon-s3");
         this.runtimeConfiguration = configuration.subset("runtime-settings");
+        this.s3AccessTool = s3AccessTool;
         this.ec = ec;
     }
 
@@ -264,22 +263,6 @@ public final class MybatisDaoManager implements DaoManager {
         properties.setProperty("data", dataFiles);
         properties.setProperty("sql", sqlFiles);
         final SqlSessionFactory sessions = builder.build(reader, properties);
-        if(!amazonS3Configuration.isEmpty()) { // Do not fail with NPE is amazonS3Configuration is not present for older install
-            boolean amazonS3Enabled = amazonS3Configuration.getBoolean("enabled");
-            if (amazonS3Enabled) {
-                final String accessKey = amazonS3Configuration.getString("access-key");
-                final String securityKey = amazonS3Configuration.getString("security-key");
-                final String bucketName = amazonS3Configuration.getString("bucket-name");
-                final String folder = amazonS3Configuration.getString("folder");
-                final boolean reducedRedundancy = amazonS3Configuration.getBoolean("reduced-redundancy");
-                final int minutesToRetainPublicUrl = amazonS3Configuration.getInt("minutes-to-retain-public-url", 10);
-                final boolean removeOriginalFile = amazonS3Configuration.getBoolean("remove-original-file");
-                final String bucketRegion = amazonS3Configuration.getString("bucket-region");
-                final boolean testing = amazonS3Configuration.getBoolean("testing",false);
-                final String testingUrl = amazonS3Configuration.getString("testing-url",null);
-                s3AccessTool = new S3AccessTool(accessKey, securityKey, bucketName, folder, reducedRedundancy, minutesToRetainPublicUrl, removeOriginalFile,bucketRegion, testing, testingUrl);
-            }
-        }
         start(sessions);
     }
 

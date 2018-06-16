@@ -233,6 +233,7 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
 
     // Controls if VI will wait MS response to move to the next verb
     protected boolean msResponsePending;
+    private boolean msStopingRingTone = false;
 
     private boolean callWaitingForAnswer = false;
 
@@ -833,7 +834,12 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
             if (is(playingRejectionPrompt)) {
                 fsm.transition(message, hangingUp);
             } else if (is(playing)) {
-                fsm.transition(message, ready);
+                logger.info ("Is restcomm stoping ring tone: " + msStopingRingTone);
+                // When RestComm is requesting stop ring tone, the first NTFY response is for stop ring tone,
+                // instead for play/say verb. When enable200OkDelay = true, there is no NTFY for stop ring tone.
+                if (!msStopingRingTone || enable200OkDelay) {
+                    fsm.transition(message, ready);
+                }
             } else if (is(creatingRecording)) {
                 if (logger.isInfoEnabled()) {
                     logger.info("Will move to finishRecording because of MediaGroupResponse");
@@ -898,6 +904,10 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
                     final GetNextVerb next = new GetNextVerb();
                     parser.tell(next, self());
                 }
+            }
+
+            if (msStopingRingTone) {
+                msStopingRingTone = !(((MediaGroupResponse) message).get() instanceof CollectedResult);
             }
         } else {
             fsm.transition(message, hangingUp);
@@ -1233,7 +1243,8 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
                 outboundCallResponse = event.sipResponse();
             }
         if(logger.isInfoEnabled()){
-            logger.info("VoiceInterpreter received CallStateChanged event: "+event+ " from "+(sender == call? "call" : "outboundCall")+ ", sender path: " + sender.path() +", current VI state: "+fsm.state() +" current outboundCall actor is: "+outboundCall);
+            String msg = String.format("VoiceInterpreter received CallStateChanged event: [%s] , from sender path: [%s] , sender is initial call: [%s] , current VI state: [%s] , current call state: [%s] , current outboundCall actor is: [%s]", event, sender.path(),(sender == call), fsm.state(), callState != null ? callState.toString() : "null", outboundCall != null ? outboundCall.path(): "null");
+            logger.info(msg);
         }
 
         switch (event.state()) {
@@ -1241,13 +1252,9 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
                 //Do nothing
                 break;
             case RINGING:
-                if (logger.isInfoEnabled()) {
-                    String msg = String.format("Got 180 Ringing from outbound call %s",sender);
-                    logger.info(msg);
-                }
                 break;
             case CANCELED:
-                if (is(initializingBridge) || is(acquiringOutboundCallInfo) || is(bridging) || is(bridged)) {
+                if (is(creatingBridge) || is(initializingBridge) || is(acquiringOutboundCallInfo) || is(bridging) || is(bridged)) {
                     //This is a canceled branch from a previous forking call. We need to destroy the branch
 //                    removeDialBranch(message, sender);
                     callManager.tell(new DestroyCall(sender), self());
@@ -1289,8 +1296,7 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
                         }
                         if (dialBranches == null || dialBranches.size() == 0){
                             // Stop playing the ringing tone from inbound call
-                            msResponsePending = true;
-                            call.tell(new StopMediaGroup(), self());
+                            stopRingTone();
                         }
                         checkDialBranch(message, sender, action);
                         return;
@@ -1331,6 +1337,10 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
                     if (dialBranches != null && dialBranches.contains(sender)) {
                         dialBranches.remove(sender);
                     }
+                    if (dialBranches == null || dialBranches.size() == 0){
+                        // Stop playing the ringing tone from inbound call
+                        stopRingTone();
+                    }
                     checkDialBranch(message,sender,action);
                 } else if (sender.equals(call)) {
                     fsm.transition(message, finished);
@@ -1338,10 +1348,6 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
                 break;
             case COMPLETED:
                 //NO_ANSWER, COMPLETED and FAILED events are handled the same
-                if (logger.isInfoEnabled()) {
-                    String msg = String.format("OnCallStateChanged, VI state %s, received %s, is it from inbound call: %s",fsm.state().toString(), callState.toString(), sender.equals(call));
-                    logger.info(msg);
-                }
                 if (is(bridging) || is(bridged)) {
                     if (sender == outboundCall || sender == call) {
                         if(logger.isInfoEnabled()) {
@@ -1400,7 +1406,13 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
                 if(call!=null && (call == sender) && event.state().equals(CallStateChanged.State.WAIT_FOR_ANSWER)){
                     callWaitingForAnswer  = true;
                 }
-                if (is(initializingCall) || is(rejecting)) {
+                if (enable200OkDelay && sender.equals(call) && event.state().equals(CallStateChanged.State.IN_PROGRESS) && callWaitingForAnswerPendingTag != null) {
+                    if (logger.isInfoEnabled()) {
+                        logger.info("Waiting call is inProgress we can proceed to the pending tag execution");
+                    }
+                    callWaitingForAnswer = false;
+                    onTagMessage(callWaitingForAnswerPendingTag);
+                } else if (is(initializingCall) || is(rejecting)) {
                     if (parser != null) {
                         //This is an inbound call
                         fsm.transition(message, ready);
@@ -1429,13 +1441,8 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
                         final GetNextVerb next = new GetNextVerb();
                         parser.tell(next, self());
                     }
-                } else if (enable200OkDelay && sender.equals(call) && event.state().equals(CallStateChanged.State.IN_PROGRESS) && callWaitingForAnswerPendingTag != null) {
-                    if (logger.isInfoEnabled()) {
-                        logger.info("Waiting call is inProgress we can proceed to the pending tag execution");
-                    }
-                    callWaitingForAnswer = false;
-                    onTagMessage(callWaitingForAnswerPendingTag);
                 }
+
                 // Update the storage for conferencing.
                 if (callRecord != null && !is(initializingCall) && !is(rejecting)) {
                     final CallDetailRecordsDao records = storage.getCallDetailRecordsDao();
@@ -1483,6 +1490,9 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
 
         if (dialBranches == null || dialBranches.size() == 0) {
             dialBranches = null;
+            //https://telestax.atlassian.net/browse/RESTCOMM-1738
+            // If Finish Dial verb. RC need to cancel timeout for this verb before moving to next verb.
+            context().setReceiveTimeout(Duration.Undefined());
 
             if (attribute == null) {
                 if (logger.isInfoEnabled()) {
@@ -1716,6 +1726,13 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
                 }
             }
         }
+    }
+
+    private void stopRingTone() {
+        // Stop playing the ringing tone from inbound call
+        msResponsePending = true;
+        msStopingRingTone = true;
+        call.tell(new StopMediaGroup(), self());
     }
 
     private abstract class AbstractAction implements Action {
@@ -2365,35 +2382,46 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
                     }
                 }
                 fetchMediaAttributes(child);
-                String callee;
+
+                //Get To
+                String to;
                 if(video(child) != null){
-                    callee = child.attribute("name").value();
+                    to = child.attribute("name").value();
                 } else {
-                    callee = child.text();
+                    to = child.text();
                 }
+
+                String callee = to;
+
+                //Extract and pass custom headers for Dial Client and Dial Number
+                String customHeaders = getCustomHeaders(to);
+
+                //Get Callee after removing any custom headers (this way there will be no impact on the Extensions execution)
+                callee = customHeaders != null ? to.substring(0, to.indexOf("?")) : to;
+
                 if (Nouns.client.equals(child.name())) {
                     if (call != null && callInfo != null) {
                         create = new CreateCall(e164(callerId(verb)), e164(callee), null, null, callInfo.isFromApi(), timeout(verb),
-                                CreateCallType.CLIENT, accountId, callInfo.sid(), statusCallback, statusCallbackMethod, statusCallbackEvent, mediaAttributes);
+                                CreateCallType.CLIENT, accountId, callInfo.sid(), statusCallback, statusCallbackMethod, statusCallbackEvent, mediaAttributes, customHeaders);
                     } else {
                         create = new CreateCall(e164(callerId(verb)), e164(callee), null, null, false, timeout(verb),
-                                CreateCallType.CLIENT, accountId, null, statusCallback, statusCallbackMethod, statusCallbackEvent, mediaAttributes);
+                                CreateCallType.CLIENT, accountId, null, statusCallback, statusCallbackMethod, statusCallbackEvent, mediaAttributes, customHeaders);
                     }
                 } else if (Nouns.number.equals(child.name())) {
                     if (call != null && callInfo != null) {
-                        create = new CreateCall(e164(callerId(verb)), e164(child.text()), null, null, callInfo.isFromApi(), timeout(verb),
-                                CreateCallType.PSTN, accountId, callInfo.sid(), statusCallback, statusCallbackMethod, statusCallbackEvent);
+                        create = new CreateCall(e164(callerId(verb)), e164(callee), null, null, callInfo.isFromApi(), timeout(verb),
+                                CreateCallType.PSTN, accountId, callInfo.sid(), statusCallback, statusCallbackMethod, statusCallbackEvent, customHeaders);
                     } else {
-                        create = new CreateCall(e164(callerId(verb)), e164(child.text()), null, null, false, timeout(verb),
-                                CreateCallType.PSTN, accountId, null, statusCallback, statusCallbackMethod, statusCallbackEvent);
+                        create = new CreateCall(e164(callerId(verb)), e164(callee), null, null, false, timeout(verb),
+                                CreateCallType.PSTN, accountId, null, statusCallback, statusCallbackMethod, statusCallbackEvent, customHeaders);
                     }
                 } else if (Nouns.uri.equals(child.name())) {
                     if (call != null && callInfo != null) {
                         create = new CreateCall(e164(callerId(verb)), e164(callee), null, null, callInfo.isFromApi(), timeout(verb),
-                                CreateCallType.SIP, accountId, callInfo.sid(), statusCallback, statusCallbackMethod, statusCallbackEvent, mediaAttributes);
+                                CreateCallType.SIP, accountId, callInfo.sid(), statusCallback, statusCallbackMethod, statusCallbackEvent, mediaAttributes, customHeaders);
                     } else {
                         create = new CreateCall(e164(callerId(verb)), e164(callee), null, null, false, timeout(verb),
-                                CreateCallType.SIP, accountId, null, statusCallback, statusCallbackMethod, statusCallbackEvent, mediaAttributes);
+                                CreateCallType.SIP, accountId, null, statusCallback, statusCallbackMethod, statusCallbackEvent, mediaAttributes, customHeaders);
                     }
                 } else if (Nouns.SIP.equals(child.name())) {
                     // https://bitbucket.org/telestax/telscale-restcomm/issue/132/implement-twilio-sip-out
@@ -2419,10 +2447,10 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
                     }
                     if (call != null && callInfo != null) {
                         create = new CreateCall(e164(callerId(verb)), e164(callee), username, password, false, timeout(verb),
-                                CreateCallType.SIP, accountId, callInfo.sid(), statusCallback, statusCallbackMethod, statusCallbackEvent, mediaAttributes);
+                                CreateCallType.SIP, accountId, callInfo.sid(), statusCallback, statusCallbackMethod, statusCallbackEvent, mediaAttributes, customHeaders);
                     } else {
                         create = new CreateCall(e164(callerId(verb)), e164(callee), username, password, false, timeout(verb),
-                                CreateCallType.SIP, accountId, null, statusCallback, statusCallbackMethod, statusCallbackEvent, mediaAttributes);
+                                CreateCallType.SIP, accountId, null, statusCallback, statusCallbackMethod, statusCallbackEvent, mediaAttributes, customHeaders);
                     }
                 }
                 callManager.tell(create, source);
@@ -2455,6 +2483,16 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
                 }
             }
         }
+    }
+
+    private String getCustomHeaders(final String to) {
+        String customHeaders = null;
+
+        if (to.contains("?")) {
+            customHeaders = to.substring(to.indexOf("?")+1, to.length());
+        }
+
+        return customHeaders;
     }
 
     private final class Forking extends AbstractDialAction {
@@ -2801,7 +2839,7 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
         public void execute(final Object message) throws Exception {
             final State state = fsm.state();
             if(logger.isInfoEnabled()) {
-                logger.info("FinishDialing, current state: " + state);
+                logger.info("At FinishDialing, current VI state: " + state);
             }
 
             if (message instanceof ReceiveTimeout) {
@@ -2825,8 +2863,7 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
                         }
                     }
                     // Stop playing the ringing tone from inbound call
-                    msResponsePending = true;
-                    call.tell(new StopMediaGroup(), self());
+                    stopRingTone();
                 } else if (outboundCall != null) {
                     outboundCall.tell(new Cancel(), source);
                     call.tell(new Hangup(outboundCallResponse), self());
@@ -2841,7 +2878,8 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
 
             if (message instanceof CallStateChanged) {
                 if(logger.isInfoEnabled()) {
-                    logger.info("CallStateChanged state: "+((CallStateChanged)message).state().toString()+" ,sender: "+sender().path());
+                    String msg = String.format("CallStateChanged state received: [%s] , sender path: [%s] , is initial call: [%s] , call state: [%s], fsm state: [%s]", ((CallStateChanged)message).toString(), sender().path(), (sender == call), callState.toString(), fsm.state());
+                    logger.info(msg);
                 }
                 if (forking.equals(state) || finishDialing.equals(state) || is(bridged) || is(bridging) ) {
                     if (sender.equals(call)) {
@@ -2878,7 +2916,16 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
                         return;
                     } else {
                         if (callState == CallStateChanged.State.IN_PROGRESS) {
+                            if (logger.isInfoEnabled()) {
+                                String msg = String.format("At finishDialingState, will ASK call to hangup. Current VI State %s Call State: %s ",state, callState);
+                                logger.info(msg);
+                            }
                             call.tell(new Hangup(), self());
+                        } else {
+                            if (logger.isInfoEnabled()) {
+                                String msg = String.format("Didn't sent Hangup to call because current call state is: [%s]", callState.toString());
+                                logger.info(msg);
+                            }
                         }
                     }
                 }

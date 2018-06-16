@@ -54,15 +54,21 @@
             <br class="visible-xs">
         </form>
 
-        <div ng-hide="!transcriptionsLogsList || (transcriptionsLogsList | filter:query).length > 0" class="jumbotron rc-no-items">
+        <div ng-show="!hasCriteria && (!transcriptionsLogsList || transcriptionsLogsList.length === 0)" class="jumbotron rc-no-items">
             <h1><i class="fa fa-file-text-o"></i> </h1>
             <h2>No transcriptions</h2>
             <h5>Confirm there's paper in the tray!</h5>
         </div>
 
+        <div ng-show="hasCriteria && (!transcriptionsLogsList || transcriptionsLogsList.length === 0)" class="jumbotron rc-no-items">
+            <h1><i class="fa fa-search"></i> </h1>
+            <h2>No transcriptions matching your criteria</h2>
+            <h5>Please update your search and try again.</h5>
+        </div>
+
         <div class="row">
             <div class="col-md-12">
-                <table ng-show="(transcriptionsLogsList | filter:query).length > 0" class="table table-hover rc-list logs-transcriptions-list">
+                <table ng-show="transcriptionsLogsList.length > 0" class="table table-hover rc-list logs-transcriptions-list">
                     <thead>
                     <th class="logs-transcriptions-list-date visible-xs">Date</span></th>
                     <th class="logs-transcriptions-list-status visible-xs">Status<br>Duration</th>
@@ -75,7 +81,7 @@
                     <th class="logs-transcriptions-list-text hidden-xs">Text</th>
                     </thead>
                     <tbody>
-                    <tr ng-repeat="transcription in filtered = (transcriptionsLogsList | filter:query | orderBy:sort:reverse)">
+                    <tr ng-repeat="transcription in (transcriptionsLogsList | orderBy:sort:reverse)">
                         <td class="logs-transcriptions-list-date rc-list-date hidden-xs">
                             <a href="" ng-click="showTranscriptionDetailsModal(transcription)">{{ transcription.date_created | toDate:'yyyy-MM-dd HH:mm:ss' }}</a>
                         </td>

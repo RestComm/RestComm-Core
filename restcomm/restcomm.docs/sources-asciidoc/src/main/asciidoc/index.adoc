@@ -21,3 +21,6 @@ There is multiple ways to interact with Restcomm Connect to build applications
 * The <<tutorials/index.adoc#tutorials,Restcomm Tutorials>> will help you in creating sample applications that cover common use cases in a variety of languages using the Restcomm API, RCML or Visual Designer. Download, test, and tweak for yourself. 
 
 * The <<configuration/index.adoc#Configuration,Configuration>> will help you in setting up Restcomm Connect on your own server or development environment to build powerful apps locally.
+
+
+Find <<release-notes.adoc#Release Notes,Release Notes>> here

@@ -19,15 +19,15 @@
  */
 package org.restcomm.connect.commons.configuration.sets.impl;
 
-import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.commons.lang.StringUtils;
 import org.restcomm.connect.commons.annotations.concurrency.Immutable;
 import org.restcomm.connect.commons.common.http.SslMode;
 import org.restcomm.connect.commons.configuration.sets.MainConfigurationSet;
 import org.restcomm.connect.commons.configuration.sources.ConfigurationSource;
+
+import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Provides a typed interface to a set of configuration options retrieved from a
@@ -52,6 +52,9 @@ public class MainConfigurationSetImpl extends ConfigurationSet implements MainCo
     private static final String HTTP_ROUTES_PORT = "http-client.routes-port";
     private static final String HTTP_ROUTES_CONN = "http-client.routes-conn";
     private static final String CONFERENCE_TIMEOUT_KEY = "runtime-settings.conference-timeout";
+    private static final String CLEAR_TEXT_PASSWORD_ALGORITHM = "cleartext";
+    private static final String DEFAULT_CLIENT_PASSWORD = "MD5";
+    private static final String DEFAULT_CLIENT_QOP = "auth";
     private static final long CONFERENCE_TIMEOUT_DEFAULT = 14400; //4 hours in seconds
     private static final SslMode SSL_MODE_DEFAULT = SslMode.strict;
     private SslMode sslMode;
@@ -70,9 +73,12 @@ public class MainConfigurationSetImpl extends ConfigurationSet implements MainCo
     private String apiVersion;
     private int recordingMaxDelay;
     private long conferenceTimeout;
+    private String recordingPath;
 
     public static final String BYPASS_LB_FOR_CLIENTS = "bypass-lb-for-clients";
     private boolean bypassLbForClients = false;
+    private String clientAlgorithm = DEFAULT_CLIENT_PASSWORD;
+    private String clientQOP = DEFAULT_CLIENT_QOP;
 
     public MainConfigurationSetImpl(ConfigurationSource source) {
         super(source);
@@ -155,12 +161,17 @@ public class MainConfigurationSetImpl extends ConfigurationSet implements MainCo
         bypassLbForClients = bypassLb;
         apiVersion = source.getProperty("runtime-settings.api-version");
 
-        this.recordingMaxDelay = Integer.parseInt(source.getProperty("runtime-setting.recording-max-delay", "2000"));
+        this.recordingMaxDelay = Integer.parseInt(source.getProperty("runtime-settings.recording-max-delay", "2000"));
         try{
             this.conferenceTimeout = Long.parseLong(source.getProperty(CONFERENCE_TIMEOUT_KEY, ""+CONFERENCE_TIMEOUT_DEFAULT));
         }catch(NumberFormatException nfe){
             this.conferenceTimeout = CONFERENCE_TIMEOUT_DEFAULT;
         }
+
+        recordingPath = source.getProperty("runtime-settings.recordings-path");
+
+        clientAlgorithm = source.getProperty("runtime-settings.client-algorithm", DEFAULT_CLIENT_PASSWORD);
+        clientQOP = source.getProperty("runtime-settings.client-qop", DEFAULT_CLIENT_QOP);
     }
 
     public MainConfigurationSetImpl(SslMode sslMode, int responseTimeout, boolean useHostnameToResolveRelativeUrls, String hostname, String instanceId, boolean bypassLbForClients) {
@@ -270,5 +281,23 @@ public class MainConfigurationSetImpl extends ConfigurationSet implements MainCo
     @Override
     public void setConferenceTimeout(long conferenceTimeout) {
         this.conferenceTimeout = conferenceTimeout;
+    }
+
+    @Override
+    public String getClientAlgorithm() {
+        return clientAlgorithm;
+    }
+
+    @Override
+    public String getClientQOP() {
+        return clientQOP;
+    }
+
+    @Override
+    public String getClearTextPasswordAlgorithm() { return CLEAR_TEXT_PASSWORD_ALGORITHM; }
+
+    @Override
+    public String getRecordingPath () {
+        return recordingPath;
     }
 }

@@ -31,6 +31,7 @@ public class GatherAttributes {
     public static final String ATTRIBUTE_ACTION = "action";
     public static final String ATTRIBUTE_METHOD = "method";
     public static final String ATTRIBUTE_FINISH_ON_KEY = "finishOnKey";
+    public static final String ATTRIBUTE_START_INPUT_KEY = "startInputKey";
     public static final String ATTRIBUTE_NUM_DIGITS = "numDigits";
     public static final String ATTRIBUTE_TIME_OUT = "timeout";
     public static final String ATTRIBUTE_PARTIAL_RESULT_CALLBACK = "partialResultCallback";

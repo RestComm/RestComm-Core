@@ -1161,6 +1161,7 @@ public class ImsClientsDialAnswerDelayTest {
         webInfResources.put("restcomm-ims-delay.xml", "conf/restcomm.xml");
         webInfResources.put("restcomm.script_imsDialTest", "data/hsql/restcomm.script");
         webInfResources.put("sip-ims.xml", "/sip.xml");
+        webInfResources.put("web.xml", "web.xml");
         webInfResources.put("akka_application.conf", "classes/application.conf");
 
         Map<String, String> replacements = new HashMap();

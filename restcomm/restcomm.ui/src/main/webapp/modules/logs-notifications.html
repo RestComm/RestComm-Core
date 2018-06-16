@@ -54,15 +54,21 @@
             <br class="visible-xs">
         </form>
 
-        <div ng-hide="!notificationsLogsList || (notificationsLogsList | filter:query).length > 0" class="jumbotron rc-no-items">
+        <div ng-show="!hasCriteria && (!notificationsLogsList || notificationsLogsList.length === 0)" class="jumbotron rc-no-items">
             <h1><i class="fa fa-exclamation-circle"></i> </h1>
             <h2>No Notifications</h2>
             <h5>You must be doing it right!</h5>
         </div>
 
+        <div ng-show="hasCriteria && (!notificationsLogsList || notificationsLogsList.length === 0)" class="jumbotron rc-no-items">
+            <h1><i class="fa fa-search"></i> </h1>
+            <h2>No notifications matching your criteria</h2>
+            <h5>Please update your search and try again.</h5>
+        </div>
+
         <div class="row">
             <div class="col-md-12">
-                <table ng-show="(notificationsLogsList | filter:query).length > 0" class="table table-hover rc-list logs-notifications-list">
+                <table ng-show="notificationsLogsList.length > 0" class="table table-hover rc-list logs-notifications-list">
                     <thead>
                     <th class="logs-notifications-list-date visible-xs">Date</span></th>
                     <th class="logs-notifications-list-type visible-xs">Type<br>Code</th>
@@ -75,7 +81,7 @@
                     <th class="logs-notifications-list-text hidden-xs">Message</th>
                     </thead>
                     <tbody>
-                    <tr ng-repeat="notification in filtered = (notificationsLogsList | filter:query | orderBy:sort:reverse)">
+                    <tr ng-repeat="notification in (notificationsLogsList | orderBy:sort:reverse)">
                         <td class="logs-notifications-list-date rc-list-date hidden-xs">
                             <a href="" ng-click="showNotificationDetailsModal(notification)">{{ notification.date_created | toDate:'yyyy-MM-dd HH:mm:ss' }}</a>
                         </td>

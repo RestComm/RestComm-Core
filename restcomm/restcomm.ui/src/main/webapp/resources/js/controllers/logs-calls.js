@@ -65,10 +65,10 @@ rcMod.controller('LogsCallsCtrl', function($scope, $resource, $timeout, $uibModa
       params["EndTime"] = search.end_time;
     }
     if(search.from) {
-      params["From"] = search.from;
+      params["From"] = (search.from + '%');
     }
     if(search.to) {
-      params["To"] = search.to;
+      params["To"] = (search.to + '%');
     }
     if(search.status) {
       params["Status"] = search.status;
@@ -79,6 +79,7 @@ rcMod.controller('LogsCallsCtrl', function($scope, $resource, $timeout, $uibModa
     if (search.sub_accounts) {
       params["SubAccounts"] = search.sub_accounts;
     }
+    $scope.hasCriteria = !_.isEmpty(params);
     params["Reverse"] = $scope.reverse;
 
     return params;

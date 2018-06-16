@@ -41,8 +41,18 @@ A note on the docker image tags:
 * Tag "latest". Points to the latest binary from the Continuous Delivery server. Uses the https://github.com/RestComm/Restcomm-Connect[master] development branch : restcomm/restcomm:latest. *We don't advice to use "latest" tag for production as it is constantly changing, and as well new features and fixes may not be documented.
 * We provide specific tags for GA releases (e.g. v770ga). Prefer to use release tags over `latest`, to avoid accidental updates.
 
-
 [[quick-test]]
+[[accessing-the-admin-ui]]
+Accessing the Admin UI
+^^^^^^^^^^^^^^^^^^^^^^
+
+1.  Go to https://RCBCONF_STATIC_ADDRESS:8443
+2.  Username = administrator@company.com
+3.  Password = RestComm
+4.  Change the default password
+5.  Go to Clients and click on *+ New Client*
+6.  Provide login and password for sip client and click on register
+
 Quick test: Verify it works!
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -52,15 +62,6 @@ Quick test: Verify it works!
 4.  Go to "Contact", click on the "**+1234**" and press the "Audio Call" button (phone icon)
 5.  You should hear the "Welcome to RestComm, a Telestax Sponsored project" announcement
 6.  You can also make a call to the "**+1235**" to test your Text-to-Speech configuration. (Remember to ensure you provided a correct VoiceRSS key!)
-
-[[accessing-the-admin-ui]]
-Accessing the Admin UI
-^^^^^^^^^^^^^^^^^^^^^^
-
-1.  Go to https://RCBCONF_STATIC_ADDRESS:8443
-2.  Username = administrator@company.com
-3.  Password = RestComm
-4.  Change the default password
 
 [NOTE]
 Using the flag "INIT_PASSWORD" you can set administrator password when running RestComm for first time.

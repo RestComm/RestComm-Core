@@ -11,6 +11,8 @@
 	MA 02110-1301 USA, or see the FSF site: http://www.fsf.org. -->
 <restcomm>
 	<runtime-settings>
+        <client-algorithm>MD5</client-algorithm>
+        <client-qop>auth</client-qop>
 		<!-- The API version that will be used. -->
 		<api-version>2012-04-24</api-version>
 
@@ -23,13 +25,144 @@
 		<!-- The location where the audio prompts are located. -->
 		<prompts-uri>/restcomm/audio</prompts-uri>
 
+		<!-- Conference audio files, these will be played when a participant joins or leaves the conference -->
+		<conference-entry-audio>beep.wav</conference-entry-audio>
+		<conference-exit-audio>alert.wav</conference-exit-audio>
+
+		<!-- ASR Supported Languages -->
+		<asr-languages default="en-US">
+			<language>af-ZA</language>
+			<language>id-ID</language>
+			<language>ms-MY</language>
+			<language>ca-ES</language>
+			<language>cs-CZ</language>
+			<language>da-DK</language>
+			<language>de-DE</language>
+			<language>en-AU</language>
+			<language>en-CA</language>
+			<language>en-GB</language>
+			<language>en-IN</language>
+			<language>en-IE</language>
+			<language>en-NZ</language>
+			<language>en-PH</language>
+			<language>en-ZA</language>
+			<language>en-US</language>
+			<language>es-AR</language>
+			<language>es-BO</language>
+			<language>es-CL</language>
+			<language>es-CO</language>
+			<language>es-CR</language>
+			<language>es-EC</language>
+			<language>es-SV</language>
+			<language>es-ES</language>
+			<language>es-US</language>
+			<language>es-GT</language>
+			<language>es-HN</language>
+			<language>es-MX</language>
+			<language>es-NI</language>
+			<language>es-PA</language>
+			<language>es-PY</language>
+			<language>es-PE</language>
+			<language>es-PR</language>
+			<language>es-DO</language>
+			<language>es-UY</language>
+			<language>es-VE</language>
+			<language>eu-ES</language>
+			<language>fil-PH</language>
+			<language>fr-CA</language>
+			<language>fr-FR</language>
+			<language>gl-ES</language>
+			<language>hr-HR</language>
+			<language>zu-ZA</language>
+			<language>is-IS</language>
+			<language>it-IT</language>
+			<language>lt-LT</language>
+			<language>hu-HU</language>
+			<language>nl-NL</language>
+			<language>nb-NO</language>
+			<language>pl-PL</language>
+			<language>pt-BR</language>
+			<language>pt-PT</language>
+			<language>ro-RO</language>
+			<language>sk-SK</language>
+			<language>sl-SI</language>
+			<language>fi-FI</language>
+			<language>sv-SE</language>
+			<language>vi-VN</language>
+			<language>tr-TR</language>
+			<language>el-GR</language>
+			<language>bg-BG</language>
+			<language>ru-RU</language>
+			<language>sr-RS</language>
+			<language>uk-UA</language>
+			<language>he-IL</language>
+			<language>ar-IL</language>
+			<language>ar-JO</language>
+			<language>ar-AE</language>
+			<language>ar-BH</language>
+			<language>ar-DZ</language>
+			<language>ar-SA</language>
+			<language>ar-IQ</language>
+			<language>ar-KW</language>
+			<language>ar-MA</language>
+			<language>ar-TN</language>
+			<language>ar-OM</language>
+			<language>ar-PS</language>
+			<language>ar-QA</language>
+			<language>ar-LB</language>
+			<language>ar-EG</language>
+			<language>fa-IR</language>
+			<language>hi-IN</language>
+			<language>th-TH</language>
+			<language>ko-KR</language>
+			<language>cmn-Hant-TW</language>
+			<language>yue-Hant-HK</language>
+			<language>ja-JP</language>
+			<language>cmn-Hans-HK</language>
+			<language>cmn-Hans-CN</language>
+		</asr-languages>
+
+		<!--
+		Timeouts description:
+
+		wit: waiting time to detect user input (gather timeout)
+		We fire failure event if we haven't received any user input during wit timeout.
+		This timeout is very similar to fdt (First Digit Timer) for DTMF
+
+		pst: amount of silence necessary after the end of speech (gather timeout)
+		We stop speech recognition if user has suspended input for pst timeout. We fire success event if we have recognized something. We return failure event if we haven't recognized anything.
+		This timeout is very similar to idt (Inter Digit Timer) for DTMF
+
+		mrt: maximum recognition time
+		We stop speech recognition on pst timeout after user started input.We fire success event if we have recognized something. We return failure event if we haven't recognized anything.
+		-->
+		<!-- Default Gathering Timeout. Also is used as default WIT and PST in ASR -->
+		<default-gathering-timeout>5</default-gathering-timeout>
+		<!-- ASR Maximum Recognition Time -->
+		<asr-mrt-timeout>60</asr-mrt-timeout>
+
+		<!-- Speech to text drivers -->
+		<!--mg-asr-drivers default="driver1">
+			<driver>driver1</driver>
+			<driver>driver2</driver>
+		</mg-asr-drivers-->
+
 		<!-- Cache settings. -->
 		<cache-path>${restcomm:home}/cache</cache-path>
 		<cache-uri>/restcomm/cache</cache-uri>
 
+		<!-- If set to true RestComm will NOT use cache for *.wav files playback.
+			If set to false RestComm will use cache for *.wav files playback.
+			Default: false
+		-->
+		<cache-no-wav>false</cache-no-wav>
+
 		<!-- The path where recordings made by the <Record> verb are stored. -->
 		<recordings-path>file://${restcomm:home}/recordings</recordings-path>
 		<recordings-uri>/restcomm/recordings</recordings-uri>
+
+		<!-- if S3AccessTool takes more than the duration here, then Restcomm will report this -->
+		<recording-max-delay>2000</recording-max-delay>
 
 		<!-- The URL to the errors dictionary. -->
 		<error-dictionary-uri>/restcomm/errors</error-dictionary-uri>
@@ -42,6 +175,10 @@
 			If set to false RestComm will use the Request URI to determine the destination. -->
 		<use-to>true</use-to>
 
+		<!-- if this flag is set to true, it will disable all patching done for NAT
+		 even if they are enabled in the configuration file-->
+		<use-sbc>false</use-sbc>
+
 		<!-- If set to true Restcomm will use the Local Address (or external address
 			if available) in the host part of the From header for calls to the outbound
 			proxy. Default is False, which means that Restcomm will use outbound proxy
@@ -51,6 +188,43 @@
 		<!-- If set to true Restcomm will authenticate users and incoming messages
 			from those users -->
 		<authenticate>true</authenticate>
+
+		<!-- If authenticate is set to true Restcomm can work as IMS Client. To enable set act-as-ims-ua to true and
+		 configure IMS domain and IMS Proxy (e.g. P-CSCF or SBC) -->
+		<ims-authentication>
+			<act-as-ims-ua>false</act-as-ims-ua>
+			<domain></domain>
+			<proxy-address></proxy-address>
+			<proxy-port>5060</proxy-port>
+			<call-id-prefix>WebRTCGW__1@</call-id-prefix>
+			<user-agent>WebRTCGW/1.0</user-agent>
+			<account></account>
+		</ims-authentication>
+
+		<!-- If set to true, Restcomm will proxy out any call that doesn't match hosted Voice Application, to the proxy address:port -->
+		<!-- using Dial SIP. If username and password are provided it will be added as part of the Dial SIP URI-->
+		<!-- Using this feature, Restcomm will keep RMS in the path-->
+		<acting-as-proxy>
+			<enabled>false</enabled>
+			<!-- If set to true, From header will be used to extract the From URI, otherwise Contact header will be used-->
+			<use-from-header>true</use-from-header>
+			<proxy-rules>
+				<rule>
+					<from-uri></from-uri>
+					<to-uri></to-uri>
+					<!-- Optionally provide username -->
+					<proxy-to-username></proxy-to-username>
+					<proxy-to-password></proxy-to-password>
+				</rule>
+				<rule>
+					<from-uri></from-uri>
+					<to-uri></to-uri>
+					<!-- Optionally provide username -->
+					<proxy-to-username></proxy-to-username>
+					<proxy-to-password></proxy-to-password>
+				</rule>
+			</proxy-rules>
+		</acting-as-proxy>
 
 		<!-- Interval time in seconds that Restcomm will send keepalive messages (OPTIONS) to registered clients -->
 		<ping-interval>60</ping-interval>
@@ -68,6 +242,36 @@
 			for B2BUA sessions with the discovered external IP Address of the peer -->
 		<!-- Default value: true -->
 		<patch-for-nat-b2bua-sessions>true</patch-for-nat-b2bua-sessions>
+
+		<!-- If set to true, when calling clients Restcomm will bypass LB or Proxy if set.
+		     Default value false so call are routed through LB-->
+		<bypass-lb-for-clients>false</bypass-lb-for-clients>
+
+		<!-- Set to true so Restcomm will send 100 Trying on initial Request-->
+		<!-- Used only for testing. !!! Don't enable this for production -->
+		<send-trying-for-initial-requests>false</send-trying-for-initial-requests>
+
+		<!--Play background music for conference rooms with 1 participant even if startConference=true? Music will stop after the second participant joins-->
+		<!--Default value: false -->
+		<play-music-for-conference>false</play-music-for-conference>
+
+		<!-- Set to true so Restcomm will NOT patch the SDP for the following cases:
+			1. SDP received from 200 OK
+			2. SDP in the initial INVITE
+			3. SDP in the in-dialog INVITE
+			Default value: false -->
+		<disable-sdp-patching-on-updating-mediasession>false</disable-sdp-patching-on-updating-mediasession>
+
+		<!-- If this is set to TRUE, when verb is Dial, delay 200 OK to INVITE until outbound dial answers
+			 or send appropriate response according to the response from outbound dial-->
+		<!--  https://github.com/RestComm/Restcomm-Connect/issues/1649 -->
+		<enable-200-ok-delay>false</enable-200-ok-delay>
+
+		<push-notification-server-enabled>false</push-notification-server-enabled>
+		<!-- Path to Restcomm Push Notification Server (Notification API) -->
+		<push-notification-server-url></push-notification-server-url>
+		<!-- Delay in milliseconds to wait for all callee's mobile applications will wake up -->
+		<push-notification-server-delay></push-notification-server-delay>
 
 		<outbound-proxy>
 			<!-- Parameters for primary outbound proxy. -->
@@ -120,6 +324,49 @@
 			<gmlc-password></gmlc-password>
 		</gmlc>
 
+		<!-- dns-provisioning: configuration is used to proform CRUD operations for organizations, i.e creating new domains under restcomm
+
+		class: represents the DNS provisioning manager class
+		e.g org.restcomm.connect.telscale.dns.route53.Route53DnsProvisioningManager
+		A developer can provide customer Class for any DNS server as long as it implements
+		org.restcomm.connect.dns.DnsProvisioningManager
+
+		enabled: by default dns provisioning is disabled
+		which means during organization api CRUD operations, restcomm will not send any requests to DNS server.
+		-->
+		<dns-provisioning class="" enabled="false">
+
+			<!-- aws-route53 specific config for dns provisioning
+			restcomm-a-record-value: is address to which DNS Server will route traffic
+				In a cluster, it can be public ip of loadbalancer or alias/domainName of a DNS entity (ELB etc)
+			restcomm-srv-record-value: restcomm server destination for srv record (e.g. sip.restcomm.com)
+			region: the region to be used by the client. This will be used to determine both the
+				service endpoint (eg: https://sns.us-west-1.amazonaws.com) and signing region (eg: us-west-1) for requests.
+			ttl: time to live in seconds
+			hosted-zone-id: The ID of the hosted zone that contains the resource record sets that you want to change.
+				for example hosted zone id of domain restcomm.com, this can be get from aws management console
+			is-alias: Set this configuration to true if above restcomm-a-record-value is an alias and not a IP-address/domain-name.
+				default value is false.
+				read more about aliases here http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resource-record-sets-choosing-alias-non-alias.html
+			alias-target: if restcomm-a-record-value is and alias and is-alias is set to true: we need to provide further configuration for:
+				evaluate-target-health: boolean to either evaluate target health or not, default is false
+				hosted-zone-id: of the alias
+			-->
+			<aws-route53>
+				<restcomm-a-record-value></restcomm-a-record-value>
+        		<restcomm-srv-record-value></restcomm-srv-record-value>
+				<access-key></access-key>
+				<secret-key></secret-key>
+				<region></region>
+				<ttl>3600</ttl>
+				<hosted-zone-id></hosted-zone-id>
+				<is-alias></is-alias>
+				<alias-target>
+                  <evaluate-target-health>boolean</evaluate-target-health>
+                  <hosted-zone-id>string</hosted-zone-id>
+               </alias-target>
+			</aws-route53>
+		</dns-provisioning>
 		<!-- Each permission is represented as three columns Domain:Action:Target
 			Possible actions are Create, Read, Modify, Delete. -->
 		<security-roles>
@@ -150,6 +397,11 @@
 			</role>
 			<role name="Guest"></role>
 		</security-roles>
+		<!-- conference-timeout is allowed life of a conference in restcomm
+				after that all participants will be asked to leave and conference will be closed.
+				default value is 14400 seconds/(4 hours).
+				Please provide value in seconds -->
+		<conference-timeout>14400</conference-timeout>
 	</runtime-settings>
 
 	<!-- Configuration for the VoIP Innovations provisioning API. -->
@@ -305,7 +557,7 @@
 					server, it sends an 'ENQUIRE_LINK' after every configured enquire-link-delay.
 					If no response received for 3 consecutive requests, connection will be killed
 					and attempted to connect again -->
-				<enquirelinkdelay>30000</enquirelinkdelay>
+				<enquirelinkdelay>30000</enquirelinkdelay><inboundencoding>UTF-8</inboundencoding><outboundencoding>UTF-8</outboundencoding><messagepayloadflag>false</messagepayloadflag><autodetectdcsflag>false</autodetectdcsflag>
 			</connection>
 		</connections>
 	</smpp>

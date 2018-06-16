@@ -65,6 +65,7 @@ import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.restcomm.connect.commons.Version;
 import org.restcomm.connect.commons.annotations.ParallelClassTests;
+import org.restcomm.connect.commons.annotations.UnstableTests;
 import org.restcomm.connect.testsuite.NetworkPortAssigner;
 import org.restcomm.connect.testsuite.WebArchiveUtil;
 import org.restcomm.connect.testsuite.http.RestcommCallsTool;
@@ -245,6 +246,7 @@ public class CallRegexSingleTest {
      * @throws MalformedURLException
      */
     @Test
+    @Category(UnstableTests.class)
     public void testDial7777RegexOfDifferentOrganization() throws ParseException, InterruptedException, MalformedURLException {
         //matches regex expression "7777|8888" but belongs to domain 127.0.0.1
     	// hence anyone from org1.restcomm.com should not be allowed to reach this regex

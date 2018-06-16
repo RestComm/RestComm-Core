@@ -6,38 +6,42 @@
 <mapper namespace="org.mobicents.servlet.sip.restcomm.dao.ClientsDao">
   <insert id="addClient" parameterType="map">
     INSERT INTO "restcomm_clients" ("sid", "date_created", "date_updated", "account_sid", "api_version", "friendly_name", "login", "password",
-    "status", "voice_url", "voice_method", "voice_fallback_url", "voice_fallback_method", "voice_application_sid", "uri", "push_client_identity") VALUES (#{sid},
+    "status", "voice_url", "voice_method", "voice_fallback_url", "voice_fallback_method", "voice_application_sid", "uri", "push_client_identity", "password_algorithm") VALUES (#{sid},
     #{date_created}, #{date_updated}, #{account_sid}, #{api_version}, #{friendly_name}, #{login}, #{password}, #{status}, #{voice_url},
-    #{voice_method}, #{voice_fallback_url}, #{voice_fallback_method}, #{voice_application_sid}, #{uri}, #{push_client_identity});
+    #{voice_method}, #{voice_fallback_url}, #{voice_fallback_method}, #{voice_application_sid}, #{uri}, #{push_client_identity}, #{password_algorithm});
   </insert>
-  
+
   <select id="getClient" parameterType="string" resultType="hashmap">
     SELECT * FROM "restcomm_clients" WHERE "sid"=#{sid};
   </select>
-  
+
   <select id="getClientByLogin" parameterType="map" resultType="hashmap">
     SELECT "a_clients".* FROM "restcomm_clients" "a_clients" LEFT JOIN "restcomm_accounts" "b_accounts" ON "a_clients"."account_sid" = "b_accounts"."sid" WHERE "a_clients"."login"=#{login} and "b_accounts"."organization_sid"=#{organization_sid};
   </select>
-  
+
+  <select id="getAllClientsByOrg" parameterType="map" resultType="hashmap">
+    SELECT "a_clients".* FROM "restcomm_clients" "a_clients" LEFT JOIN "restcomm_accounts" "b_accounts" ON "a_clients"."account_sid" = "b_accounts"."sid" WHERE "b_accounts"."organization_sid"=#{organization_sid};
+  </select>
+
   <select id="getClients" parameterType="string" resultType="hashmap">
     SELECT * FROM "restcomm_clients" WHERE "account_sid"=#{account_sid};
   </select>
-  
+
   <select id="getAllClients" resultType="hashmap">
   	SELECT * FROM "restcomm_clients";
   </select>
-  
+
   <delete id="removeClient" parameterType="string">
     DELETE FROM "restcomm_clients" WHERE "sid"=#{sid};
   </delete>
-  
+
   <delete id="removeClients" parameterType="string">
     DELETE FROM "restcomm_clients" WHERE "account_sid"=#{account_sid};
   </delete>
-  
+
   <update id="updateClient" parameterType="map">
     UPDATE "restcomm_clients" SET "friendly_name"=#{friendly_name}, "password"=#{password}, "status"=#{status}, "voice_url"=#{voice_url},
     "voice_method"=#{voice_method}, "voice_fallback_url"=#{voice_fallback_url}, "voice_fallback_method"=#{voice_fallback_method},
-    "voice_application_sid"=#{voice_application_sid}, "push_client_identity"=#{push_client_identity} WHERE "sid"=#{sid};
+    "voice_application_sid"=#{voice_application_sid}, "push_client_identity"=#{push_client_identity}, "password_algorithm"=#{password_algorithm} WHERE "sid"=#{sid};
   </update>
 </mapper>

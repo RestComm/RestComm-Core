@@ -1,8 +1,6 @@
-The admin user interface is a great way to perform repetitive Restcomm task in a orderly manner. Care has been taken to make the user experience intuitive for those new to the platform. In this chapter, you will learn how to use some of the features available to create Clients, Phone Numbers, Check Call Logs, Get Speech-to-Text Transcription and many more
+The Restcomm Console is a great way to perform repetitive Restcomm task in a orderly manner. Care has been taken to make the user experience intuitive for those new to the platform. In this chapter, you will learn how to use some of the features available to create Clients, Phone Numbers, Check Call Logs, Get Speech-to-Text Transcription and many more
 
 = Login Interface
-
-You need to make sure Restcomm is running before you can use the Admin User Interface. When you are running on a local install, open your web browser and go to this url http://127.0.0.1:8080/ . You will see a screenshot similar to the one below
 
 image:./images/restcomm-admin-ui-1.png[restcomm-admin-ui-1,width=300,height=228]
 

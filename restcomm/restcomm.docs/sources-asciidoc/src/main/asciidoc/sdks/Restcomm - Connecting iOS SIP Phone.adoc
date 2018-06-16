@@ -8,7 +8,7 @@ Integrating any iOS SIP client or SIP SDK with Telscale Restcomm for voice and m
 
 = Scenario
 
-* Restcomm clients Alice and Bob are created and activated by default with Restcomm.
+* Create 2 Restcomm clients Alice and Bob using Restcomm admin UI.
 * You will configure the first android phone to register as Alice and the Second to register as Bob.
 * You will make a call from Alice to Bob.
 * You may also choose to dial any SIP clients that is reachable through a public IP address.
@@ -23,7 +23,7 @@ In the *Create Account* Window, register the user Alice as shown below
 
 * *Title: Alice*
 * *Username: alice*
-* *Password: 1234*
+* *Password: <provide the password that was used to create client>*
 * *Domain: Public Ip address of the Restcomm AMI*
 
 Then click on *Advanced* 

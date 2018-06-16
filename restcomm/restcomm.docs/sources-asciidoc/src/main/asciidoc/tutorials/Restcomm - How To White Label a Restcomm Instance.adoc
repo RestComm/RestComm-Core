@@ -1,113 +1,158 @@
 = How to White Label Telestax Restcomm-Connect 
 
-Please see the instructions below
+IMPORTANT: You need to be running Restcomm-connect 8.4.0 and higher
 
-=== Step 1 - Edit restcomm-management.war
-Edit the following files inside *restcomm-management.war* directory
+Create  new directory (vnd) under the resources directory of restcomm-management.war
 
-==== Replace all Restcomm and Telestax instances in the following files
+=== Dashboard - STEP 1 - Copy Files
+* Go to RESTCOMM_HOME/standalone/deployments/restcomm-management.war/resources
+* sudo mkdir vnd
+* Go to RESTCOMM_HOME/standalone/deployments/restcomm-management.war/resources/vnd
 
-* ./modules/modals/modal-about.html   
+Create a new directory under `vnd` based on your Organization name. If your organization name is `mycompany.restcomm.com`, you will create a new directory called `mycompany` under the vnd directory
 
-[source,]
-----
-<h3 class="text-muted"><img src="resources/img/telestax-logo-dark.png" class="navbar-telestax"> <img src="resources/img/restcomm-logo.png" class="navbar-restcomm"> Telestax RestComm v<strong>{{ version.Version }} </strong> <small>released {{ releaseDate | date:"MM/dd/yyyy h:mma"}}</small> </h3>
-----
+* Go to RESTCOMM_HOME/standalone/deployments/restcomm-management.war/resources/vnd/mycompany
 
-* ./WEB-INF/web.xml    
+* Copy the `dashboard.css` and `dashboard-dark.css` files from RESTCOMM_HOME/standalone/deployments/restcomm-management.war/resources/css/ into the newly created mycompany directory
 
-[source,]
-----
-<display-name>RestComm</display-name>
-----
+* Copy the `favicon.png` file from RESTCOMM_HOME/standalone/deployments/restcomm-management.war/resources/img/ into the newly created mycompany directory
 
-* ./index.html
-[source,]
-----
-<title> RestComm</title>
-----
-* ./index.html
-[source,]
-----
-<h4 class="pull-right">POWERED BY RestComm <small>(c) 2013 Telestax </small></h4>
-----
-* ./templates/navbar.html           
-[source,]
-----
-<span class="navbar-brand"><img src="resources/img/telestax-logo-dark.png" class="navbar-telestax" /> <img src="resources/img/restcomm-logo.png" class="navbar-restcomm" /> RestComm</span>
-----
+* Copy all `png` and `svg` files from RESTCOMM_HOME/standalone/deployments/restcomm-management.war/resources/img/v2 into the newly created mycompany directory
 
-=== Step 2 - Edit restcomm-rvd.war
+==== The `mycompany` directory should now contain the following files
 
-===== Edit the following files inside restcomm-rvd.war directory
+.Content of mycompany directory
+[format="csv",width="60%",cols="2"]
+[frame="topbot",grid="none"]
+|======
+app-wizard-url-app.png, restcomm-console-inside.svg
+app-wizard-vd-app.png,restcomm-console-light.svg
+app-wizard-zip-app.png,restcomm-console.svg
+dashboard.css,restcomm-logo.svg
+dashboard-dark.css ,restcomm-one-letters.svg
+favicon.png,restcommone-webrtc-demo.svg
+restcomm-cloud.png.svg,rvd.css
+restcomm-console-inside-light.svg,rvd-dark.css
+telestax-footer.png
+|======
 
-[source,]
-----
-./languages/pt-BR.json	"designerSettingsModalRestcommAPILabel": "API RestComm",
-./languages/pt-BR.json	"designerSettingsModalCredencialsLabel1": "Credenciais para acessar a RestComm API. Deve ser informado caso",
-./languages/pt-BR.json	"dialStepContinueCalledIdTooltip": "O ID de quem está ligando, que aparecerá para a parte chamada quando o RestComm fizer a chamada",
-./languages/pt-BR.json	"formPackageAppLabel2": "Loja de Aplicativos RestComm",
-./languages/pt-BR.json	"indexPageTitle": "RestComm Editor",
-./languages/pt-BR.json	"indexHeadDescriptorLabel": "RestComm serviço de edição visual",
-./languages/pt-BR.json	"webTriggerModalFallbackParamHelp10": "usam a sintaxe de discagem RestComm RCML. Por exemplo:",
-./languages/es.json	"designerSettingsModalRestcommAPILabel": "RestComm API",
-./languages/es.json	"designerSettingsModalCredencialsLabel1": "Credenciales para accesar a la RestComm API. Debe proporcionarlos si",
-./languages/es.json	"formPackageAppLabel2": "App store de RestComm",
-./languages/es.json	"indexPageTitle": "RestComm Designer",
-./languages/es.json	"indexHeadDescriptorLabel": "RestComm visual service designer",
-./languages/es.json	"webTriggerModalFallbackParamHelp10": "valores que utilizaron el sintax marcador RCML de RestComm. Por ejemplo:",
-./languages/en-US.json	"designerSettingsModalRestcommAPILabel": "RestComm API",
-./languages/en-US.json	"designerSettingsModalCredencialsLabel1": "Credentials for accessing RestComm API. You should provide these if",
-./languages/en-US.json	"formPackageAppLabel2": "RestComm Application Store",
-./languages/en-US.json	"indexPageTitle": "RestComm Designer",
-./languages/en-US.json	"indexHeadDescriptorLabel": "RestComm visual service designer",
-./languages/en-US.json	"webTriggerModalFallbackParamHelp10": "values use the RestComm RCML dial syntax. For example:",
-----
+=== Dashboard - STEP 2 - Rename Files and Edit Images
 
+* Rename all the files starting with (prefix) `restcomm*` `telestax*` to `mycompany*`
+* the `mycompany directory should now look something like the list below
 
-=== Step 3 - Replace Default RVD Welcome Message
+.Content of `mycompany` updated directory
+[format="csv",width="60%",cols="2"]
+[frame="topbot",grid="none"]
+|======
+app-wizard-url-app.png, mycompany-console-inside.svg
+app-wizard-vd-app.png,mycompany-console-light.svg
+app-wizard-zip-app.png,mycompany-console.svg
+dashboard.css,mycompany-logo.svg
+dashboard-dark.css ,mycompany-one-letters.svg
+favicon.png,mycompany-webrtc-demo.svg
+mycompany-cloud.png.svg,rvd.css
+mycompany-console-inside-light.svg,rvd-dark.css
+mycompany-footer.png
+|======
 
-Replace Restcomm in the ProjectState.java file to update default demo welcome message. You might need to do the same for the Telestax brand name.
+You must now edit the images png and svg files to match your company log and style
 
-You will need to build the ProjectState.java class to replace the file in the 
-
-$RESTCOMM_HOME/standalone/deployments/restcomm-rvd.war/WEB-INF/classes/org/restcomm/connect/rvd/model/client directory
-
-[source,]
-----
+==== Dashboard - Step 3 Update the CSS Files
+    * Edit the `$RESTCOMM_HOME/standalone/deployments/restcomm-management.war/resources/vnd/mycompany/dashboard.css`
+    * Change the `--main-logo-url:` to the following value :
+    * `--main-logo-url: url('mycompany-logo.svg')`
 
 
+.List of Parameters to change in CSS files
+[options="header,footer"]
+|=======================
+|Variables and sample values|Description|
+|main-logo-url: url("path/to/{name-of-logo-file}")|Logo image displayed while inside (logge in) the console. Logo image filename supplied by theme creator. The path should be relative to the CSS file. Read more on logo requirements section [...].|
+|sign-in-logo-url: url("path/to/{name-of-logo-file}")|Logo image displayed on the console sign in screen.
+Logo image filename supplied by theme creator. The path should be relative to the CSS file. Read more on logo requirements section [...].|
+|footer-image-url: url("path/to/{name-of-logo-file}")|Logo image displayed on the console footer, only in sign in screen.
+Logo image filename supplied by theme creator. The path should be relative to the CSS file. Read more on logo requirements section [...].|
+|main-bg-color: #ffffff|Main console background color.|
+|main-text-color: #434A5B|Text color for most places.|
+|muted-text-color: #bdbdbd|Text color for more discrete elements (comments, hints, etc)|
+|primary-color: #1ea5db|Color of components that have a prominent role like buttons, active module, links etc.|
+|lines-color: #eee|Color of discrete separator lines. Modals and menus typically contain them.|
+|link-text-color: #141D33|Color for links. |
+|link-text-hover-color: #4a4a4b;|Color for links, on mouse over.|
+|link-muted-text-color: var(--muted-text-color)|Color for more discrete links.|
+|link-muted-text-hover-color: var(--link-text-color)|Color for more discrete links, on mouse over.|
+|link-disabled-text-color: #eeeeee|Color for more disabled links.|
+|button-bg-color: #d1d1d1|Default background color for buttons.|
+|button-text-color: #ffffff|Default text color for buttons.|
+|button-hover-bg-color: #c8c7c7|Default background color for buttons, on mouse over.|
+|button-hover-text-color: #ffffff|Default text color for buttons, on mouse over.|
+|=======================
 
-./WEB-INF/classes/org/restcomm/connect/rvd/model/client/ProjectState.java
+=== Visual Designer - STEP 1 - Copy Files
+* Go to RESTCOMM_HOME/standalone/deployments/restcomm-rvd.war/
+* sudo mkdir vnd
+* Go to RESTCOMM_HOME/standalone/deployments/restcomm-rvd.war/vnd
 
-./workspace/APb70c33bf0b6748f09eaec97030af36f3/data/start.step1:1:{"phrase":"Welcome to Telestax RestComm Visual Designer Demo","kind":"say","label":"say","title":"say","name":"step1"}
-./workspace/AP87971d6fa2094658a4955c23bcd66355/data/start.step1:1:{"phrase":"Welcome to Telestax RestComm Visual Designer Demo","kind":"say","label":"say","title":"say","name":"step1"}
-./workspace/AP87971d6fa2094658a4955c23bcd66355/state:1:{"lastStepId":1,"nodes":[{"name":"start","label":"Welcome","kind":"voice","steps":[{"phrase":"Welcome to Telestax RestComm Visual Designer Demo","kind":"say","label":"say","title":"say","name":"step1"}]}],"lastNodeId":0,"header":{"projectKind":"voice","startNodeName":"start","version":"1.6","owner":"administrator@company.com"}}
+Create a new directory under `vnd` based on your Organization name. If your organization name is `mycompany.restcomm.com`, you will create a new directory called `mycompany` under the vnd directory
 
-----
+* Go to RESTCOMM_HOME/standalone/deployments/restcomm-rvd.war/vnd/mycompany
 
-=== Step 4 - Editing the Logos
+* Copy the `rvd.css`  `rvd-dark.css` files from RESTCOMM_HOME/standalone/deployments/restcomm-rvd.war/css/ into the newly created `mycompany` directory
 
-==== RVD Logos,
+* Copy all the content of the directory RESTCOMM_HOME/standalone/deployments/restcomm-rvd.war/images into the newly created `mycompany` directory
 
-Replace all image files in the following directory. : *$RESTCOMM_HOME/standalone/deployments/restcomm-rvd.war/images*
+.Content of `mycompany` updated directory
+[format="csv",width="60%",cols="2"]
+[frame="topbot",grid="none"]
+|======
+favicon.png,s-m-google+.png
+s-m-twitter.png,telestax-logo-dark.png
+visual-designer-logo.svg,restcomm-v-d-logo.png
+s-m-linkedin.png,s-m-youtube.png
+ussd-btn.png,voice-btn.png
+s-m-facebook.png,sms-btn.png
+telestax-footer.png,visual-designer-logo-dark.svg
+rvd.css,rvd-dark.css
+|======
 
-You can right-click on the image files in the link below to check for image size: 
+=== Visual Designer - STEP 2 - Rename Files and Edit Images
+* Rename all the files starting with (prefix) `restcomm*` `telestax*` to `mycompany*`
+* the `mycompany directory should now look something like the list below
 
-[source,]
-----
-https://github.com/RestComm/Restcomm-Connect/tree/162f637161a655bbcf6f2c5dc0346ddbd2d67cbc/restcomm/restcomm.rvd/src/main/webapp/images
-----
+You must now edit the images png and svg files to match your company log and style
 
-==== Admin UI Logos
+=== Visual Designer - Step 3 Update the CSS Files
+    * Edit the `$RESTCOMM_HOME/standalone/deployments/restcomm-rvd.war/`
+    * Change the `--main-logo-url:` to the following value :
+    * `--main-logo-url: url('mycompany-logo.svg')`
 
-Replace all images in the Admin UI resources/img directory
+Visual Designer defines  a large number of CSS variables. Here follows a handy subset of them and their role in theme configuration:
 
-[source,]
-----
-
-$RESTCOMM_HOME/standalone/deployments/restcomm-management.war/resources/img
-
-----
-
-
+.List of Parameters to change in CSS files
+[options="header,footer"]
+|=======================
+|Variables and sample values|Description|
+|--logo-url: url("path/to/{name-of-logo-file}");|Logo image filename supplied by theme creator. The path of the file is relative to the path of the theme .css file. Typically only the filename should be needed. Read more on logo requirements section.|
+|--background-color: #ffffff; |
+Main background color. It lies behind steps and modals and controls.|
+|--text-color: #5b6170;|Text color for most places. |
+|--aux-back-color: #f1f1f1;|Background color for surrounding area. Header, toolbox and input-groups  get that.|
+|--primary-color: #1ea5db; |Color of components that have a prominent role like buttons, active module, links etc.|
+|--secondary-color: #E63828;|Color for less prominent links.  Limited use. SUBJECT TO CHANGE.|
+|--border-color: #ccc;|Border color for steps and controls.|
+|--lines-color: #eee;|Color of discrete separator lines. Modals and menus typically contain them.|
+|--verb-text-color: var(--background-color); |Text color for verb buttons and step headings|
+|--verb-back-color: var(--primary-back-color);|Background color for verb buttons and step headings|
+|--link-text-color: var(--primary-color);|Color for links. |
+|--comment-color: #999|Color for comments and hints.|
+|--danger-hint-color: #E63828;|Error hint color.|
+|--default-button-back-color: #B8BBC1;|Background color for default buttons.|
+|--default-button-text-color: #434A5B;|Default text color for buttons.|
+|--primary-button-back-color: #B8BBC1;|Background color for prominent  buttons.|
+|--primary-button-text-color: #434A5B;|Text color for prominent buttons.|
+|--danger-button-back-color: #B8BBC1;|Background color for buttons that typical remove stuff.|
+|--danger-button-text-color: #434A5B;|Text color for buttons that typical remove stuff.|
+|--sortable-band-placeholder-color: #1084AC;|Color of the band that appears when dropping a verb on the module.|
+|--drop-area-color: var(--aux-back-color);|Background color of area that accepts dropped items.|
+|=======================

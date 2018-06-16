@@ -24,6 +24,7 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.joda.time.DateTime;
 import org.restcomm.connect.commons.annotations.concurrency.ThreadSafe;
 import org.restcomm.connect.commons.dao.Sid;
+import org.restcomm.connect.commons.dao.MessageError;
 import org.restcomm.connect.dao.SmsMessagesDao;
 import org.restcomm.connect.dao.entities.SmsMessage;
 import org.restcomm.connect.dao.entities.SmsMessageFilter;
@@ -39,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.restcomm.connect.dao.DaoUtils.readBigDecimal;
+import static org.restcomm.connect.dao.DaoUtils.readInteger;
 import static org.restcomm.connect.dao.DaoUtils.readCurrency;
 import static org.restcomm.connect.dao.DaoUtils.readDateTime;
 import static org.restcomm.connect.dao.DaoUtils.readSid;
@@ -52,6 +54,7 @@ import static org.restcomm.connect.dao.DaoUtils.writeUri;
 
 /**
  * @author quintana.thomas@gmail.com (Thomas Quintana)
+ * @author mariafarooq
  */
 @ThreadSafe
 public final class MybatisSmsMessagesDao implements SmsMessagesDao {
@@ -79,6 +82,24 @@ public final class MybatisSmsMessagesDao implements SmsMessagesDao {
         final SqlSession session = sessions.openSession();
         try {
             final Map<String, Object> result = session.selectOne(namespace + "getSmsMessage", sid.toString());
+            if (result != null) {
+                return toSmsMessage(result);
+            } else {
+                return null;
+            }
+        } finally {
+            session.close();
+        }
+    }
+
+    /* (non-Javadoc)
+     * @see org.restcomm.connect.dao.SmsMessagesDao#getSmsMessageBySmppMessageId(java.lang.String)
+     */
+    @Override
+    public SmsMessage getSmsMessageBySmppMessageId(final String smppMessageId) {
+        final SqlSession session = sessions.openSession();
+        try {
+            final Map<String, Object> result = session.selectOne(namespace + "getSmsMessageBySmppMessageId", smppMessageId);
             if (result != null) {
                 return toSmsMessage(result);
             } else {
@@ -186,6 +207,25 @@ public final class MybatisSmsMessagesDao implements SmsMessagesDao {
         }
     }
 
+    @Override
+    public List<SmsMessage> findBySmppMessageId(String smppMessageId) {
+        final Map<String, Object> parameters = new HashMap<>(2);
+        parameters.put("smppMessageId", smppMessageId);
+        final SqlSession session = this.sessions.openSession();
+
+        try {
+            final List<Map<String, Object>> results = session.selectList(namespace + "findBySmppMessageId", parameters);
+            final List<SmsMessage> messages = new ArrayList<>(results.size());
+
+            for (Map<String, Object> result : results) {
+                messages.add(toSmsMessage(result));
+            }
+            return messages;
+        } finally {
+            session.close();
+        }
+    }
+
     private Map<String, Object> toMap(final SmsMessage smsMessage) {
         final Map<String, Object> map = new HashMap<String, Object>();
         map.put("sid", writeSid(smsMessage.getSid()));
@@ -202,6 +242,10 @@ public final class MybatisSmsMessagesDao implements SmsMessagesDao {
         map.put("price_unit", writeCurrency(smsMessage.getPriceUnit()));
         map.put("api_version", smsMessage.getApiVersion());
         map.put("uri", writeUri(smsMessage.getUri()));
+        map.put("smpp_message_id", smsMessage.getSmppMessageId());
+        MessageError error = smsMessage.getError();
+        if(error != null)
+            map.put("error_code", smsMessage.getError().getErrorCode());
         return map;
     }
 
@@ -220,7 +264,12 @@ public final class MybatisSmsMessagesDao implements SmsMessagesDao {
         final Currency priceUnit = readCurrency(map.get("price_unit"));
         final String apiVersion = readString(map.get("api_version"));
         final URI uri = readUri(map.get("uri"));
+        final String smppMessageId = readString(map.get("smpp_message_id"));
+        final Integer errorCode = readInteger(map.get("error_code"));
+        MessageError error = null;
+        if(errorCode != null)
+            error = MessageError.getErrorValue(errorCode);
         return new SmsMessage(sid, dateCreated, dateUpdated, dateSent, accountSid, sender, recipient, body, status, direction,
-                price, priceUnit, apiVersion, uri);
+                price, priceUnit, apiVersion, uri, smppMessageId, error);
     }
 }

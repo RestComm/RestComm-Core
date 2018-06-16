@@ -19,34 +19,51 @@
  */
 package org.restcomm.connect.http;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.i18n.phonenumbers.NumberParseException;
+import com.google.i18n.phonenumbers.NumberParseException.ErrorType;
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat;
+import com.google.i18n.phonenumbers.Phonenumber.PhoneNumber;
+import com.sun.jersey.spi.container.ResourceFilters;
+import com.sun.jersey.spi.resource.Singleton;
+import com.thoughtworks.xstream.XStream;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.PostConstruct;
+import javax.annotation.security.RolesAllowed;
+import javax.servlet.ServletContext;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML;
 import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
-import static javax.ws.rs.core.Response.noContent;
-import static javax.ws.rs.core.Response.ok;
-import static javax.ws.rs.core.Response.status;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.OK;
-
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.annotation.PostConstruct;
-import javax.servlet.ServletContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
+import static javax.ws.rs.core.Response.noContent;
+import static javax.ws.rs.core.Response.ok;
+import static javax.ws.rs.core.Response.status;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-
 import org.apache.commons.configuration.Configuration;
 import org.joda.time.DateTime;
-import org.restcomm.connect.commons.annotations.concurrency.NotThreadSafe;
+import org.restcomm.connect.commons.annotations.concurrency.ThreadSafe;
 import org.restcomm.connect.commons.dao.Sid;
 import org.restcomm.connect.commons.loader.ObjectInstantiationException;
 import org.restcomm.connect.dao.DaoManager;
@@ -65,19 +82,15 @@ import org.restcomm.connect.http.converter.AvailableCountriesList;
 import org.restcomm.connect.http.converter.IncomingPhoneNumberConverter;
 import org.restcomm.connect.http.converter.IncomingPhoneNumberListConverter;
 import org.restcomm.connect.http.converter.RestCommResponseConverter;
+import org.restcomm.connect.http.filters.ExtensionFilter;
+import static org.restcomm.connect.http.security.AccountPrincipal.SUPER_ADMIN_ROLE;
+import org.restcomm.connect.http.security.ContextUtil;
+import org.restcomm.connect.http.security.PermissionEvaluator.SecuredType;
+import org.restcomm.connect.identity.UserIdentityContext;
 import org.restcomm.connect.provisioning.number.api.PhoneNumberParameters;
 import org.restcomm.connect.provisioning.number.api.PhoneNumberProvisioningManager;
 import org.restcomm.connect.provisioning.number.api.PhoneNumberProvisioningManagerProvider;
 import org.restcomm.connect.provisioning.number.api.PhoneNumberType;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.i18n.phonenumbers.NumberParseException;
-import com.google.i18n.phonenumbers.NumberParseException.ErrorType;
-import com.google.i18n.phonenumbers.PhoneNumberUtil;
-import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat;
-import com.google.i18n.phonenumbers.Phonenumber.PhoneNumber;
-import com.thoughtworks.xstream.XStream;
 
 /**
  * @author quintana.thomas@gmail.com (Thomas Quintana)
@@ -85,18 +98,23 @@ import com.thoughtworks.xstream.XStream;
  * @author jean.deruelle@telestax.com
  * @author maria.farooq@telestax.com
  */
-@NotThreadSafe
-public abstract class IncomingPhoneNumbersEndpoint extends SecuredEndpoint {
+@Path("/Accounts/{accountSid}/IncomingPhoneNumbers")
+@ThreadSafe
+@Singleton
+public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
     @Context
-    protected ServletContext context;
-    protected PhoneNumberProvisioningManager phoneNumberProvisioningManager;
-    protected IncomingPhoneNumberListConverter listConverter;
+    private ServletContext context;
+    private PhoneNumberProvisioningManager phoneNumberProvisioningManager;
+    private IncomingPhoneNumberListConverter listConverter;
     PhoneNumberParameters phoneNumberParameters;
     String callbackPort = "";
     private IncomingPhoneNumbersDao dao;
     private OrganizationsDao organizationsDao;
     private XStream xstream;
-    protected Gson gson;
+    private Gson gson;
+
+
+
 
     public IncomingPhoneNumbersEndpoint() {
         super();
@@ -244,9 +262,14 @@ public abstract class IncomingPhoneNumbersEndpoint extends SecuredEndpoint {
         return friendlyName;
     }
 
-    protected Response getIncomingPhoneNumber(final String accountSid, final String sid, final MediaType responseType) {
+    protected Response getIncomingPhoneNumber(final String accountSid,
+            final String sid,
+            final MediaType responseType,
+            UserIdentityContext userIdentityContext) {
         Account operatedAccount = accountsDao.getAccount(accountSid);
-        secure(operatedAccount, "RestComm:Read:IncomingPhoneNumbers");
+        permissionEvaluator.secure(operatedAccount,
+                "RestComm:Read:IncomingPhoneNumbers",
+                userIdentityContext);
         try{
             final IncomingPhoneNumber incomingPhoneNumber = dao.getIncomingPhoneNumber(new Sid(sid));
             if (incomingPhoneNumber == null) {
@@ -256,10 +279,13 @@ public abstract class IncomingPhoneNumbersEndpoint extends SecuredEndpoint {
                 if (operatedAccount == null) {
                     return status(BAD_REQUEST).build();
                 }
-                secure(operatedAccount, incomingPhoneNumber.getAccountSid(), SecuredType.SECURED_STANDARD);
-                if (APPLICATION_JSON_TYPE == responseType) {
+                permissionEvaluator.secure(operatedAccount,
+                        incomingPhoneNumber.getAccountSid(),
+                        SecuredType.SECURED_STANDARD,
+                        userIdentityContext);
+                if (APPLICATION_JSON_TYPE.equals(responseType)) {
                     return ok(gson.toJson(incomingPhoneNumber), APPLICATION_JSON).build();
-                } else if (APPLICATION_XML_TYPE == responseType) {
+                } else if (APPLICATION_XML_TYPE.equals(responseType)) {
                     final RestCommResponse response = new RestCommResponse(incomingPhoneNumber);
                     return ok(xstream.toXML(response), APPLICATION_XML).build();
                 } else {
@@ -272,16 +298,20 @@ public abstract class IncomingPhoneNumbersEndpoint extends SecuredEndpoint {
         }
     }
 
-    protected Response getAvailableCountries(final String accountSid, final MediaType responseType) {
-        secure(accountsDao.getAccount(accountSid), "RestComm:Read:IncomingPhoneNumbers");
+    protected Response getAvailableCountries(final String accountSid,
+            final MediaType responseType,
+            UserIdentityContext userIdentityContext) {
+        permissionEvaluator.secure(accountsDao.getAccount(accountSid),
+                "RestComm:Read:IncomingPhoneNumbers",
+                userIdentityContext);
         List<String> countries = phoneNumberProvisioningManager.getAvailableCountries();
         if (countries == null) {
             countries = new ArrayList<String>();
             countries.add("US");
         }
-        if (APPLICATION_JSON_TYPE == responseType) {
+        if (APPLICATION_JSON_TYPE.equals(responseType)) {
             return ok(gson.toJson(countries), APPLICATION_JSON).build();
-        } else if (APPLICATION_XML_TYPE == responseType) {
+        } else if (APPLICATION_XML_TYPE.equals(responseType)) {
             final RestCommResponse response = new RestCommResponse(new AvailableCountriesList(countries));
             return ok(xstream.toXML(response), APPLICATION_XML).build();
         } else {
@@ -289,9 +319,14 @@ public abstract class IncomingPhoneNumbersEndpoint extends SecuredEndpoint {
         }
     }
 
-    protected Response getIncomingPhoneNumbers(final String accountSid, final PhoneNumberType phoneNumberType, UriInfo info,
-        final MediaType responseType) {
-        secure(accountsDao.getAccount(accountSid), "RestComm:Read:IncomingPhoneNumbers");
+    protected Response getIncomingPhoneNumbers(final String accountSid,
+            final PhoneNumberType phoneNumberType,
+            UriInfo info,
+        final MediaType responseType,
+        UserIdentityContext userIdentityContext) {
+        permissionEvaluator.secure(accountsDao.getAccount(accountSid),
+                "RestComm:Read:IncomingPhoneNumbers",
+                userIdentityContext);
         try{
             String phoneNumberFilter = info.getQueryParameters().getFirst("PhoneNumber");
             String friendlyNameFilter = info.getQueryParameters().getFirst("FriendlyName");
@@ -333,9 +368,9 @@ public abstract class IncomingPhoneNumbersEndpoint extends SecuredEndpoint {
             listConverter.setPageSize(limit);
             listConverter.setPathUri("/" + getApiVersion(null) + "/" + info.getPath());
 
-            if (APPLICATION_JSON_TYPE == responseType) {
+            if (APPLICATION_JSON_TYPE.equals(responseType)) {
                 return ok(gson.toJson(new IncomingPhoneNumberList(incomingPhoneNumbers)), APPLICATION_JSON).build();
-            } else if (APPLICATION_XML_TYPE == responseType) {
+            } else if (APPLICATION_XML_TYPE.equals(responseType)) {
                 final RestCommResponse response = new RestCommResponse(new IncomingPhoneNumberList(incomingPhoneNumbers));
                 return ok(xstream.toXML(response), APPLICATION_XML).build();
             } else {
@@ -347,10 +382,15 @@ public abstract class IncomingPhoneNumbersEndpoint extends SecuredEndpoint {
         }
     }
 
-    protected Response putIncomingPhoneNumber(final String accountSid, final MultivaluedMap<String, String> data,
-        PhoneNumberType phoneNumberType, final MediaType responseType) {
+    protected Response putIncomingPhoneNumber(final String accountSid,
+            final MultivaluedMap<String, String> data,
+        PhoneNumberType phoneNumberType,
+        final MediaType responseType,
+        UserIdentityContext userIdentityContext) {
         Account account = accountsDao.getAccount(accountSid);
-        secure(account, "RestComm:Create:IncomingPhoneNumbers");
+        permissionEvaluator.secure(account,
+                "RestComm:Create:IncomingPhoneNumbers",
+                userIdentityContext);
         try {
             validate(data);
         } catch (final NullPointerException exception) {
@@ -428,9 +468,9 @@ public abstract class IncomingPhoneNumbersEndpoint extends SecuredEndpoint {
                         incomingPhoneNumber.setPhoneNumber(phoneNumber.getPhoneNumber());
                     }
                     dao.addIncomingPhoneNumber(incomingPhoneNumber);
-                    if (APPLICATION_JSON_TYPE == responseType) {
+                    if (APPLICATION_JSON_TYPE.equals(responseType)) {
                         return ok(gson.toJson(incomingPhoneNumber), APPLICATION_JSON).build();
-                    } else if (APPLICATION_XML_TYPE == responseType) {
+                    } else if (APPLICATION_XML_TYPE.equals(responseType)) {
                         final RestCommResponse response = new RestCommResponse(incomingPhoneNumber);
                         return ok(xstream.toXML(response), APPLICATION_XML).build();
                     }
@@ -443,23 +483,31 @@ public abstract class IncomingPhoneNumbersEndpoint extends SecuredEndpoint {
         }
     }
 
-    public Response updateIncomingPhoneNumber(final String accountSid, final String sid,
-            final MultivaluedMap<String, String> data, final MediaType responseType) {
+    public Response updateIncomingPhoneNumber(final String accountSid,
+            final String sid,
+            final MultivaluedMap<String, String> data,
+            final MediaType responseType,
+            UserIdentityContext userIdentityContext) {
         Account operatedAccount = accountsDao.getAccount(accountSid);
-        secure(operatedAccount, "RestComm:Modify:IncomingPhoneNumbers");
+        permissionEvaluator.secure(operatedAccount,
+                "RestComm:Modify:IncomingPhoneNumbers",
+                userIdentityContext);
         try{
             final IncomingPhoneNumber incomingPhoneNumber = dao.getIncomingPhoneNumber(new Sid(sid));
             if (incomingPhoneNumber == null) {
                 return status(NOT_FOUND).build();
             }
-            secure(operatedAccount, incomingPhoneNumber.getAccountSid(), SecuredType.SECURED_STANDARD );
+            permissionEvaluator.secure(operatedAccount,
+                    incomingPhoneNumber.getAccountSid(),
+                    SecuredType.SECURED_STANDARD,
+                    userIdentityContext);
             boolean updated = true;
             updated = updateNumberAtPhoneNumberProvisioningManager(incomingPhoneNumber, organizationsDao.getOrganization(operatedAccount.getOrganizationSid()));
             if(updated) {
                 dao.updateIncomingPhoneNumber(update(incomingPhoneNumber, data));
-                if (APPLICATION_JSON_TYPE == responseType) {
+                if (APPLICATION_JSON_TYPE.equals(responseType)) {
                     return ok(gson.toJson(incomingPhoneNumber), APPLICATION_JSON).build();
-                } else if (APPLICATION_XML_TYPE == responseType) {
+                } else if (APPLICATION_XML_TYPE.equals(responseType)) {
                     final RestCommResponse response = new RestCommResponse(incomingPhoneNumber);
                     return ok(xstream.toXML(response), APPLICATION_XML).build();
                 } else {
@@ -604,15 +652,22 @@ public abstract class IncomingPhoneNumbersEndpoint extends SecuredEndpoint {
         return incomingPhoneNumber;
     }
 
-    public Response deleteIncomingPhoneNumber(final String accountSid, final String sid) {
+    public Response deleteIncomingPhoneNumber(final String accountSid,
+            final String sid,
+            UserIdentityContext userIdentityContext) {
             Account operatedAccount = accountsDao.getAccount(accountSid);
-            secure(operatedAccount, "RestComm:Delete:IncomingPhoneNumbers");
+            permissionEvaluator.secure(operatedAccount,
+                    "RestComm:Delete:IncomingPhoneNumbers",
+                    userIdentityContext);
         try{
             final IncomingPhoneNumber incomingPhoneNumber = dao.getIncomingPhoneNumber(new Sid(sid));
             if (incomingPhoneNumber == null) {
                 return status(NOT_FOUND).build();
             }
-            secure(operatedAccount, incomingPhoneNumber.getAccountSid(), SecuredType.SECURED_STANDARD);
+            permissionEvaluator.secure(operatedAccount,
+                    incomingPhoneNumber.getAccountSid(),
+                    SecuredType.SECURED_STANDARD,
+                    userIdentityContext);
             if(phoneNumberProvisioningManager != null && (incomingPhoneNumber.isPureSip() == null || !incomingPhoneNumber.isPureSip())) {
                 phoneNumberProvisioningManager.cancelNumber(convertIncomingPhoneNumbertoPhoneNumber(incomingPhoneNumber));
             }
@@ -657,9 +712,14 @@ public abstract class IncomingPhoneNumbersEndpoint extends SecuredEndpoint {
      * @param responseType
      * @return
      */
-    protected Response migrateIncomingPhoneNumbers(String targetAccountSid, MultivaluedMap<String, String> data, MediaType responseType) {
+    protected Response migrateIncomingPhoneNumbers(String targetAccountSid,
+            MultivaluedMap<String, String> data,
+            MediaType responseType,
+            UserIdentityContext userIdentityContext) {
         Account effectiveAccount = userIdentityContext.getEffectiveAccount();
-        secure(effectiveAccount, "RestComm:Modify:IncomingPhoneNumbers");
+        permissionEvaluator.secure(effectiveAccount,
+                "RestComm:Modify:IncomingPhoneNumbers",
+                 userIdentityContext);
         try{
             Account targetAccount = accountsDao.getAccount(targetAccountSid);
             // this is to avoid if mistakenly provided super admin account as targetAccountSid
@@ -755,5 +815,216 @@ public abstract class IncomingPhoneNumbersEndpoint extends SecuredEndpoint {
             return phoneNumberProvisioningManager.updateNumber(convertIncomingPhoneNumbertoPhoneNumber(incomingPhoneNumber), phoneNumberParameters);
         }
         return true;
+    }
+
+    @Path("/{sid}")
+    @DELETE
+    public Response deleteIncomingPhoneNumberAsXml(@PathParam("accountSid") final String accountSid,
+            @PathParam("sid") final String sid,
+            @Context SecurityContext sec) {
+        return deleteIncomingPhoneNumber(accountSid,
+                sid,
+                ContextUtil.convert(sec));
+    }
+
+    @Path("/{sid}")
+    @GET
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response getIncomingPhoneNumberAsXml(@PathParam("accountSid") final String accountSid,
+            @PathParam("sid") final String sid,
+            @HeaderParam("Accept") String accept,
+            @Context SecurityContext sec) {
+        MediaType acceptType = retrieveMediaType(accept);
+        return getIncomingPhoneNumber(accountSid,
+                sid,
+                acceptType,
+                ContextUtil.convert(sec));
+    }
+
+
+    @Path("/AvailableCountries")
+    @GET
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response getAvailableCountriesAsXml(@PathParam("accountSid") final String accountSid,
+            @HeaderParam("Accept") String accept,
+            @Context SecurityContext sec) {
+        MediaType acceptType = retrieveMediaType(accept);
+        return getAvailableCountries(accountSid,
+                acceptType,
+                ContextUtil.convert(sec));
+    }
+
+    @GET
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response getIncomingPhoneNumbers(@PathParam("accountSid") final String accountSid,
+            @Context UriInfo info,
+            @HeaderParam("Accept") String accept,
+            @Context SecurityContext sec) {
+        MediaType acceptType = retrieveMediaType(accept);
+        return getIncomingPhoneNumbers(accountSid,
+                PhoneNumberType.Global,
+                info,
+                acceptType,
+                ContextUtil.convert(sec));
+    }
+
+    @POST
+    @ResourceFilters({ ExtensionFilter.class })
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response putIncomingPhoneNumber(@PathParam("accountSid") final String accountSid,
+            final MultivaluedMap<String, String> data,
+            @HeaderParam("Accept") String accept,
+            @Context SecurityContext sec) {
+        MediaType acceptType = retrieveMediaType(accept);
+        return putIncomingPhoneNumber(accountSid,
+                data,
+                PhoneNumberType.Global,
+                acceptType,
+                ContextUtil.convert(sec));
+    }
+
+    @Path("/{sid}")
+    @PUT
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response updateIncomingPhoneNumberAsXml(@PathParam("accountSid") final String accountSid,
+            @PathParam("sid") final String sid,
+            final MultivaluedMap<String, String> data,
+            @HeaderParam("Accept") String accept,
+            @Context SecurityContext sec) {
+        MediaType acceptType = retrieveMediaType(accept);
+        return updateIncomingPhoneNumber(accountSid,
+                sid,
+                data,
+                acceptType,
+                ContextUtil.convert(sec));
+    }
+
+    @Path("/{sid}")
+    @POST
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response updateIncomingPhoneNumberAsXmlPost(@PathParam("accountSid") final String accountSid,
+            @PathParam("sid") final String sid,
+            final MultivaluedMap<String, String> data,
+            @HeaderParam("Accept") String accept,
+            @Context SecurityContext sec) {
+        MediaType acceptType = retrieveMediaType(accept);
+        return updateIncomingPhoneNumber(accountSid,
+                sid,
+                data,
+                acceptType,
+                ContextUtil.convert(sec));
+    }
+
+    // Local Numbers
+
+    @Path("/Local")
+    @GET
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response getIncomingLocalPhoneNumbersAsXml(@PathParam("accountSid") final String accountSid,
+            @Context UriInfo info,
+            @HeaderParam("Accept") String accept,
+            @Context SecurityContext sec) {
+        MediaType acceptType = retrieveMediaType(accept);
+        return getIncomingPhoneNumbers(accountSid,
+                PhoneNumberType.Local,
+                info,
+                acceptType,
+                ContextUtil.convert(sec));
+    }
+
+    @Path("/Local")
+    @POST
+    @ResourceFilters({ ExtensionFilter.class })
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response putIncomingLocalPhoneNumberAsXml(@PathParam("accountSid") final String accountSid,
+            final MultivaluedMap<String, String> data,
+            @HeaderParam("Accept") String accept,
+            @Context SecurityContext sec) {
+        MediaType acceptType = retrieveMediaType(accept);
+        return putIncomingPhoneNumber(accountSid,
+                data,
+                PhoneNumberType.Local,
+                acceptType,
+                ContextUtil.convert(sec));
+    }
+
+    // Toll Free Numbers
+
+    @Path("/TollFree")
+    @GET
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response getIncomingTollFreePhoneNumbersAsXml(@PathParam("accountSid") final String accountSid,
+            @Context UriInfo info,
+            @HeaderParam("Accept") String accept,
+            @Context SecurityContext sec) {
+        MediaType acceptType = retrieveMediaType(accept);
+        return getIncomingPhoneNumbers(accountSid,
+                PhoneNumberType.TollFree,
+                info,
+                acceptType,
+                ContextUtil.convert(sec));
+    }
+
+    @Path("/TollFree")
+    @POST
+    @ResourceFilters({ ExtensionFilter.class })
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response putIncomingTollFreePhoneNumberAsXml(@PathParam("accountSid") final String accountSid,
+            final MultivaluedMap<String, String> data,
+            @HeaderParam("Accept") String accept,
+            @Context SecurityContext sec) {
+        MediaType acceptType = retrieveMediaType(accept);
+        return putIncomingPhoneNumber(accountSid,
+                data,
+                PhoneNumberType.TollFree,
+                acceptType,
+                ContextUtil.convert(sec));
+    }
+
+    // Mobile Numbers
+
+    @Path("/Mobile")
+    @GET
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response getIncomingMobilePhoneNumbersAsXml(@PathParam("accountSid") final String accountSid,
+            @Context UriInfo info,
+            @HeaderParam("Accept") String accept,
+            @Context SecurityContext sec) {
+        MediaType acceptType = retrieveMediaType(accept);
+        return getIncomingPhoneNumbers(accountSid,
+                PhoneNumberType.Mobile,
+                info,
+                acceptType,
+                ContextUtil.convert(sec));
+    }
+
+    @Path("/Mobile")
+    @POST
+    @ResourceFilters({ ExtensionFilter.class })
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response putIncomingMobilePhoneNumberAsXml(@PathParam("accountSid") final String accountSid,
+            final MultivaluedMap<String, String> data,
+            @HeaderParam("Accept") String accept,
+            @Context SecurityContext sec) {
+        MediaType acceptType = retrieveMediaType(accept);
+        return putIncomingPhoneNumber(accountSid, data,
+                PhoneNumberType.Mobile,
+                acceptType,
+                ContextUtil.convert(sec));
+    }
+
+
+    @Path("/migrate")
+    @POST
+    @RolesAllowed(SUPER_ADMIN_ROLE)
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response migrateIncomingPhoneNumbersAsXml(@PathParam("accountSid") final String accountSid,
+            final MultivaluedMap<String, String> data,
+            @HeaderParam("Accept") String accept,
+            @Context SecurityContext sec) {
+        MediaType acceptType = retrieveMediaType(accept);
+        return migrateIncomingPhoneNumbers(accountSid, data,
+                acceptType,
+                ContextUtil.convert(sec));
     }
 }

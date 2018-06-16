@@ -47,6 +47,7 @@ public final class Collect {
     private final String pattern;
     private final int timeout;
     private final String endInputKey;
+    private final String startInputKey;
     private final int numberOfDigits;
     private final String lang;
     private final String hints;
@@ -54,7 +55,7 @@ public final class Collect {
     private final boolean partialResult;
 
     public Collect(String driver,final Type type, final List<URI> prompts, final String pattern, final int timeout, final String endInputKey,
-            final int numberOfDigits, final String lang, final String hints, final boolean partialResult) {
+            final String startInputKey, final int numberOfDigits, final String lang, final String hints, final boolean partialResult) {
         super();
         this.driver = driver;
         this.type = type;
@@ -62,6 +63,7 @@ public final class Collect {
         this.pattern = pattern;
         this.timeout = timeout;
         this.endInputKey = endInputKey;
+        this.startInputKey = startInputKey;
         this.numberOfDigits = numberOfDigits;
         this.lang = lang;
         this.hints = hints;
@@ -107,6 +109,10 @@ public final class Collect {
     public boolean hasEndInputKey() {
         return (endInputKey != null && !endInputKey.isEmpty());
     }
+
+    public String startInputKey() { return startInputKey; }
+
+    public boolean hasStartInputKey() {return (startInputKey != null && !startInputKey.isEmpty()); }
 
     public int numberOfDigits() {
         return numberOfDigits;

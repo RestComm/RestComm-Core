@@ -663,4 +663,5 @@ public abstract class AbstractConverter implements Converter {
             object.addProperty("fax_capable", Boolean.FALSE);
         }
     }
+
 }

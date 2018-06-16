@@ -21,52 +21,61 @@ package org.restcomm.connect.http;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.sun.jersey.spi.resource.Singleton;
 import com.thoughtworks.xstream.XStream;
 import java.text.ParseException;
 import java.util.ArrayList;
-
 import java.util.List;
-
-import static javax.ws.rs.core.MediaType.*;
-
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import static javax.ws.rs.core.MediaType.*;
 import javax.ws.rs.core.Response;
-
 import static javax.ws.rs.core.Response.*;
 import static javax.ws.rs.core.Response.Status.*;
+import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-
 import org.apache.commons.configuration.Configuration;
-import org.restcomm.connect.commons.annotations.concurrency.NotThreadSafe;
 import org.restcomm.connect.commons.configuration.RestcommConfiguration;
+import org.restcomm.connect.commons.dao.Sid;
+import org.restcomm.connect.dao.DaoManager;
+import org.restcomm.connect.dao.TranscriptionsDao;
+import org.restcomm.connect.dao.entities.Account;
+import org.restcomm.connect.dao.entities.RestCommResponse;
+import org.restcomm.connect.dao.entities.Transcription;
+import org.restcomm.connect.dao.entities.TranscriptionFilter;
+import org.restcomm.connect.dao.entities.TranscriptionList;
 import org.restcomm.connect.http.converter.RestCommResponseConverter;
 import org.restcomm.connect.http.converter.TranscriptionConverter;
 import org.restcomm.connect.http.converter.TranscriptionListConverter;
-import org.restcomm.connect.dao.DaoManager;
-import org.restcomm.connect.dao.TranscriptionsDao;
-import org.restcomm.connect.dao.entities.RestCommResponse;
-import org.restcomm.connect.commons.dao.Sid;
-import org.restcomm.connect.dao.entities.Transcription;
-import org.restcomm.connect.dao.entities.TranscriptionList;
-import org.restcomm.connect.dao.entities.Account;
-import org.restcomm.connect.dao.entities.TranscriptionFilter;
+import org.restcomm.connect.http.security.ContextUtil;
+import org.restcomm.connect.http.security.PermissionEvaluator.SecuredType;
+import org.restcomm.connect.identity.UserIdentityContext;
 
 /**
  * @author quintana.thomas@gmail.com (Thomas Quintana)
  */
-@NotThreadSafe
-public abstract class TranscriptionsEndpoint extends SecuredEndpoint {
+@Path("/Accounts/{accountSid}/Transcriptions")
+@Singleton
+public class TranscriptionsEndpoint extends AbstractEndpoint {
     @Context
-    protected ServletContext context;
-    protected Configuration configuration;
-    protected TranscriptionsDao dao;
-    protected Gson gson;
-    protected XStream xstream;
-    protected TranscriptionListConverter listConverter;
-    protected String instanceId;
+    private ServletContext context;
+    private Configuration configuration;
+    private TranscriptionsDao dao;
+    private Gson gson;
+    private XStream xstream;
+    private TranscriptionListConverter listConverter;
+    private String instanceId;
+
+
+
 
     public TranscriptionsEndpoint() {
         super();
@@ -96,17 +105,25 @@ public abstract class TranscriptionsEndpoint extends SecuredEndpoint {
         instanceId = RestcommConfiguration.getInstance().getMain().getInstanceId();
     }
 
-    protected Response getTranscription(final String accountSid, final String sid, final MediaType responseType) {
+    private Response getTranscription(final String accountSid,
+            final String sid,
+            final MediaType responseType,
+            UserIdentityContext userIdentityContext) {
         Account operatedAccount = accountsDao.getAccount(accountSid);
-        secure(operatedAccount, "RestComm:Read:Transcriptions");
+        permissionEvaluator.secure(operatedAccount,
+                "RestComm:Read:Transcriptions",
+                userIdentityContext);
         final Transcription transcription = dao.getTranscription(new Sid(sid));
         if (transcription == null) {
             return status(NOT_FOUND).build();
         } else {
-            secure(operatedAccount, transcription.getAccountSid(), SecuredType.SECURED_STANDARD);
-            if (APPLICATION_JSON_TYPE == responseType) {
+            permissionEvaluator.secure(operatedAccount,
+                    transcription.getAccountSid(),
+                    SecuredType.SECURED_STANDARD,
+                    userIdentityContext);
+            if (APPLICATION_JSON_TYPE.equals(responseType)) {
                 return ok(gson.toJson(transcription), APPLICATION_JSON).build();
-            } else if (APPLICATION_XML_TYPE == responseType) {
+            } else if (APPLICATION_XML_TYPE.equals(responseType)) {
                 final RestCommResponse response = new RestCommResponse(transcription);
                 return ok(xstream.toXML(response), APPLICATION_XML).build();
             } else {
@@ -115,8 +132,13 @@ public abstract class TranscriptionsEndpoint extends SecuredEndpoint {
         }
     }
 
-    protected Response getTranscriptions(final String accountSid, UriInfo info, final MediaType responseType) {
-        secure(accountsDao.getAccount(accountSid), "RestComm:Read:Transcriptions");
+    private Response getTranscriptions(final String accountSid,
+            UriInfo info,
+            final MediaType responseType,
+            UserIdentityContext userIdentityContext) {
+        permissionEvaluator.secure(accountsDao.getAccount(accountSid),
+                "RestComm:Read:Transcriptions",
+                userIdentityContext);
 
         boolean localInstanceOnly = true;
         try {
@@ -201,13 +223,55 @@ public abstract class TranscriptionsEndpoint extends SecuredEndpoint {
         listConverter.setPageSize(Integer.parseInt(pageSize));
         listConverter.setPathUri(info.getRequestUri().getPath());
 
-        if (APPLICATION_XML_TYPE == responseType) {
+        if (APPLICATION_XML_TYPE.equals(responseType)) {
             final RestCommResponse response = new RestCommResponse(new TranscriptionList(cdrs));
             return ok(xstream.toXML(response), APPLICATION_XML).build();
-        } else if (APPLICATION_JSON_TYPE == responseType) {
+        } else if (APPLICATION_JSON_TYPE.equals(responseType)) {
             return ok(gson.toJson(new TranscriptionList(cdrs)), APPLICATION_JSON).build();
         } else {
             return null;
         }
+    }
+
+    @Path("/{sid}")
+    @DELETE
+    public Response deleteTranscription(@PathParam("accountSid") String accountSid,
+            @PathParam("sid") String sid,
+            @Context SecurityContext sec) {
+        Account operatedAccount = super.accountsDao.getAccount(accountSid);
+        permissionEvaluator.secure(operatedAccount,
+                "RestComm:Delete:Transcriptions",
+                ContextUtil.convert(sec));
+        Transcription transcription = dao.getTranscription(new Sid(sid));
+        if (transcription != null) {
+            permissionEvaluator.secure(operatedAccount,
+                    String.valueOf(transcription.getAccountSid()),
+                    SecuredType.SECURED_STANDARD,
+                    ContextUtil.convert(sec));
+        }
+        // TODO return NOT_FOUND if transcrtiption==null
+        dao.removeTranscription(new Sid(sid));
+        return ok().build();
+    }
+
+    @Path("/{sid}")
+    @GET
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response getTranscriptionAsXml(@PathParam("accountSid") final String accountSid,
+            @PathParam("sid") final String sid,
+            @HeaderParam("Accept") String accept,
+            @Context SecurityContext sec) {
+        return getTranscription(accountSid, sid, retrieveMediaType(accept),
+                ContextUtil.convert(sec));
+    }
+
+    @GET
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response getTranscriptions(@PathParam("accountSid") final String accountSid,
+            @Context UriInfo info,
+            @HeaderParam("Accept") String accept,
+            @Context SecurityContext sec) {
+        return getTranscriptions(accountSid, info, retrieveMediaType(accept),
+                ContextUtil.convert(sec));
     }
 }

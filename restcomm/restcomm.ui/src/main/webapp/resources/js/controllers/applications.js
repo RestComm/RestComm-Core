@@ -16,7 +16,7 @@ angular.module('rcApp.controllers').controller('ApplicationsCtrl', function ($sc
     }
 });
 
-angular.module('rcApp.controllers').controller('ApplicationDetailsCtrl', function ($scope, RCommApplications, RvdProjects, SessionService, $stateParams, $location, $dialog, Notifications, $filter, $httpParamSerializer, FileRetriever) {
+angular.module('rcApp.controllers').controller('ApplicationDetailsCtrl', function ($scope, RCommApplications, RvdProjects, SessionService, $stateParams, $location, $dialog, Notifications, $filter, $httpParamSerializer, FileRetriever, PublicConfig) {
     var accountSid = SessionService.get("sid");
     var applicationSid = $stateParams.applicationSid;
     $scope.app = RCommApplications.get({accountSid: accountSid, applicationSid: applicationSid}, function () {
@@ -41,21 +41,21 @@ angular.module('rcApp.controllers').controller('ApplicationDetailsCtrl', functio
 
     $scope.confirmApplicationDelete = function(app) {
         confirmApplicationDelete(app, $dialog, $scope, Notifications, RCommApplications, RvdProjects, $location)
-    }
+    };
 
     $scope.editInDesigner = function(app) {
-        window.open("/restcomm-rvd#/designer/" + app.sid + ($stateParams.firstTime ? "?firstTime=true" : ""));
-    }
+        window.open(PublicConfig.rvdUrl + '/#/designer/' + app.sid + ($stateParams.firstTime ? '?firstTime=true' : ''));
+    };
 
     $scope.saveExternalApp = function(app) {
         RCommApplications.save({accountSid: accountSid, applicationSid: applicationSid}, $httpParamSerializer({RcmlUrl: app.rcml_url}), function () {
             Notifications.success("Application '" + app.friendly_name + " ' saved");
             $location.path( "/applications" );
         });
-    }
+    };
 
     $scope.downloadRvdApp = function(app) {
-        var downloadUrl =  '/restcomm-rvd/services/projects/' + app.sid + '/archive?projectName=' + app.friendly_name; // TODO remove '/restcomm-rvd/' hardcoded value and use one from PublicConfig service
+        var downloadUrl =  PublicConfig.rvdUrl + '/services/projects/' + app.sid + '/archive?projectName=' + app.friendly_name;
         FileRetriever.download(downloadUrl, app.friendly_name + ".zip").catch(function () {
             Notifications.error("Error downloading project archive");
         });
@@ -79,7 +79,7 @@ angular.module('rcApp.controllers').controller('ApplicationCreationWizardCtrl', 
     }
 });
 
-angular.module('rcApp.controllers').controller('ApplicationCreationCtrl', function ($scope, $rootScope, $location, Notifications, RvdProjectImporter, RvdProjects, $state, $stateParams, RvdProjectTemplates, $timeout) {
+angular.module('rcApp.controllers').controller('ApplicationCreationCtrl', function ($scope, $rootScope, $location, Notifications, RvdProjectImporter, RvdProjects, $state, $stateParams, RvdProjectTemplates, PublicConfig) {
     // the following variables are used as flags from the templates on the type of application creation: isExternalApp / droppedFiles / templateId
     $scope.templateId = $stateParams.templateId;
     var appOptions = {}, droppedFiles; // all options the application needs to be created like name, kind ... anything else ?
@@ -133,7 +133,7 @@ angular.module('rcApp.controllers').controller('ApplicationCreationCtrl', functi
           Notifications.success("RVD application created");
           $state.go("restcomm.application-details", {applicationSid: data.sid, firstTime: true});
           //$location.path("/applications/" + data.sid + "?firstTime=true");
-          window.open("/restcomm-rvd#/designer/" + data.sid + "?firstTime=true");
+          window.open(PublicConfig.rvdUrl + '/#/designer/' + data.sid + '?firstTime=true');
       });
     }
 
@@ -153,12 +153,12 @@ angular.module('rcApp.controllers').controller('ApplicationCreationCtrl', functi
             RvdProjectImporter.import(files[0], nameOverride).then(function (result) {
                 Notifications.success("Application '" + result.name + "' imported successfully");
                 $location.path("/applications/" + result.id);
-                window.open("/restcomm-rvd#/designer/" + result.id);
+                window.open(PublicConfig.rvdUrl + '/#/designer/' + result.id);
             }, function (message) {
                 Notifications.error(message);
             });
         }
-    }
+    };
 
     $scope.appOptions = appOptions;
     $scope.droppedFiles = droppedFiles;

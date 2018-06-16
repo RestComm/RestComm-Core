@@ -19,19 +19,48 @@
  */
 package org.restcomm.connect.telephony;
 
-import akka.actor.ActorContext;
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.actor.ReceiveTimeout;
-import akka.actor.UntypedActor;
-import akka.actor.UntypedActorContext;
-import akka.actor.UntypedActorFactory;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
-import akka.util.Timeout;
-import com.google.i18n.phonenumbers.NumberParseException;
-import gov.nist.javax.sip.header.UserAgent;
+import static akka.pattern.Patterns.ask;
+import static javax.servlet.sip.SipServlet.OUTBOUND_INTERFACES;
+import static javax.servlet.sip.SipServletResponse.SC_ACCEPTED;
+import static javax.servlet.sip.SipServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.sip.SipServletResponse.SC_FORBIDDEN;
+import static javax.servlet.sip.SipServletResponse.SC_NOT_FOUND;
+import static javax.servlet.sip.SipServletResponse.SC_OK;
+import static javax.servlet.sip.SipServletResponse.SC_SERVER_INTERNAL_ERROR;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
+
+import javax.sdp.SdpParseException;
+import javax.servlet.ServletContext;
+import javax.servlet.sip.Address;
+import javax.servlet.sip.AuthInfo;
+import javax.servlet.sip.ServletParseException;
+import javax.servlet.sip.SipApplicationSession;
+import javax.servlet.sip.SipApplicationSessionEvent;
+import javax.servlet.sip.SipFactory;
+import javax.servlet.sip.SipServletRequest;
+import javax.servlet.sip.SipServletResponse;
+import javax.servlet.sip.SipSession;
+import javax.servlet.sip.SipURI;
+import javax.servlet.sip.TelURL;
+import javax.sip.header.RouteHeader;
+import javax.sip.message.Response;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.joda.time.DateTime;
@@ -46,6 +75,8 @@ import org.restcomm.connect.commons.telephony.ProxyRule;
 import org.restcomm.connect.commons.util.DNSUtils;
 import org.restcomm.connect.commons.util.SdpUtils;
 import org.restcomm.connect.commons.util.UriUtils;
+import org.restcomm.connect.core.service.api.NumberSelectorService;
+import org.restcomm.connect.core.service.number.api.NumberSelectionResult;
 import org.restcomm.connect.dao.AccountsDao;
 import org.restcomm.connect.dao.ApplicationsDao;
 import org.restcomm.connect.dao.CallDetailRecordsDao;
@@ -70,8 +101,6 @@ import org.restcomm.connect.extension.api.RestcommExtensionException;
 import org.restcomm.connect.extension.api.RestcommExtensionGeneric;
 import org.restcomm.connect.extension.controller.ExtensionController;
 import org.restcomm.connect.http.client.rcmlserver.resolver.RcmlserverResolver;
-import org.restcomm.connect.interpreter.NumberSelectionResult;
-import org.restcomm.connect.interpreter.NumberSelectorService;
 import org.restcomm.connect.interpreter.SIPOrganizationUtil;
 import org.restcomm.connect.interpreter.StartInterpreter;
 import org.restcomm.connect.interpreter.StopInterpreter;
@@ -99,50 +128,24 @@ import org.restcomm.connect.telephony.api.SwitchProxy;
 import org.restcomm.connect.telephony.api.UpdateCallScript;
 import org.restcomm.connect.telephony.api.util.B2BUAHelper;
 import org.restcomm.connect.telephony.api.util.CallControlHelper;
+
+import com.google.i18n.phonenumbers.NumberParseException;
+
+import akka.actor.ActorContext;
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.actor.Props;
+import akka.actor.ReceiveTimeout;
+import akka.actor.UntypedActor;
+import akka.actor.UntypedActorContext;
+import akka.actor.UntypedActorFactory;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
+import akka.util.Timeout;
+import gov.nist.javax.sip.header.UserAgent;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
-
-import javax.sdp.SdpParseException;
-import javax.servlet.ServletContext;
-import javax.servlet.sip.Address;
-import javax.servlet.sip.AuthInfo;
-import javax.servlet.sip.ServletParseException;
-import javax.servlet.sip.SipApplicationSession;
-import javax.servlet.sip.SipApplicationSessionEvent;
-import javax.servlet.sip.SipFactory;
-import javax.servlet.sip.SipServletRequest;
-import javax.servlet.sip.SipServletResponse;
-import javax.servlet.sip.SipSession;
-import javax.servlet.sip.SipURI;
-import javax.servlet.sip.TelURL;
-import javax.sip.header.RouteHeader;
-import javax.sip.message.Response;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Pattern;
-
-import static akka.pattern.Patterns.ask;
-import static javax.servlet.sip.SipServlet.OUTBOUND_INTERFACES;
-import static javax.servlet.sip.SipServletResponse.SC_ACCEPTED;
-import static javax.servlet.sip.SipServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.sip.SipServletResponse.SC_FORBIDDEN;
-import static javax.servlet.sip.SipServletResponse.SC_NOT_FOUND;
-import static javax.servlet.sip.SipServletResponse.SC_OK;
-import static javax.servlet.sip.SipServletResponse.SC_SERVER_INTERNAL_ERROR;
 
 /**
  * @author quintana.thomas@gmail.com (Thomas Quintana)
@@ -200,6 +203,7 @@ public final class CallManager extends RestcommUntypedActor {
 
     //Control whether Restcomm will patch Request-URI and SDP for B2BUA calls
     private boolean patchForNatB2BUASessions;
+    private boolean useSbc;
 
     //List of extensions for CallManager
     List<RestcommExtensionGeneric> extensions;
@@ -213,6 +217,7 @@ public final class CallManager extends RestcommUntypedActor {
 
     private boolean actAsProxyOut;
     private List<ProxyRule> proxyOutRules;
+
     private boolean isActAsProxyOutUseFromHeader;
 
     // Push notification server
@@ -263,7 +268,7 @@ public final class CallManager extends RestcommUntypedActor {
         this.sms = sms;
         this.sipFactory = factory;
         this.storage = storage;
-        numberSelector = (NumberSelectorService) context.getAttribute(NumberSelectorService.class.getName());
+        numberSelector = (NumberSelectorService)context.getAttribute(NumberSelectorService.class.getName());
         final Configuration runtime = configuration.subset("runtime-settings");
         final Configuration outboundProxyConfig = runtime.subset("outbound-proxy");
         SipURI outboundIntf = outboundInterface("udp");
@@ -314,6 +319,13 @@ public final class CallManager extends RestcommUntypedActor {
         allowFallbackToPrimary = outboundProxyConfig.getBoolean("allow-fallback-to-primary", false);
 
         patchForNatB2BUASessions = runtime.getBoolean("patch-for-nat-b2bua-sessions", true);
+        useSbc = runtime.getBoolean("use-sbc", false);
+        if(useSbc) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("CallManager: use-sbc is true, overriding patch-for-nat-b2bua-sessions to false");
+            }
+            patchForNatB2BUASessions = false;
+        }
 
         //Monitoring Service
         this.monitoring = (ActorRef) context.getAttribute(MonitoringService.class.getName());
@@ -500,7 +512,7 @@ public final class CallManager extends RestcommUntypedActor {
         final SipURI fromUri = (SipURI) request.getFrom().getURI();
         final String fromUser = fromUri.getUser();
         final SipURI toUri = (SipURI) request.getTo().getURI();
-        final String toUser = CallControlHelper.getUserSipId(request, useTo);
+        String toUser = CallControlHelper.getUserSipId(request, useTo);
         final String ruri = ((SipURI) request.getRequestURI()).getHost();
         final String toHost = toUri.getHost();
         final String toHostIpAddress = DNSUtils.getByName(toHost).getHostAddress();
@@ -512,7 +524,7 @@ public final class CallManager extends RestcommUntypedActor {
 
 
         Sid sourceOrganizationSid = OrganizationUtil.getOrganizationSidBySipURIHost(storage, fromUri);
-        Sid toOrganizationSid = OrganizationUtil.getOrganizationSidBySipURIHost(storage, toUri);
+        Sid toOrganizationSid = SIPOrganizationUtil.searchOrganizationBySIPRequest(storage.getOrganizationsDao(), request);
 
         if(logger.isDebugEnabled()) {
             logger.debug("sourceOrganizationSid: " + sourceOrganizationSid +" fromUri: "+fromUri);
@@ -544,7 +556,6 @@ public final class CallManager extends RestcommUntypedActor {
             // Make sure we force clients to authenticate.
             if (!authenticateUsers // https://github.com/Mobicents/RestComm/issues/29 Allow disabling of SIP authentication
                     || CallControlHelper.checkAuthentication(request, storage, sourceOrganizationSid)) {
-
                 // if the client has authenticated, try to redirect to the Client VoiceURL app
                 // otherwise continue trying to process the Client invite
                 if (redirectToClientVoiceApp(self, request, accounts, applications, client)) {
@@ -683,6 +694,13 @@ public final class CallManager extends RestcommUntypedActor {
                 // log to console and to notification engine
                 String errMsg = "A Restcomm Client is trying to call a Number/DID that is not registered with Restcomm";
                 sendNotification(client.getAccountSid(), errMsg, 11002, "info", true);
+
+                if(useSbc) {
+                    toUser = toUser+"@"+ruri;
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("CallManager: use-sbc is true, overriding webrtc toUser to " + toUser);
+                    }
+                }
 
                 ExtensionController ec = ExtensionController.getInstance();
                 IExtensionCreateCallRequest er = new CreateCall(fromUser, toUser, "", "", false, 0, CreateCallType.PSTN, client.getAccountSid(), null, null, null, null);
@@ -943,7 +961,13 @@ public final class CallManager extends RestcommUntypedActor {
     }
 
     private void proxyThroughMediaServerAsNumber(final SipServletRequest request, final Client client, final String destNumber) {
-        String rcml = "<Response><Dial>" + destNumber + "</Dial></Response>";
+        String number = destNumber;
+        String customHeaders = customHeaders(request);
+        if (customHeaders != null && !customHeaders.equals("")) {
+            number = destNumber+"?"+customHeaders;
+        }
+
+        String rcml = "<Response><Dial>" + number + "</Dial></Response>";
         final VoiceInterpreterParams.Builder builder = new VoiceInterpreterParams.Builder();
         builder.setConfiguration(configuration);
         builder.setStorage(storage);
@@ -968,7 +992,13 @@ public final class CallManager extends RestcommUntypedActor {
     }
 
     private void proxyDialClientThroughMediaServer(final SipServletRequest request, final Client client, final String destNumber) {
-        String rcml = "<Response><Dial><Client>" + destNumber + "</Client></Dial></Response>";
+        String number = destNumber;
+        String customHeaders = customHeaders(request);
+        if (customHeaders != null && !customHeaders.equals("")) {
+            number = destNumber+"?"+customHeaders;
+        }
+
+        String rcml = "<Response><Dial><Client>" + number + "</Client></Dial></Response>";
         final VoiceInterpreterParams.Builder builder = new VoiceInterpreterParams.Builder();
         builder.setConfiguration(configuration);
         builder.setStorage(storage);
@@ -990,6 +1020,26 @@ public final class CallManager extends RestcommUntypedActor {
         application.setAttribute(Call.class.getName(), call);
         call.tell(request, self());
         interpreter.tell(new StartInterpreter(call), self());
+    }
+
+    private String customHeaders (final SipServletRequest request) {
+        StringBuffer customHeaders = new StringBuffer();
+
+        Iterator<String> headerNames = request.getHeaderNames();
+        while (headerNames.hasNext()) {
+            String headerName = headerNames.next();
+            if (headerName.startsWith("X-")) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Identified customer header at SipServletRequest : " + headerName);
+                }
+                if (customHeaders.length()>0) {
+                    customHeaders.append("&");
+                }
+                customHeaders.append(headerName+"="+request.getHeader(headerName));
+            }
+        }
+
+        return customHeaders.toString();
     }
 
     private void info(final SipServletRequest request) throws IOException {
@@ -1808,14 +1858,15 @@ public final class CallManager extends RestcommUntypedActor {
             case CLIENT: {
                 if (extRes.isAllowed()) {
                     ClientsDao clients = storage.getClientsDao();
-                    Client client = clients.getClient(request.to().replaceFirst("client:", ""), storage.getAccountsDao().getAccount(request.accountId()).getOrganizationSid());
+                    String clientName = request.to().replaceFirst("client:", "");
+                    final Client client = clients.getClient(clientName, storage.getAccountsDao().getAccount(request.accountId()).getOrganizationSid());
                     if (client != null) {
                         long delay = pushNotificationServerHelper.sendPushNotificationIfNeeded(client.getPushClientIdentity());
                         system.scheduler().scheduleOnce(Duration.create(delay, TimeUnit.MILLISECONDS), new Runnable() {
                             @Override
                             public void run() {
                                 try {
-                                    outboundToClient(request, sender);
+                                    outboundToClient(request, sender, client);
 
                                     ExtensionController.getInstance().executePostOutboundAction(request, extensions);
                                 } catch (ServletParseException e) {
@@ -1867,15 +1918,15 @@ public final class CallManager extends RestcommUntypedActor {
         }
     }
 
-    private void outboundToClient(final CreateCall request, final ActorRef sender) throws ServletParseException {
+    private void outboundToClient(final CreateCall request, final ActorRef sender, final Client client) throws ServletParseException {
         SipURI outboundIntf = null;
         SipURI from = null;
         SipURI to = null;
         boolean webRTC = false;
         boolean isLBPresent = false;
+        String customHeaders = request.getCustomHeaders();
 
         final RegistrationsDao registrationsDao = storage.getRegistrationsDao();
-        final String client = request.to().replaceFirst("client:", "");
 
         //1, If this is a WebRTC client check if the instance is the current instance
         //2. Check if the client has more than one registrations
@@ -1883,7 +1934,7 @@ public final class CallManager extends RestcommUntypedActor {
         List<Registration> registrationToDial = new CopyOnWriteArrayList<Registration>();
         Sid organizationSid = storage.getAccountsDao().getAccount(request.accountId()).getOrganizationSid();
 
-        List<Registration> registrations = registrationsDao.getRegistrations(client, organizationSid);
+        List<Registration> registrations = registrationsDao.getRegistrations(client.getLogin(), organizationSid);
         if (registrations != null && registrations.size() > 0) {
             if (logger.isInfoEnabled()) {
                 logger.info("Preparing call for client: " + client + ". There are " + registrations.size() + " registrations at the database for this client");
@@ -1960,6 +2011,9 @@ public final class CallManager extends RestcommUntypedActor {
                 }
                 final String location = registration.getLocation();
                 to = (SipURI) sipFactory.createURI(location);
+                if (customHeaders != null) {
+                    to = addCustomHeadersForToUri(customHeaders, to);
+                }
                 webRTC = registration.isWebRTC();
                 if (from == null || to == null) {
                     //In case From or To are null we have to cancel outbound call and hnagup initial call if needed
@@ -1967,6 +2021,12 @@ public final class CallManager extends RestcommUntypedActor {
                     logger.warning(errMsg);
                     sender.tell(new CallManagerResponse<ActorRef>(new NullPointerException(errMsg), request), self());
                 } else {
+                    if(useSbc) {
+                        // To avoid using SDP with encryption enabled between RC and the SBC
+                        // we need to disable webRTC as it will be handled on the last mile
+                        // ie between SBC and Client and SBC will be responsible for that not RC
+                        webRTC = false;
+                    }
                     calls.add(createOutbound(request, from, to, webRTC));
                 }
             }
@@ -1981,11 +2041,26 @@ public final class CallManager extends RestcommUntypedActor {
         }
     }
 
+    private SipURI addCustomHeadersForToUri (String customHeaders, SipURI to) {
+        for (String customHeader: customHeaders.split("&")) {
+            if (customHeader.contains("=")) {
+                to.setHeader(customHeader.split("=")[0], customHeader.split("=")[1]);
+            } else {
+                String msg = String.format("Custom header %s not properly formatted", customHeader);
+                if (logger.isDebugEnabled()) {
+                    logger.debug(msg);
+                }
+            }
+        }
+        return to;
+    }
+
     private void outboundToPstn(final CreateCall request, final ActorRef sender) throws ServletParseException {
         final String uri = (request.getOutboundProxy() != null && (!request.getOutboundProxy().isEmpty())) ? request.getOutboundProxy() : activeProxy;
         SipURI outboundIntf = null;
         SipURI from = null;
         SipURI to = null;
+        String customHeaders = request.getCustomHeaders();
 
         final Configuration runtime = configuration.subset("runtime-settings");
         final boolean useLocalAddressAtFromHeader = runtime.getBoolean("use-local-address", false);
@@ -1995,6 +2070,9 @@ public final class CallManager extends RestcommUntypedActor {
         if (uri != null) {
             try {
                 to = sipFactory.createSipURI(request.to(), uri);
+                if (customHeaders != null) {
+                    to = addCustomHeadersForToUri(customHeaders, to);
+                }
                 String transport = (to.getTransportParam() != null) ? to.getTransportParam() : "udp";
                 outboundIntf = outboundInterface(transport);
                 final boolean outboudproxyUserAtFromHeader = runtime.subset("outbound-proxy").getBoolean(
@@ -2045,7 +2123,12 @@ public final class CallManager extends RestcommUntypedActor {
         final String uri = (request.getOutboundProxy() != null && (!request.getOutboundProxy().isEmpty())) ? request.getOutboundProxy() : "";
         SipURI outboundIntf = null;
         SipURI from = null;
+        String customHeaders = request.getCustomHeaders();
+
         SipURI to = (SipURI) sipFactory.createURI(request.to());
+        if (customHeaders != null) {
+            to = addCustomHeadersForToUri(customHeaders, to);
+        }
         SipURI outboundProxyURI;
 
         try {
@@ -2589,8 +2672,12 @@ public final class CallManager extends RestcommUntypedActor {
         }
         SipURI from;
         SipURI to;
+        String customHeaders = request.getCustomHeaders();
 
         to = (SipURI) sipFactory.createURI(request.to());
+        if (customHeaders != null) {
+            to = addCustomHeadersForToUri(customHeaders, to);
+        }
         if (request.from() == null) {
             from = sipFactory.createSipURI(null, imsDomain);
         } else {

@@ -31,11 +31,12 @@ import org.restcomm.connect.commons.fsm.Action;
 import org.restcomm.connect.commons.fsm.FiniteStateMachine;
 import org.restcomm.connect.commons.fsm.State;
 import org.restcomm.connect.commons.fsm.Transition;
+import org.restcomm.connect.commons.fsm.TransitionEndListener;
 import org.restcomm.connect.commons.patterns.Observe;
 import org.restcomm.connect.commons.patterns.Observing;
 import org.restcomm.connect.commons.patterns.StopObserving;
-import org.restcomm.connect.commons.util.DNSUtils;
 import org.restcomm.connect.commons.telephony.CreateCallType;
+import org.restcomm.connect.commons.util.DNSUtils;
 import org.restcomm.connect.dao.CallDetailRecordsDao;
 import org.restcomm.connect.dao.entities.CallDetailRecord;
 import org.restcomm.connect.telephony.api.Answer;
@@ -45,6 +46,7 @@ import org.restcomm.connect.telephony.api.CallStateChanged;
 import org.restcomm.connect.telephony.api.GetCallInfo;
 import org.restcomm.connect.telephony.api.GetCallObservers;
 import org.restcomm.connect.telephony.api.InitializeOutbound;
+import org.restcomm.connect.telephony.api.events.UssdStreamEvent;
 import org.restcomm.connect.ussd.commons.UssdRestcommResponse;
 import org.restcomm.connect.ussd.interpreter.UssdInterpreter;
 import scala.concurrent.duration.Duration;
@@ -78,7 +80,7 @@ import java.util.concurrent.TimeUnit;
  * @author <a href="mailto:gvagenas@gmail.com">gvagenas</a>
  *
  */
-public class UssdCall extends RestcommUntypedActor {
+public class UssdCall extends RestcommUntypedActor implements TransitionEndListener {
 
     private final LoggingAdapter logger = Logging.getLogger(getContext().system(), this);
 
@@ -108,6 +110,7 @@ public class UssdCall extends RestcommUntypedActor {
     private SipURI from;
     private SipURI to;
     private String transport;
+    private UssdRestcommResponse userUssdRequest;
     private String username;
     private String password;
     private CreateCallType type;
@@ -167,6 +170,7 @@ public class UssdCall extends RestcommUntypedActor {
 
         // Initialize the FSM.
         this.fsm = new FiniteStateMachine(uninitialized, transitions);
+        this.fsm.addTransitionEndListener(this);
         // Initialize the SIP runtime stuff.
         this.factory = factory;
         // Initialize the runtime stuff.
@@ -313,6 +317,32 @@ public class UssdCall extends RestcommUntypedActor {
         }
     }
 
+    @Override
+    public void onTransitionEnd(State was, State is, Object event) {
+        UssdStreamEvent.Builder builder = UssdStreamEvent.builder()
+                .setSid(id)
+                .setAccountSid(accountId)
+                .setDirection(UssdStreamEvent.Direction.valueOf(direction))
+                .setFrom(from.getUser())
+                .setTo(to.getUser());
+
+        if (userUssdRequest != null){
+            builder.setStatus(UssdStreamEvent.Status.processing)
+                    .setRequest(getUssdRequestSdrData());
+            userUssdRequest = null;
+        } else {
+            UssdStreamEvent.Status.valueOf(external.toString().toUpperCase().replaceAll("-", "_"));
+        }
+
+        getContext().system()
+                .eventStream()
+                .publish(builder.build());
+    }
+
+    private String getUssdRequestSdrData(){
+        return userUssdRequest.getMessage().trim();
+    }
+
     private abstract class AbstractAction implements Action {
         protected final ActorRef source;
 
@@ -424,6 +454,8 @@ public class UssdCall extends RestcommUntypedActor {
             } else {
                 request = session.createRequest("INFO");
             }
+
+            userUssdRequest = ussdRequest;
             request.setContent(ussdRequest.createUssdPayload().toString().trim(), ussdContentType);
 
             logger.info("Prepared request: \n"+request);

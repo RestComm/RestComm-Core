@@ -34,7 +34,7 @@ public class AccountPrincipal implements Principal {
         this.identityContext = identityContext;
     }
 
-    protected boolean isSuperAdmin() {
+    public boolean isSuperAdmin() {
         //SuperAdmin Account is the one the is
         //1. Has no parent, this is the top account
         //2. Is ACTIVE
@@ -60,4 +60,7 @@ public class AccountPrincipal implements Principal {
         }
     }
 
+    public UserIdentityContext getIdentityContext() {
+        return identityContext;
+    }
 }

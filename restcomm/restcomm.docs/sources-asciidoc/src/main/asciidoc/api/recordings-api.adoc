@@ -31,7 +31,8 @@ To download the audio file just append *.wav* after the *RecordingSid.*
 === Supported Operations
 
 *HTTP GET.* Returns the representation of a Recording resource, including the properties above.
-**HTTP DELETE**. Removes the recording from the account.
+
+*HTTP DELETE*. Removes the recording from the account.
 
 == Recording List Resource
 
@@ -48,6 +49,10 @@ NOTE: Unlike the Recording instance resource described above, the list of record
 ==== HTTP GET
 
 Returns the list representation of all the Recording resources for this Account, including the properties above.
+
+==== HTTP DELETE
+
+Deletes a recording that belongs to this Account.
 
 == How to Record a Message
 
@@ -158,7 +163,7 @@ The result will be similar to the one below
 
  
 
-=== Example. 
+=== Example.
 
 The command below will return a single item from the list of recordings using the PageSize parameter
 
@@ -187,8 +192,6 @@ The result of the *PageSize* parameter
 }
 ----
 
- 
-
 == Additional Paging Information.
 
 The API returns URIs to the next, previous, first and last pages of the returned list as shown in the table below:
@@ -204,3 +207,17 @@ The API returns URIs to the next, previous, first and last pages of the returned
 |Previouspageuri |The URI for the previous page of this list.
 |Lastpageuri |The URI for the last page of this list.
 |============================================================
+
+== Delete a Recording
+
+=== Recording Delete Resource URI
+
+* */2012-04-24/Accounts/{AccountSid}/Recordings/{RecordingSid}*
+
+From the bash terminal, you can run the command below:
+
+....
+curl -X DELETE  https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Recordings/RE10000000000000000000000000000032
+....
+
+

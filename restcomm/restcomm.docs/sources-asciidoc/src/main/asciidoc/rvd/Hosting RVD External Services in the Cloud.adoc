@@ -1,4 +1,6 @@
-Since the introduction of *Restcomm Visual Designer(RVD)* as part of Restcomm-Connect, a lot of developers have seen rapid development cycle. Telestax also introduced *Restcomm Application Store(RAS)* to further enhance developer'ss user experience. This is a great way to keep the momentum on creating innovative communications applications powered by Restcomm. It will also a way to ensure that developers get the appropriate remunerations for their effort. 
+CAUTION: This piece of documentation is outdated. We're actively re-working Visual Designer documentation <<index.adoc#, here>>
+
+Since the introduction of *Restcomm Visual Designer(RVD)* as part of Restcomm-Connect, a lot of developers have seen rapid development cycle. Telestax also introduced *Restcomm Application Store(RAS)* to further enhance developer'ss user experience. This is a great way to keep the momentum on creating innovative communications applications powered by Restcomm. It will also a way to ensure that developers get the appropriate remunerations for their effort.
 
 The initiative has spurn a need for more complex application to be made available within RAS. In order to achieve that, the use of the feature rich RVD External Services is required. In this tutorial, we shall see how developers can deploy their apps built with Restcomm and leverage the power of the cloud by hosting their databases and scripts online. 
 

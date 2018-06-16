@@ -16,7 +16,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.jboss.shrinkwrap.resolver.api.maven.archive.ShrinkWrapMaven;
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
@@ -28,7 +28,9 @@ import org.junit.runners.MethodSorters;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.restcomm.connect.commons.Version;
+import org.restcomm.connect.commons.annotations.FeatureAltTests;
 import org.restcomm.connect.commons.annotations.UnstableTests;
+import org.restcomm.connect.testsuite.http.RecordingEndpointTool;
 import org.restcomm.connect.testsuite.http.RestcommCallsTool;
 import org.restcomm.connect.testsuite.tools.MonitoringServiceTool;
 
@@ -38,10 +40,13 @@ import javax.sip.message.Response;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.text.ParseException;
 import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.delete;
+import static com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -269,6 +274,116 @@ public class DialRecordingS3UploadSecureTest {
 		verify(1, putRequestedFor(urlMatching("/s3/.*")));
 	}
 
+	@Test
+	@Category(FeatureAltTests.class)
+	public synchronized void testDialClientAlice_BobDisconnects_AndRemoveRecording() throws InterruptedException, ParseException, IOException {
+		stubFor(get(urlPathEqualTo("/1111"))
+				.willReturn(aResponse()
+						.withStatus(200)
+						.withHeader("Content-Type", "text/xml")
+						.withBody(dialClientRcml)));
+
+		stubFor(put(urlPathEqualTo("/s3"))
+				.willReturn(aResponse()
+						.withStatus(200)
+						.withHeader("x-amz-id-2","LriYPLdmOdAiIfgSm/F1YsViT1LW94/xUQxMsF7xiEb1a0wiIOIxl+zbwZ163pt7")
+						.withHeader("x-amz-request-id","0A49CE4060975EAC")
+						.withHeader("Date", DateTime.now().toString())
+						.withHeader("x-amz-expiration", "expiry-date="+DateTime.now().plusDays(3).toString()+"\", rule-id=\"1\"")
+						.withHeader("Server", "AmazonS3")
+				));
+
+		stubFor(get(urlPathEqualTo("/s3"))
+				.willReturn(aResponse()
+						.withStatus(200)
+						.withHeader("X-Amz-Algorithm", "AWS4-HMAC-SHA256")
+				));
+
+		stubFor(delete(urlPathEqualTo("/s3"))
+				.willReturn(aResponse()
+				.withStatus(200)
+				.withHeader("X-Amz-Algorithm", "AWS4-HMAC-SHA256")));
+
+		// Phone2 register as alice
+		SipURI uri = aliceSipStack.getAddressFactory().createSipURI(null, "127.0.0.1:5080");
+		assertTrue(alicePhone.register(uri, "alice", "1234", aliceContact, 3600, 3600));
+
+		// Prepare second phone to receive call
+		SipCall aliceCall = alicePhone.createSipCall();
+		aliceCall.listenForIncomingCall();
+
+		// Create outgoing call with first phone
+		final SipCall bobCall = bobPhone.createSipCall();
+		bobCall.initiateOutgoingCall(bobContact, dialRestcomm, null, body, "application", "sdp", null, null);
+		assertLastOperationSuccess(bobCall);
+		assertTrue(bobCall.waitOutgoingCallResponse(5 * 1000));
+		final int response = bobCall.getLastReceivedResponse().getStatusCode();
+		assertTrue(response == Response.TRYING || response == Response.RINGING);
+
+		if (response == Response.TRYING) {
+			assertTrue(bobCall.waitOutgoingCallResponse(5 * 1000));
+			assertEquals(Response.RINGING, bobCall.getLastReceivedResponse().getStatusCode());
+		}
+
+		assertTrue(bobCall.waitOutgoingCallResponse(5 * 1000));
+		assertEquals(Response.OK, bobCall.getLastReceivedResponse().getStatusCode());
+
+		bobCall.sendInviteOkAck();
+		DateTime start = DateTime.now();
+		assertTrue(!(bobCall.getLastReceivedResponse().getStatusCode() >= 400));
+		String callSid = bobCall.getLastReceivedResponse().getMessage().getHeader("X-RestComm-CallSid").toString().split(":")[1].trim();
+
+		assertTrue(aliceCall.waitForIncomingCall(30 * 1000));
+		assertTrue(aliceCall.sendIncomingCallResponse(Response.RINGING, "Ringing-Alice", 3600));
+		String receivedBody = new String(aliceCall.getLastReceivedRequest().getRawContent());
+		assertTrue(aliceCall.sendIncomingCallResponse(Response.OK, "OK-Alice", 3600, receivedBody, "application", "sdp", null,
+				null));
+		assertTrue(aliceCall.waitForAck(50 * 1000));
+
+		Thread.sleep(3000);
+
+		// hangup.
+		aliceCall.listenForDisconnect();
+		bobCall.disconnect();
+		DateTime end = DateTime.now();
+
+		assertTrue(aliceCall.waitForDisconnect(30 * 1000));
+		assertTrue(aliceCall.respondToDisconnect());
+
+		Thread.sleep(7000);
+		//Check recording
+		JsonArray recording = RestcommCallsTool.getInstance().getCallRecordings(deploymentUrl.toString(),adminAccountSid,adminAuthToken,callSid);
+		assertNotNull(recording);
+		assertEquals(1, recording.size());
+		double recordedDuration = (end.getMillis() - start.getMillis())/1000;
+		double duration = recording.get(0).getAsJsonObject().get("duration").getAsDouble();
+		assertEquals(recordedDuration, duration,1.0);
+		String recordingSid = recording.get(0).getAsJsonObject().get("sid").getAsString();
+
+		assertTrue(recording.get(0).getAsJsonObject().get("file_uri").getAsString().contains("http://127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Recordings/"));
+
+		//Since we are in secure mode the s3_uri shouldn't be here
+		assertNull(recording.get(0).getAsJsonObject().get("s3_uri"));
+
+		URL url = new URL(recording.get(0).getAsJsonObject().get("file_uri").getAsString());
+		HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+		connection.setRequestMethod("GET");
+		connection.connect();
+
+		assertEquals(200, connection.getResponseCode());
+
+		RecordingEndpointTool.getInstance().deleteRecording(deploymentUrl.toString(), adminAccountSid, adminAuthToken, recordingSid);
+
+		recording = RestcommCallsTool.getInstance().getCallRecordings(deploymentUrl.toString(),adminAccountSid,adminAuthToken,callSid);
+		assertNotNull(recording);
+		assertEquals(0, recording.size());
+
+		//Verify S3 Upload
+		List<LoggedRequest> requests = findAll(putRequestedFor(urlMatching("/s3/.*")));
+		assertEquals(1, requests.size());
+		verify(1, putRequestedFor(urlMatching("/s3/.*")));
+		verify(1, deleteRequestedFor(urlMatching("/s3/.*")));
+	}
 
 	@Test
 	public synchronized void testDialClientAlice_AliceDisconnects() throws InterruptedException, ParseException {
@@ -610,15 +725,17 @@ public class DialRecordingS3UploadSecureTest {
 	public static WebArchive createWebArchiveNoGw() {
 		logger.info("Packaging Test App");
 		WebArchive archive = ShrinkWrap.create(WebArchive.class, "restcomm.war");
-		final WebArchive restcommArchive = ShrinkWrapMaven.resolver()
+		final WebArchive restcommArchive = Maven.resolver()
 				.resolve("org.restcomm:restcomm-connect.application:war:" + version).withoutTransitivity()
 				.asSingle(WebArchive.class);
 		archive = archive.merge(restcommArchive);
 		archive.delete("/WEB-INF/sip.xml");
+archive.delete("/WEB-INF/web.xml");
 		archive.delete("/WEB-INF/conf/restcomm.xml");
 		archive.delete("/WEB-INF/data/hsql/restcomm.script");
 		archive.delete("/WEB-INF/classes/application.conf");
 		archive.addAsWebInfResource("sip.xml");
+        archive.addAsWebInfResource("web.xml");
 		archive.addAsWebInfResource("restcomm_recording_s3_upload_secure.xml", "conf/restcomm.xml");
 		archive.addAsWebInfResource("restcomm.script_dialTest_new", "data/hsql/restcomm.script");
 		archive.addAsWebInfResource("akka_application.conf", "classes/application.conf");

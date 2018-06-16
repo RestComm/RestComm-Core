@@ -1,4 +1,6 @@
-Telscale Restcomm Visual Designer helps you speed up creating communications application. However, for more complex applications, you might need to access advanced features of Restcomm. That is why understanding how you can use user-defined and built-in variables is essential. Please see below for more information. 
+CAUTION: This piece of documentation is outdated. We're actively re-working Visual Designer documentation <<index.adoc#, here>>
+
+Telscale Restcomm Visual Designer helps you speed up creating communications application. However, for more complex applications, you might need to access advanced features of Restcomm. That is why understanding how you can use user-defined and built-in variables is essential. Please see below for more information.
 
 = Variable syntax
 

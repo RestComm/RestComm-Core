@@ -1,0 +1,74 @@
+[[mysql-backup-restore-scripts]]
+= MySQL Backup/Restore scripts
+
+== Overview
+
+Restcomm-Connect provides a set of bash scripts that can be used to manually backup/restore database or the `restcomm_client` table.
+
+== Requirements
+* `mysql` client utility
+* `mysqldump` client utility
+
+== Scripts location
+
+At the folder `$RESTCOMM_HOME/bin/restcomm/db_backup_scripts` you will find all the scripts for backup and restore
+
+* `full_backup` folder contains scripts for full database backup and restore
+* `clients_backup` folder contains scripts for `restcomm_client` table backup and restore
+* `backup` folder will be used to save the sql dump files from the previous scripts
+
+== Full backup/restore
+
+==== Backup
+In order to full backup Restcomm-Connect database follow the step below:
+
+1. Edit `$RESTCOMM_HOME/bin/restcomm/upgrade.conf` to provide Mysql IP Address, username, password and Restcomm-Connect database name
+2. Execute `$RESTCOMM_HOME/bin/restcomm/db_backup_scripts/full_backup/restcomm_full_backup.sh`
+
+The script will generate an sql dump file at `$RESTCOMM_HOME/bin/restcomm/db_backup_scripts/backup`.
+Part of the filename will be the date and time of the execution similar to:
+
+`restcomm_full_backup_$DATE.sql`
+
+==== Restore
+To restore a previously taken database backup file, follow the steps bellow:
+
+1. Edit `$RESTCOMM_HOME/bin/restcomm/upgrade.conf` to provide Mysql IP Address, username, password and Restcomm-Connect database name
+2. Execute `$RESTCOMM_HOME/bin/restcomm/db_backup_scripts/full_backup/restcomm_restore.sh BACKUP_FILE`.
+
+*Script expects as the first argument the name of the sql dump file you want to restore*
+
+
+== Clients backup/restore
+
+==== Full Backup
+In order to full backup Restcomm-Connect `restcomm_clients` table follow the step below:
+
+1. Edit `$RESTCOMM_HOME/bin/restcomm/upgrade.conf` to provide Mysql IP Address, username, password and Restcomm-Connect database name
+2. Execute `$RESTCOMM_HOME/bin/restcomm/db_backup_scripts/clients_backup/clients_full_backup.sh`
+
+The script will generate an sql dump file at `$RESTCOMM_HOME/bin/restcomm/db_backup_scripts/backup`.
+Part of the filename will be the date and time of the execution similar to:
+
+`restcomm_clients_full_backup_$DATE.sql`
+
+==== Backup per Organization
+In order to backup Restcomm-Connect `restcomm_clients` table per Organization follow the step below:
+
+1. Edit `$RESTCOMM_HOME/bin/restcomm/upgrade.conf` to provide Mysql IP Address, username, password and Restcomm-Connect database name
+2. Execute `$RESTCOMM_HOME/bin/restcomm/db_backup_scripts/clients_backup/clients_per_org_backup.sh ORG_SID`
+
+*Script expects as the first argument the Organization SID that you want to backup its clients*
+
+The script will generate an sql dump file at `$RESTCOMM_HOME/bin/restcomm/db_backup_scripts/backup`.
+Part of the filename will be the date and time of the execution similar to:
+
+`restcomm_clients_for_ORG_$DATE.sql`
+
+==== Restore
+To restore a previously taken database backup file, follow the steps bellow:
+
+1. Edit `$RESTCOMM_HOME/bin/restcomm/upgrade.conf` to provide Mysql IP Address, username, password and Restcomm-Connect database name
+2. Execute `$RESTCOMM_HOME/bin/restcomm/db_backup_scripts/clients_backup/clients_restore.sh BACKUP_FILE`.
+
+*Script expects as the first argument the name of the sql dump file you want to restore*

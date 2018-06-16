@@ -2,35 +2,36 @@
 
 :root {
 
-    --coral-color: #44a5ab;
     --red-color: #f44336;
     --light-grey-color: #bdbdbd;
 
-    --primary-color: var(--coral-color);
+    --primary-color: #1ea5db;
 
     --primary-well-bg-color: #f0f0f0;
-    --primary-well-lines-color: var(--lines-color);
+    --primary-well-lines-color: #e0e0e0;
 
-    --secondary-well-bg-color: #faeee6;
-    --secondary-well-lines-color: #ffdacb;
+    --secondary-well-bg-color: #f0f0f0;
+    --secondary-well-lines-color: #e0e0e0;
 
-    --lines-color: #e4e3e3;
+    --lines-color: #141D33;
 
     --main-bg-color: #ffffff;
-    --main-text-color: #6d6e70;
-    --main-logo-url: url('../img/v2/restcomm-console-inside.svg');
+    --main-text-color: #434A5B;
+    --main-logo-url: url('../img/v2/restcomm-logo.svg');
 
     --danger-text-color: var(--red-color);
     --hot-text-color: #df3d00;
     --muted-text-color: var(--light-grey-color);
+
+    --contrast-bg-color: #141d33;
     --contrast-text-color: #ffffff;
 
-    --footer-bg-color: #eeeeee;
-    --footer-sep-color: #dbdbdb;
-    --footer-text-color: #a3a3a3;
+    --footer-bg-color: transparent;
+    --footer-sep-color: transparent;
+    --footer-text-color: #ffffff;
     --footer-image-url: url('../img/v2/telestax-footer.png');
 
-    --link-text-color: #4a4a4b;
+    --link-text-color: #141D33;
     --link-text-hover-color: #4a4a4b;
 
     --link-muted-text-color: var(--muted-text-color);
@@ -56,7 +57,7 @@
 
     --button-primary-bg-color: var(--primary-color);
     --button-primary-text-color: #ffffff;
-    --button-primary-hover-bg-color: #3b8f96;
+    --button-primary-hover-bg-color: #1693c5;
     --button-primary-hover-text-color: #ffffff;
 
     --button-danger-bg-color: var(--red-color);
@@ -67,8 +68,8 @@
     --sign-in-label-color: var(--primary-color);
     --sign-in-logo-url: url('../img/v2/restcomm-console.svg');
 
-    --primary-tabs-bg-color: #eeeeee;
-    --primary-tabs-text-color: var(--main-text-color);
+    --primary-tabs-bg-color: #141D33;
+    --primary-tabs-text-color: #ffffff;
     --primary-tabs-underline-color: var(--primary-color);
 
     --mobile-menu-bg-color: #eeeeee;
@@ -76,7 +77,7 @@
     --mobile-menu-hover-bg-color: #eeeeee;
     --mobile-menu-hover-text-color: var(--link-text-color);
 
-    --account-logo-bg-color: #12506C;
+    --account-logo-bg-color: #141D33;
     --account-logo-text-color: #ffffff;
 
     --account-status-active-color: #7eba5a;
@@ -158,6 +159,84 @@
   font-style: italic;
 }
 
+@font-face{
+    font-family: 'Roboto';
+    src: url('../fonts/Roboto/Roboto-Thin.ttf') format('truetype');
+    font-weight: 100;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Roboto';
+    src: url('../fonts/Roboto/Roboto-ThinItalic.ttf') format('truetype');
+    font-weight: 100;
+    font-style: italic;
+}
+
+@font-face{
+    font-family: 'Roboto';
+    src: url('../fonts/Roboto/Roboto-Light.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Roboto';
+    src: url('../fonts/Roboto/Roboto-LightItalic.ttf') format('truetype');
+    font-weight: 300;
+    font-style: italic;
+}
+
+@font-face{
+    font-family: 'Roboto';
+    src: url('../fonts/Roboto/Roboto-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Roboto';
+    src: url('../fonts/Roboto/Roboto-Italic.ttf') format('truetype');
+    font-weight: 400;
+    font-style: italic;
+}
+
+@font-face{
+    font-family: 'Roboto';
+    src: url('../fonts/Roboto/Roboto-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Roboto';
+    src: url('../fonts/Roboto/Roboto-MediumItalic.ttf') format('truetype');
+    font-weight: 500;
+    font-style: italic;
+}
+
+@font-face{
+    font-family: 'Roboto';
+    src: url('../fonts/Roboto/Roboto-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Roboto';
+    src: url('../fonts/Roboto/Roboto-BoldItalic.ttf') format('truetype');
+    font-weight: 700;
+    font-style: italic;
+}
+
+@font-face{
+    font-family: 'Roboto';
+    src: url('../fonts/Roboto/Roboto-Black.ttf') format('truetype');
+    font-weight: 900;
+    font-style: normal;
+}
+@font-face{
+    font-family: 'Roboto';
+    src: url('../fonts/Roboto/Roboto-BlackItalic.ttf') format('truetype');
+    font-weight: 900;
+    font-style: italic;
+}
+
 /* -- Sticky Footer Styles -------------------------------------------------- */
 
 html {
@@ -177,15 +256,6 @@ body {
     height: 100%;
 }
 
-/* Set the fixed height of the footer here */
-#footer {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-
-    height: 40px;
-}
-
 /* -- General Styles -------------------------------------------------------- */
 
 * {
@@ -193,11 +263,13 @@ body {
     -moz-box-sizing: border-box;
     box-sizing: border-box;
     outline: none;
-    font-family: Lato, sans-serif;
+    font-family: Roboto, sans-serif;
 }
 
 body {
     background: var(--main-bg-color) !important;
+    font-size: 14.65px;
+    font-weight: 300;
     color: var(--main-text-color);
 }
 
@@ -332,6 +404,16 @@ a:hover {
     }
 }
 
+/* Set the fixed height of the footer here */
+#footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+
+    height: 40px;
+}
+
 .footer {
     padding-top: 10px;
     padding-left: 10px;
@@ -350,12 +432,16 @@ a:hover {
 
 @media(max-width:768px) {
     #footer {
-        padding-top: 10px;
     }
 }
 
 .footer-social-media {
     padding-right: 20px;
+}
+
+.footer-social-media a {
+    color: var(--contrast-text-color);
+    opacity: 0.6;
 }
 
 .footer-social-media a+a {
@@ -422,14 +508,14 @@ form[role=login] {
 
 form[role=login] input {
     border: none;
-    border-bottom: 2px solid var(--primary-color);
+    border-bottom: 2px solid var(--lines-color);
     margin-bottom: 20px;
     padding-bottom: 0;
     border-radius: 0;
     box-shadow: none;
     font-weight: 300;
     height: auto;
-    font-size: 20px;
+    font-size: 16px;
 }
 
 @media(max-width:768px) {
@@ -489,6 +575,60 @@ form[role=login] input:-webkit-autofill:focus{
     margin-top: 10px;
 }
 
+.two-sides-container {
+    position: relative;
+    top: -40px;
+    bottom: 0;
+    left: -80px;
+    width: calc(100% + 160px);
+    margin: 0;
+}
+
+.two-sides-left-side {
+}
+
+.two-sides-right-side {
+    background-color: var(--contrast-bg-color);
+    color: var(--contrast-text-color);
+    height: 100%;
+    padding-top: 8%;
+    padding-bottom: 100%;
+    margin-bottom: -100%;
+    overflow: hidden;
+}
+
+.two-sides-right-side a {
+    background-color: var(--contrast-bg-color);
+    color: var(--contrast-text-color);
+}
+
+@media(max-width:768px) {
+    .two-sides-container {
+        left: 0;
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        overflow: auto;
+    }
+
+    .two-sides-right-side {
+        height: 100%;
+        padding-top: 8%;
+        overflow: initial;
+    }
+}
+
+.rc-one-inline {
+    width: 38%;
+    max-width: 260px;
+    min-width: 175px;
+    vertical-align: text-top;
+}
+
+.all-white-svg {
+    filter: brightness(999);
+}
+
 /* -- Main Container -------------------------------------------------------- */
 .main-container {
     // height: calc(100vh - 163px);
@@ -507,8 +647,8 @@ form[role=login] input:-webkit-autofill:focus{
 /* -- Top Bar --------------------------------------------------------------- */
 
 .logo-container {
-    padding-left: 130px;
-    padding-top: 40px;
+    padding-left: calc(50% - 140px);
+    padding-top: 15%;
     margin-right: auto;
     margin-left: auto;
 }
@@ -544,7 +684,7 @@ form[role=login] input:-webkit-autofill:focus{
 .logo-inside > a {
     background: no-repeat left var(--main-logo-url);
     background-size: contain;
-    height: 48px;
+    height: 25px;
     width: 220px;
     display: block;
 }
@@ -566,17 +706,18 @@ form[role=login] input:-webkit-autofill:focus{
 }
 
 .user-menu {
-    font-size: 16px;
-    margin-top: 26px;
-    margin-bottom: -10px;
+    font-size: 14px;
+    font-weight: 400;
+    margin-top: 8px;
+    margin-bottom: -15px;
     padding-right: 50px;
 }
 
 .user-dropdown-menu {
     position: absolute !important;
-    min-width: 230px;
+    min-width: 220px;
     max-height: 500px;
-    font-size: 1.1em;
+    font-size: 1.2em;
     padding: 10px;
     box-shadow: none;
 }
@@ -588,7 +729,8 @@ form[role=login] input:-webkit-autofill:focus{
 }
 
 .user-dropdown-menu a {
-    color: inherit !important;
+    color: var(--link-text-color) !important;
+    font-weight: 400;
 }
 
 .user-dropdown-menu a:hover {
@@ -604,9 +746,9 @@ form[role=login] input:-webkit-autofill:focus{
     display: table;
     table-layout: fixed;
     font-size: 18px;
-    height: 31px;
-    margin-top: 9px;
-    margin-bottom: -2px;
+    line-height: 46px;
+    margin-top: -2px;
+    margin-bottom: -4px;
 }
 
 .primary-tabs-container span {
@@ -665,8 +807,12 @@ form[role=login] input:-webkit-autofill:focus{
     }
 }
 
-.primary-tabs-container span.active {
-    border-bottom: 2px solid var(--primary-tabs-underline-color);
+.primary-tabs-container span.active a {
+    border-bottom: 6px solid var(--primary-tabs-underline-color);
+}
+
+.primary-tabs-container span a:hover {
+    border-bottom: 6px solid var(--primary-tabs-underline-color);
 }
 
 .primary-tabs-container span a,
@@ -674,11 +820,11 @@ form[role=login] input:-webkit-autofill:focus{
 .primary-tabs-container span a:visited {
     color: var(--primary-tabs-text-color);
     text-decoration: none;
+    padding-bottom: 3px;
 }
 
 .primary-tabs-container span a:hover {
-    color: var(--link-text-color);
-    font-weight: bold;
+    color: var(--primary-tabs-text-color);
 }
 
 .mobile-menu {
@@ -859,7 +1005,7 @@ form[role=login] input:-webkit-autofill:focus{
 }
 
 .accounts-tabs .active a {
-    border-left: 2px solid var(--primary-color);
+    border-left: 4px solid var(--primary-color);
 }
 
 .profile-form {
@@ -893,8 +1039,9 @@ form[role=login] input:-webkit-autofill:focus{
 }
 
 .account-name {
-    font-size: 1.6em;
-    font-weight: bold;
+    font-size: 1.65em;
+    color: var(--link-text-color);
+    font-weight: 500;
 }
 
 .account-type {
@@ -1152,7 +1299,7 @@ form[role=login] input:-webkit-autofill:focus{
 /* -- Clients --------------------------------------------------------------- */
 
 .rc-list {
-    font-size: 1.3em;
+    font-size: 1.1em;
     font-weight: 300;
     table-layout: fixed;
 }
@@ -1327,8 +1474,8 @@ form[role=login] input:-webkit-autofill:focus{
 }
 
 .logs-search-button {
-    padding: 5px 10px;
-    border-radius: 10px;
+    padding: 3px 10px;
+    border-radius: 4px;
     font-size: 2em;
     border: none;
     top: 0;
@@ -1976,7 +2123,7 @@ div.input-group.f16 > .input-group-btn > .dropdown-toggle {
 }
 
 .buttons-per-page button.active {
-    border-bottom: 2px solid var(--primary-color);
+    border-bottom: 4px solid var(--primary-color);
 }
 
 .buttons-per-page button:hover {
@@ -2020,6 +2167,8 @@ div.input-group.f16 > .input-group-btn > .dropdown-toggle {
 
 .details-section-title {
     color: var(--primary-color);
+    font-size: 20px;
+    font-weight: 400;
     padding-top: 25px;
 }
 
@@ -2060,7 +2209,7 @@ div.input-group.f16 > .input-group-btn > .dropdown-toggle {
 
 .rc-selection-picker {
     background-color: var(--input-bg-color);
-    border: 2px solid var(--lines-color);
+    border: 2px solid var(--primary-well-lines-color);
     border-radius: 5px;
     height: 42px;
     font-size: 17px;
@@ -2068,13 +2217,14 @@ div.input-group.f16 > .input-group-btn > .dropdown-toggle {
     width: 100%;
 }
 
-.rc-selection-picker.rc-selection-picker-advanced {
+.rc-selection-picker.rc-selection-picker-advanced,
+.details-box.advanced .rc-selection-picker {
     border: 2px solid var(--secondary-well-lines-color);
 }
 
 .rc-textbox {
     background-color: var(--input-bg-color);
-    border: 2px solid var(--lines-color);
+    border: 2px solid var(--primary-well-lines-color);
     border-radius: 5px;
     padding-left: 10px;
     width: 100%;
@@ -2099,6 +2249,19 @@ button.btn-selection {
     border-bottom: 1px solid var(--lines-color);
 }
 
+.btn-transparent {
+    border: 2px solid var(--contrast-text-color);
+    background-color: transparent;
+    padding: 10px 40px;
+    color: #ffffff;
+    opacity: 0.7;
+}
+
+.btn-transparent:hover {
+    border: 2px solid var(--contrast-text-color);
+    background-color: transparent;
+    opacity: 1;
+}
 
 
 
@@ -2238,7 +2401,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .pagination > .active > a:focus, .pagination > .active > span:focus {
     background-color: transparent;
     border: none;
-    border-bottom: 2px solid var(--primary-color);
+    border-bottom: 4px solid var(--primary-color);
     color: var(--main-text-color);
     background-color: transparent;
     text-decoration: none;
@@ -2373,6 +2536,42 @@ input.ng-dirty.ng-invalid {
 }
 .opacity70 {
     opacity: 0.7;
+}
+
+.fw100 {
+    font-weight: 100;
+}
+
+.fw200 {
+    font-weight: 200;
+}
+
+.fw300 {
+    font-weight: 300;
+}
+
+.fw400 {
+    font-weight: 400;
+}
+
+.fw500 {
+    font-weight: 500;
+}
+
+.fw600 {
+    font-weight: 600;
+}
+
+.fw700 {
+    font-weight: 700;
+}
+
+.fw800 {
+    font-weight: 800;
+}
+
+.fw900 {
+    font-weight: 900;
 }
 
 .form-dl > dt, .form-dl > dd {

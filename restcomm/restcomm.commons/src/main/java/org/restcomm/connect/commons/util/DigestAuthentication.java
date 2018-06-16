@@ -19,10 +19,11 @@
  */
 package org.restcomm.connect.commons.util;
 
+import org.restcomm.connect.commons.annotations.concurrency.ThreadSafe;
+import org.restcomm.connect.commons.configuration.RestcommConfiguration;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-
-import org.restcomm.connect.commons.annotations.concurrency.ThreadSafe;
 
 /**
  * @author quintana.thomas@gmail.com (Thomas Quintana)
@@ -41,36 +42,65 @@ public final class DigestAuthentication {
             if (cnonce == null || cnonce.length() == 0) {
                 throw new NullPointerException("The cnonce parameter may not be null.");
             }
-            return H(user + ":" + realm + ":" + password) + ":" + nonce + ":" + cnonce;
+            return H(user + ":" + realm + ":" + password, algorithm) + ":" + nonce + ":" + cnonce;
         }
     }
 
-    private static String A2(final String method, final String uri, String body, final String qop) {
+    private static String A2(String algorithm, final String method, final String uri, String body, final String qop) {
         if (qop == null || qop.trim().length() == 0 || qop.trim().equalsIgnoreCase("auth")) {
             return method + ":" + uri;
         } else {
             if (body == null)
                 body = "";
-            return method + ":" + uri + ":" + H(body);
+            return method + ":" + uri + ":" + H(body, algorithm);
         }
     }
 
-    public static String response(final String algorithm, final String user, final String realm, final String password,
-            final String nonce, final String nc, final String cnonce, final String method, final String uri, String body,
-            final String qop) {
-        validate(user, realm, password, nonce, method, uri);
-        final String a1 = A1(algorithm, user, realm, password, nonce, cnonce);
-        final String a2 = A2(method, uri, body, qop);
-        if (cnonce != null && qop != null && nc != null && (qop.equalsIgnoreCase("auth") || qop.equalsIgnoreCase("auth-int"))) {
-            return KD(H(a1), nonce + ":" + nc + ":" + cnonce + ":" + qop + ":" + H(a2));
+    public static String response(final String authHeaderAlgorithm, final String user, final String realm, final String password,
+    final String nonce, final String nc, final String cnonce, final String method, final String uri, String body,
+    final String qop) {
+        return response(authHeaderAlgorithm, user, realm, password, RestcommConfiguration.getInstance().getMain().getClientAlgorithm(), nonce, nc, cnonce, method, uri, body, qop);
+    }
+
+    /**
+     * @param authHeaderAlgorithm
+     * @param user
+     * @param realm
+     * @param password
+     * @param clientPasswordAlgorithm
+     * @param nonce
+     * @param nc
+     * @param cnonce
+     * @param method
+     * @param uri
+     * @param body
+     * @param qop
+     * @return
+     */
+    public static String response(final String authHeaderAlgorithm, final String user, final String realm, final String password,
+            final String clientPasswordAlgorithm, final String nonce, final String nc, final String cnonce, final String method, final String uri,
+            String body, final String qop) {
+        validate(user, realm, password, nonce, method, uri, authHeaderAlgorithm);
+        String ha1;
+
+        if (clientPasswordAlgorithm.equalsIgnoreCase("cleartext")) {
+            final String a1 = A1(authHeaderAlgorithm, user, realm, password, nonce, cnonce);
+            ha1 = H(a1, authHeaderAlgorithm);
         } else {
-            return KD(H(a1), nonce + ":" + H(a2));
+            ha1 = password;
+        }
+
+        final String a2 = A2(authHeaderAlgorithm, method, uri, body, qop);
+        if (cnonce != null && qop != null && nc != null && (qop.equalsIgnoreCase("auth") || qop.equalsIgnoreCase("auth-int"))) {
+            return KD(ha1, nonce + ":" + nc + ":" + cnonce + ":" + qop + ":" + H(a2, authHeaderAlgorithm), authHeaderAlgorithm);
+        } else {
+            return KD(ha1, nonce + ":" + H(a2, authHeaderAlgorithm), authHeaderAlgorithm);
         }
     }
 
-    private static String H(final String data) {
+    private static String H(final String data, String algorithm) {
         try {
-            final MessageDigest digest = MessageDigest.getInstance("MD5");
+            final MessageDigest digest = MessageDigest.getInstance(algorithm);
             final byte[] result = digest.digest(data.getBytes());
             final char[] characters = HexadecimalUtils.toHex(result);
             return new String(characters);
@@ -79,12 +109,12 @@ public final class DigestAuthentication {
         }
     }
 
-    private static String KD(final String secret, final String data) {
-        return H(secret + ":" + data);
+    private static String KD(final String secret, final String data, String algorithm) {
+        return H(secret + ":" + data, algorithm);
     }
 
     private static void validate(final String user, final String realm, final String password, final String nonce,
-            final String method, final String uri) {
+            final String method, final String uri, String algorithm) {
         if (user == null) {
             throw new NullPointerException("The user parameter may not be null.");
         } else if (realm == null) {
@@ -98,5 +128,26 @@ public final class DigestAuthentication {
         } else if (nonce == null) {
             throw new NullPointerException("The nonce parameter may not be null.");
         }
+    }
+
+    /**
+     * @param username
+     * @param realm
+     * @param password
+     * @return
+     */
+    public static String HA1(String username, String realm, String password){
+        String algorithm = RestcommConfiguration.getInstance().getMain().getClientAlgorithm();
+        String ha1 = "";
+        ha1 = DigestAuthentication.H(username+":"+realm+":"+password, algorithm);
+        return ha1;
+    }
+
+
+    //USed for unit testing
+    public static String HA1(String username, String realm, String password, String algorithm){
+        String ha1 = "";
+        ha1 = DigestAuthentication.H(username+":"+realm+":"+password, algorithm);
+        return ha1;
     }
 }

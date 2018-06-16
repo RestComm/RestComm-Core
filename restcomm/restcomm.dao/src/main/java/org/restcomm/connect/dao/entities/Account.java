@@ -217,6 +217,20 @@ public final class Account {
             super();
         }
 
+        public Builder copy(Account account) {
+            sid = account.getSid();
+            parentSid = account.getParentSid();
+            organizationSid = account.getOrganizationSid();
+            type = account.getType();
+            uri = account.getUri();
+            authToken = account.getAuthToken();
+            emailAddress = account.getEmailAddress();
+            friendlyName = account.getFriendlyName();
+            role = account.getRole();
+            status = account.getStatus();
+            return this;
+        }
+
         public Account build() {
             final DateTime now = DateTime.now();
             return new Account(sid, now, now, emailAddress, friendlyName, parentSid, type, status, authToken, role, uri, organizationSid);

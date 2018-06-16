@@ -12,7 +12,7 @@
 <restcomm>
 	<runtime-settings>
 		<!-- The API version that will be used. -->
-		<api-version>2012-04-24</api-version>
+		<api-version>2012-04-24</api-version><client-algorithm>MD5</client-algorithm><client-qop>auth</client-qop><client-algorithm-sess>false</client-algorithm-sess>
 
 		<!-- The location where the audio prompts are located. -->
 		<prompts-uri>/restcomm/audio</prompts-uri>
@@ -280,7 +280,7 @@
 					server, it sends an 'ENQUIRE_LINK' after every configured enquire-link-delay.
 					If no response received for 3 consecutive requests, connection will be killed
 					and attempted to connect again -->
-				<enquirelinkdelay>30000</enquirelinkdelay>
+				<enquirelinkdelay>30000</enquirelinkdelay><inboundencoding>UTF-8</inboundencoding><outboundencoding>UTF-8</outboundencoding><messagepayloadflag>false</messagepayloadflag><autodetectdcsflag>false</autodetectdcsflag>
 			</connection>
 		</connections>
 	</smpp>

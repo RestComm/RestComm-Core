@@ -12,7 +12,7 @@
 <restcomm>
 	<runtime-settings>
 		<!-- The API version that will be used. -->
-		<api-version>2012-04-24</api-version>
+		<api-version>2012-04-24</api-version><client-algorithm>MD5</client-algorithm><client-qop>auth</client-qop><client-algorithm-sess>false</client-algorithm-sess>
 
 		<!-- The location where the audio prompts are located. -->
 		<prompts-uri>http://127.0.0.1:8080/restcomm/audio</prompts-uri>
@@ -271,6 +271,23 @@
 			<swedish>sv-se</swedish>
 		</languages>
 	</voicerss>
+        
+	<!-- Configuration for the VoIP Innovations provisioning API. -->
+	<phone-number-provisioning
+		class="org.restcomm.connect.provisioning.number.vi.VoIPInnovationsNumberProvisioningManager">
+		<callback-urls>
+			<voice url="localhost:5080" method="SIP" />
+			<sms url="localhost:5080" method="SIP" />
+			<fax url="localhost:5080" method="SIP" />
+			<ussd url="localhost:5080" method="SIP" />
+		</callback-urls>
+		<voip-innovations>
+			<login></login>
+			<password></password>
+			<endpoint></endpoint>
+			<uri>http://127.0.0.1:8090/test</uri>
+		</voip-innovations>
+	</phone-number-provisioning>        
 
 	<!-- AT&T Speech Synthesizer plugin -->
 	<!-- <speech-synthesizer class="org.restcomm.connect.tts.att.AttSpeechSynthesizer">

@@ -21,8 +21,31 @@ package org.restcomm.connect.http;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.sun.jersey.spi.resource.Singleton;
 import com.thoughtworks.xstream.XStream;
-
+import javax.annotation.PostConstruct;
+import javax.annotation.security.RolesAllowed;
+import javax.servlet.ServletContext;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static javax.ws.rs.core.MediaType.APPLICATION_XML;
+import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.NOT_ACCEPTABLE;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.ok;
+import static javax.ws.rs.core.Response.status;
 import org.apache.commons.configuration.Configuration;
 import org.joda.time.DateTime;
 import org.restcomm.connect.commons.dao.Sid;
@@ -33,31 +56,22 @@ import org.restcomm.connect.extension.api.ConfigurationException;
 import org.restcomm.connect.extension.api.ExtensionConfiguration;
 import org.restcomm.connect.http.converter.ExtensionConfigurationConverter;
 import org.restcomm.connect.http.converter.RestCommResponseConverter;
-
-import javax.annotation.PostConstruct;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
-import static javax.ws.rs.core.MediaType.APPLICATION_XML;
-import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.NOT_ACCEPTABLE;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.ok;
-import static javax.ws.rs.core.Response.status;
+import static org.restcomm.connect.http.security.AccountPrincipal.SUPER_ADMIN_ROLE;
 
 /**
  * Created by gvagenas on 12/10/2016.
  */
-public class  ExtensionsConfigurationEndpoint extends SecuredEndpoint {
-    protected Configuration allConfiguration;
-    protected Configuration configuration;
-    protected Gson gson;
-    protected XStream xstream;
-    protected ExtensionsConfigurationDao extensionsConfigurationDao;
+@Path("/ExtensionsConfiguration")
+@RolesAllowed(SUPER_ADMIN_ROLE)
+@Singleton
+public class  ExtensionsConfigurationEndpoint extends AbstractEndpoint {
+    private Configuration allConfiguration;
+    private Configuration configuration;
+    private Gson gson;
+    private XStream xstream;
+    private ExtensionsConfigurationDao extensionsConfigurationDao;
+    @Context
+    private ServletContext context;
 
     public ExtensionsConfigurationEndpoint() { super(); }
 
@@ -128,10 +142,10 @@ public class  ExtensionsConfigurationEndpoint extends SecuredEndpoint {
         if (extensionConfiguration == null) {
             return status(NOT_FOUND).build();
         } else {
-            if (APPLICATION_XML_TYPE == responseType) {
+            if (APPLICATION_XML_TYPE.equals(responseType)) {
                 final RestCommResponse response = new RestCommResponse(extensionConfiguration);
                 return ok(xstream.toXML(response), APPLICATION_XML).build();
-            } else if (APPLICATION_JSON_TYPE == responseType) {
+            } else if (APPLICATION_JSON_TYPE.equals(responseType)) {
                 return ok(gson.toJson(extensionConfiguration), APPLICATION_JSON).build();
             } else {
                 return null;
@@ -201,9 +215,9 @@ public class  ExtensionsConfigurationEndpoint extends SecuredEndpoint {
             }
         }
 
-        if (APPLICATION_JSON_TYPE == responseType) {
+        if (APPLICATION_JSON_TYPE.equals(responseType)) {
             return ok(gson.toJson(extensionConfiguration), APPLICATION_JSON).build();
-        } else if (APPLICATION_XML_TYPE == responseType) {
+        } else if (APPLICATION_XML_TYPE.equals(responseType)) {
             final RestCommResponse response = new RestCommResponse(extensionConfiguration);
             return ok(xstream.toXML(response), APPLICATION_XML).build();
         } else {
@@ -245,9 +259,9 @@ public class  ExtensionsConfigurationEndpoint extends SecuredEndpoint {
             return status(NOT_ACCEPTABLE).entity(exception.getMessage()).build();
         }
 
-        if (APPLICATION_JSON_TYPE == responseType) {
+        if (APPLICATION_JSON_TYPE.equals(responseType)) {
             return ok(gson.toJson(updatedExtensionConfiguration), APPLICATION_JSON).build();
-        } else if (APPLICATION_XML_TYPE == responseType) {
+        } else if (APPLICATION_XML_TYPE.equals(responseType)) {
             final RestCommResponse response = new RestCommResponse(updatedExtensionConfiguration);
             return ok(xstream.toXML(response), APPLICATION_XML).build();
         } else {
@@ -273,5 +287,30 @@ public class  ExtensionsConfigurationEndpoint extends SecuredEndpoint {
         }
 
         return new ExtensionConfiguration(existingExtensionSid, existingExtensionName, enabled, configurationData, configurationType, dateCreated ,DateTime.now());
+    }
+
+    @Path("/{extensionId}")
+    @GET
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response getConfigurationAsXml(@PathParam("extensionId") final String extension,
+            @QueryParam("AccountSid") Sid accountSid,
+            @HeaderParam("Accept") String accept) {
+        return getConfiguration(extension, accountSid, retrieveMediaType(accept));
+    }
+
+    @POST
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response postConfigurationAsXml(final MultivaluedMap<String, String> data,
+            @HeaderParam("Accept") String accept) {
+        return postConfiguration(data, retrieveMediaType(accept));
+    }
+
+    @Path("/{extensionSid}")
+    @POST
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response updateConfigurationAsXml(@PathParam("extensionSid") final String extensionSid,
+                                                  final MultivaluedMap<String, String> data,
+                                                  @HeaderParam("Accept") String accept) {
+        return updateConfiguration(extensionSid, data, retrieveMediaType(accept));
     }
 }

@@ -17,13 +17,19 @@
     <div class="row">
         <div class="col-md-12">
 
-            <div ng-hide="!appsList || (appsList | filter:query).length > 0" class="jumbotron rc-no-items">
+            <div ng-show="!query.friendly_name && (!appsList || (filtered.length === 0))" class="jumbotron rc-no-items">
                 <h1><i class="fa fa-cogs"></i> </h1>
                 <h2>No applications found</h2>
                 <h5>Let's build something!</h5>
             </div>
 
-            <table ng-show="(appsList | filter:query).length > 0" class="table table-hover apps-list rc-list" ng-cloak>
+            <div ng-show="query.friendly_name && (!appsList || (filtered.length === 0))" class="jumbotron rc-no-items">
+                <h1><i class="fa fa-search"></i> </h1>
+                <h2>No applications found for "{{ query.friendly_name }}"</h2>
+                <h5>Please update your search and try again.</h5>
+            </div>
+
+            <table ng-show="filtered.length > 0" class="table table-hover apps-list rc-list" ng-cloak>
                 <thead>
                 <th class="apps-list-name" rc-list-sort by="predicate" order="'friendly_name'" reverse="reverse">Name</th>
                 <th class="apps-list-name-buttons hidden-xs">&nbsp;</th>
@@ -74,7 +80,7 @@
                 <td colspan="4">
                     <div class="row">
                         <div class="col-md-4">
-                            <small class="rc-list-summary">1 to {{ (appsList | filter:query).length }} of {{ (appsList | filter:query).length }} Application{{ (appsList | filter:query).length === 1 ? "" : "s" }}</small>
+                            <small class="rc-list-summary">1 to {{ filtered.length }} of {{ filtered.length }} Application{{ filtered.length === 1 ? "" : "s" }}</small>
                         </div>
                     </div>
                 </td>

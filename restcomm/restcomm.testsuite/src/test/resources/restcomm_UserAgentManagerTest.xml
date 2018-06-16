@@ -11,8 +11,12 @@
 	MA 02110-1301 USA, or see the FSF site: http://www.fsf.org. -->
 <restcomm>
 	<runtime-settings>
+          <client-algorithm>MD5</client-algorithm>
+        <client-qop>auth</client-qop>
+        <client-algorithm-sess>false</client-algorithm-sess>
+        <realm>127.0.0.1</realm>
 		<!-- The API version that will be used. -->
-		<api-version>2012-04-24</api-version>
+		<api-version>2012-04-24</api-version><client-algorithm>MD5</client-algorithm><client-qop>auth</client-qop><client-algorithm-sess>false</client-algorithm-sess>
 
 		<!-- Try to run RVD workspace projects migration to apply new naming
 			convention and synchronization with database entities. This execution
@@ -304,7 +308,7 @@
 					server, it sends an 'ENQUIRE_LINK' after every configured enquire-link-delay.
 					If no response received for 3 consecutive requests, connection will be killed
 					and attempted to connect again -->
-				<enquirelinkdelay>30000</enquirelinkdelay>
+				<enquirelinkdelay>30000</enquirelinkdelay><inboundencoding>UTF-8</inboundencoding><outboundencoding>UTF-8</outboundencoding><messagepayloadflag>false</messagepayloadflag><autodetectdcsflag>false</autodetectdcsflag>
 			</connection>
 		</connections>
 	</smpp>

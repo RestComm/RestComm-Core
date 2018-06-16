@@ -72,7 +72,6 @@ rcMod.controller('DashboardCtrl', function ($scope, $resource, $rootScope, RComm
 
     $scope.callsOptions.chart.bars.yDomain = [0, Math.max(parseInt(maxCalls * 1.1), 25)];
     $scope.callsOptions.chart.lines.yDomain = [0, Math.max(parseInt(maxDuration * 1.1), 100)];
-    $scope.callsAPI.updateWithOptions($scope.callsOptions);
   });
 
   RCommStatistics.query({accountSid: $scope.sid, statName: 'Daily', Category: 'SMS', StartDate: startDateJSON, EndDate: endDateJSON}, function(data) {
@@ -106,7 +105,6 @@ rcMod.controller('DashboardCtrl', function ($scope, $resource, $rootScope, RComm
     }
 
     $scope.smsOptions.chart.yDomain = [0, Math.max(parseInt(maxSMS * 1.1), 100)];
-    $scope.smsAPI.updateWithOptions($scope.smsOptions);
   });
 
   $scope.callsOptions = {

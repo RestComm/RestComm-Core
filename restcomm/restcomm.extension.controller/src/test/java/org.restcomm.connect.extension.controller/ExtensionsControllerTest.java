@@ -19,12 +19,14 @@
 
 package org.restcomm.connect.extension.controller;
 
+import java.util.List;
+
+import javax.servlet.ServletContext;
+
 import org.apache.log4j.Logger;
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.restcomm.connect.commons.annotations.UnstableTests;
 import org.restcomm.connect.commons.dao.Sid;
 import org.restcomm.connect.extension.api.ApiRequest;
 import org.restcomm.connect.extension.api.ExtensionRequest;
@@ -33,10 +35,6 @@ import org.restcomm.connect.extension.api.ExtensionType;
 import org.restcomm.connect.extension.api.IExtensionRequest;
 import org.restcomm.connect.extension.api.RestcommExtension;
 import org.restcomm.connect.extension.api.RestcommExtensionGeneric;
-
-import javax.servlet.ServletContext;
-import java.util.List;
-import org.junit.After;
 
 public class ExtensionsControllerTest {
 

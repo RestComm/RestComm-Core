@@ -12,7 +12,7 @@
 <restcomm>
 	<runtime-settings>
 		<!-- The API version that will be used. -->
-		<api-version>2012-04-24</api-version>
+		<api-version>2012-04-24</api-version><client-algorithm>MD5</client-algorithm><client-qop>auth</client-qop><client-algorithm-sess>false</client-algorithm-sess>
 
 		<!-- The location where the audio prompts are located. -->
 		<prompts-uri>http://127.0.0.1:8080/restcomm/audio</prompts-uri>

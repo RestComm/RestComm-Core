@@ -1,4 +1,6 @@
-The Restcomm Visual Designer is a quick and great way to create communications application. However, when you have to deal with more complex applications, you might find the graphics interface limited. This is where the External Services can become a formidable tool. You will be able to design your application using the Visual Designer and build the logic using any programming language of your choice. This tutorial will help you understand the main features of the External Services. 
+CAUTION: This piece of documentation is outdated. We're actively re-working Visual Designer documentation <<index.adoc#, here>>
+
+The Restcomm Visual Designer is a quick and great way to create communications application. However, when you have to deal with more complex applications, you might find the graphics interface limited. This is where the External Services can become a formidable tool. You will be able to design your application using the Visual Designer and build the logic using any programming language of your choice. This tutorial will help you understand the main features of the External Services.
 
 = Overview of the  demo
 

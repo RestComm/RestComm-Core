@@ -46,6 +46,51 @@ rcDirectives.directive('autofocus', function ($timeout) {
   };
 });
 
+rcDirectives.directive('rcFac', function ($interpolate, $compile, $parse) {
+  return {
+    link: function(scope, element, attrs) {
+      var facObject = scope.$eval(attrs.rcFac);
+
+      var facCondition = (facObject && facObject.condition) || attrs.facCondition;
+      var facTitle = attrs.facTitle || facObject.title;
+      var facMessage = attrs.facMessage || facObject.message;
+      var facAutoOpen = !!facObject.open;
+      var facWrapper = !!facObject.wrapper;
+      var facPlacement = facObject.placement || 'auto';
+      var facStyles = facObject.styles;
+
+      var disabled = $parse(facCondition)(scope);
+      element.prop('disabled', disabled);
+
+      if ((disabled || facAutoOpen) && !attrs.title) {
+        element.prop('title', facTitle);
+        element.css({'pointer-events': 'none'});
+
+        var wrapper = facWrapper ? element.wrap('<div></div>').parent() : element;
+
+        if (facStyles) {
+          wrapper.css(facStyles);
+        }
+        wrapper.attr('popover-title', facTitle);
+        wrapper.attr('uib-popover-html', '\'' + facMessage + '\'');
+        wrapper.attr('popover-placement', facPlacement);
+        wrapper.attr('popover-append-to-body', 'true');
+
+        if (facAutoOpen) {
+          wrapper.attr('popover-is-open', facCondition);
+        }
+        else {
+          wrapper.attr('popover-trigger', '"mouseenter"');
+          wrapper.css({'cursor': 'not-allowed'});
+          wrapper.attr('popover-popup-close-delay', '2500');
+        }
+        $compile(wrapper)(scope);
+        $compile(element)(scope);
+      }
+    }
+  }
+});
+
 rcDirectives.directive('rcListSort', function ($timeout) {
   return {
     restrict: 'A',

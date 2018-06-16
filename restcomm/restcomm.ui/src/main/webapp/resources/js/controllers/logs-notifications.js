@@ -26,7 +26,8 @@ rcMod.controller('LogsNotificationsCtrl', function ($scope, $resource, $timeout,
 
   $scope.setEntryLimit = function(limit) {
     $scope.entryLimit = limit;
-    $scope.noOfPages = Math.ceil($scope.filtered.length / $scope.entryLimit);
+    $scope.currentPage = 1;
+    $scope.getNotificationsLogsList($scope.currentPage-1);
   };
 
 /*
@@ -100,11 +101,12 @@ rcMod.controller('LogsNotificationsCtrl', function ($scope, $resource, $timeout,
       params["ErrorCode"] = search.error_code;
     }
     if(search.request_url) {
-      params["RequestUrl"] = search.request_url;
+      params["RequestUrl"] = ('%' + search.request_url + '%');
     }
     if(search.message_text) {
       params["MessageText"] = search.message_text;
     }
+    $scope.hasCriteria = !_.isEmpty(params);
 
     return params;
   }

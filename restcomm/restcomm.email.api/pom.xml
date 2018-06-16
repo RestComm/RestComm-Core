@@ -3,7 +3,7 @@
     <parent>
         <groupId>org.restcomm</groupId>
         <artifactId>restcomm-connect</artifactId>
-        <version>8.3.0-SNAPSHOT</version>
+        <version>9.0.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>restcomm-connect.email.api</artifactId>

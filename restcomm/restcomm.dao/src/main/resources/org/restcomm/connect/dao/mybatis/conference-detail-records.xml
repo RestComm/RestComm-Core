@@ -7,6 +7,9 @@
     <insert id="addConferenceDetailRecord" parameterType="map">
 		INSERT INTO "restcomm_conference_detail_records" ("sid", "date_created", "date_updated", "account_sid", "status", "friendly_name", "api_version", "uri", "master_ms_id", "master_present") VALUES (#{sid}, #{date_created}, #{date_updated}, #{account_sid}, #{status}, #{friendly_name}, #{api_version}, #{uri}, #{master_ms_id}, #{master_present});
     </insert>
+    <select id="completeConferenceDetailRecord" parameterType="map"  statementType="CALLABLE">
+            call "completeConferenceDetailRecord"( #{sid, mode=IN, jdbcType=VARCHAR}, #{status, mode=IN, jdbcType=VARCHAR}, #{slaveMsId, mode=IN, jdbcType=VARCHAR}, #{dateUpdated, mode=IN, jdbcType=TIMESTAMP}, #{amIMaster, mode=IN, jdbcType=BOOLEAN}, #{completed, mode=OUT, jdbcType=BOOLEAN} );
+    </select>
 	<select id="getConferenceDetailRecord" parameterType="string" resultType="hashmap">
 		SELECT * FROM "restcomm_conference_detail_records" WHERE "sid"=#{sid};
 	</select>

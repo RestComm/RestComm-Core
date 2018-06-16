@@ -87,14 +87,15 @@ rcMod.controller('LogsMessagesCtrl', function ($scope, $resource, $timeout, $uib
       params["EndTime"] = search.end_time;
     }
     if(search.from) {
-      params["From"] = search.from;
+      params["From"] = (search.from + '%');
     }
     if(search.to) {
-      params["To"] = search.to;
+      params["To"] = (search.to + '%');
     }
     if(search.body) {
       params["Body"] = search.body;
     }
+    $scope.hasCriteria = !_.isEmpty(params);
 
     return params;
   }

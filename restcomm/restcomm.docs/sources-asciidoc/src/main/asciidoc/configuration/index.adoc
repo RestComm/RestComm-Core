@@ -3,8 +3,8 @@
 If you don't use the hosted version of Restcomm, then you will need to install Restcomm in a local environment. The tutorials below will guide you on how to do that and install, configure and start Restcomm to fit your local environment
 
 === Supported Operating System and Language
-Please note that English is the only supported Linux Operating System Language. In most production deployment, most of our customers use the following English language Linux distribution : Red Hat Enterprise Linux and Ubuntu LTS 
-  
+Please note that English is the only supported Linux Operating System Language. In most production deployment, most of our customers use the following English language Linux distribution : Red Hat Enterprise Linux and Ubuntu LTS
+
 == Basic Configuration Resources
 
 There is two different ways to install Restcomm Connect. Either through Docker or through binary. You will find below instructions for both
@@ -25,6 +25,7 @@ There is two different ways to install Restcomm Connect. Either through Docker o
 * <<How to get started with Restcomm-Connect and Mysql.adoc#restcomm-connect-mysql,How to get started with Restcomm-Connect and Mysql>>
 * <<Restcomm - Install and Configure Restcomm to use MariaDB.adoc#restcomm-connect-maria,Restcomm - Install and Configure Restcomm Connect to use MariaDB>>
 * <<How to use Mysql schema upgrade scripts.adoc#mysql-schema-upgrade,How to use Mysql schema upgrade scripts>>
+* <<MySQL_Backup_Restore_Scripts.adoc#mysql-backup-restore-scripts,Mysql backup/restore scripts>>
 * <<Restcomm - How to Reset Admin Password.adoc#admin-pwd,How to Reset Admin Password>>
 
 === DID Configuration

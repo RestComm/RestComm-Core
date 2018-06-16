@@ -225,4 +225,12 @@ public class S3AccessTool {
             }
         }
     }
+
+    public void removeS3Uri(URI s3Uri) {
+        if (s3client == null) {
+            s3client = getS3client();
+        }
+        //S3 URI: https://hastaging-restcomm-as-a-service.s3.amazonaws.com/REffff84e4fa224d89b213ff25362a2cb1.wav
+        s3client.deleteObject(bucketName, s3Uri.getPath());
+    }
 }

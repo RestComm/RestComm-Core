@@ -19,8 +19,6 @@
  */
 package org.restcomm.connect.http.security;
 
-import static javax.ws.rs.core.Response.status;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
@@ -36,13 +34,24 @@ import org.restcomm.connect.identity.UserIdentityContext;
 
 import com.sun.jersey.spi.container.ContainerRequest;
 import com.sun.jersey.spi.container.ContainerRequestFilter;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.regex.Pattern;
+import static javax.ws.rs.core.Response.status;
 
 @Provider
 public class SecurityFilter implements ContainerRequestFilter {
 
     private final Logger logger = Logger.getLogger(SecurityFilter.class);
-    private static final String PATTERN_FOR_RECORDING_FILE_PATH=".*Accounts/.*/Recordings/RE.*[.mp4|.wav]";
-    private static final String PATTERN_FOR_LOGOUT_PATH=".*Logout$";
+    private static final String PATTERN_FOR_RECORDING_FILE_PATH = ".*Accounts/.*/Recordings/RE.*[.mp4|.wav]";
+    private static final String PATTERN_FOR_LOGOUT_PATH = ".*Logout$";
+
+    private static final Set<Pattern> UNPROTECTED_PATHS = new HashSet();
+
+    static {
+        UNPROTECTED_PATHS.add(Pattern.compile(PATTERN_FOR_RECORDING_FILE_PATH));
+        UNPROTECTED_PATHS.add(Pattern.compile(PATTERN_FOR_LOGOUT_PATH));
+    }
 
     @Context
     private HttpServletRequest servletRequest;
@@ -54,10 +63,8 @@ public class SecurityFilter implements ContainerRequestFilter {
         AccountsDao accountsDao = storage.getAccountsDao();
         UserIdentityContext userIdentityContext = new UserIdentityContext(servletRequest, accountsDao);
         // exclude recording file https://telestax.atlassian.net/browse/RESTCOMM-1736
-        logger.info("cr.getPath(): "+cr.getPath());
-        final boolean isRecordingsPath = cr.getPath().matches(PATTERN_FOR_RECORDING_FILE_PATH);
-        final boolean isLogoutPath = cr.getPath().matches(PATTERN_FOR_LOGOUT_PATH);
-        if (!isRecordingsPath && !isLogoutPath) {
+        logger.info("cr.getPath(): " + cr.getPath());
+        if (!isUnprotected(cr)) {
             checkAuthenticatedAccount(userIdentityContext);
             filterClosedAccounts(userIdentityContext, cr.getPath());
         }
@@ -65,6 +72,17 @@ public class SecurityFilter implements ContainerRequestFilter {
         AccountPrincipal aPrincipal = new AccountPrincipal(userIdentityContext);
         cr.setSecurityContext(new RCSecContext(aPrincipal, scheme));
         return cr;
+    }
+
+    private boolean isUnprotected(ContainerRequest cr) {
+        boolean unprotected = false;
+        for (Pattern pAux : UNPROTECTED_PATHS) {
+            if (pAux.matcher(cr.getPath()).matches()) {
+                unprotected = true;
+                break;
+            }
+        }
+        return unprotected;
     }
 
     /**
@@ -78,10 +96,11 @@ public class SecurityFilter implements ContainerRequestFilter {
 
     /**
      * filter out accounts that are not active
+     *
      * @param userIdentityContext
      */
-    protected void filterClosedAccounts(UserIdentityContext userIdentityContext, String path){
-        if(userIdentityContext.getEffectiveAccount() != null && !userIdentityContext.getEffectiveAccount().getStatus().equals(Account.Status.ACTIVE)){
+    protected void filterClosedAccounts(UserIdentityContext userIdentityContext, String path) {
+        if (userIdentityContext.getEffectiveAccount() != null && !userIdentityContext.getEffectiveAccount().getStatus().equals(Account.Status.ACTIVE)) {
             if (userIdentityContext.getEffectiveAccount().getStatus().equals(Account.Status.UNINITIALIZED) && path.startsWith("Accounts")) {
                 return;
             }

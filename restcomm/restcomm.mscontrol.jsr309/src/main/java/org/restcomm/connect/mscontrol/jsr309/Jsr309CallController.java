@@ -818,6 +818,7 @@ public class Jsr309CallController extends MediaServerController {
                         final Recording recording = builder.build();
                         RecordingsDao recordsDao = daoManager.getRecordingsDao();
                         recordsDao.addRecording(recording, recordingMediaType);
+                        getContext().system().eventStream().publish(recording);
                     } else {
                         if (logger.isInfoEnabled()) {
                             logger.info("Call wraping up recording. File doesn't exist since duration is 0");

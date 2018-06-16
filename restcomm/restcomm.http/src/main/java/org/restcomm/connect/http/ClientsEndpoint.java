@@ -21,11 +21,39 @@ package org.restcomm.connect.http;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.sun.jersey.spi.resource.Singleton;
 import com.thoughtworks.xstream.XStream;
+import java.net.URI;
+import java.util.List;
+import javax.annotation.PostConstruct;
+import javax.servlet.ServletContext;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static javax.ws.rs.core.MediaType.APPLICATION_XML;
+import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.CONFLICT;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.ok;
+import static javax.ws.rs.core.Response.status;
+import javax.ws.rs.core.SecurityContext;
 import org.apache.commons.configuration.Configuration;
-import org.restcomm.connect.commons.annotations.concurrency.NotThreadSafe;
+import org.restcomm.connect.commons.annotations.concurrency.ThreadSafe;
+import org.restcomm.connect.commons.configuration.RestcommConfiguration;
 import org.restcomm.connect.commons.dao.Sid;
-import org.restcomm.connect.dao.AccountsDao;
+import org.restcomm.connect.commons.util.ClientLoginConstrains;
 import org.restcomm.connect.dao.ClientsDao;
 import org.restcomm.connect.dao.DaoManager;
 import org.restcomm.connect.dao.entities.Account;
@@ -36,40 +64,29 @@ import org.restcomm.connect.http.converter.ClientConverter;
 import org.restcomm.connect.http.converter.ClientListConverter;
 import org.restcomm.connect.http.converter.RestCommResponseConverter;
 import org.restcomm.connect.http.exceptions.PasswordTooWeak;
+import org.restcomm.connect.http.security.ContextUtil;
+import org.restcomm.connect.http.security.PermissionEvaluator;
+import org.restcomm.connect.http.security.PermissionEvaluator.SecuredType;
+import org.restcomm.connect.identity.UserIdentityContext;
 import org.restcomm.connect.identity.passwords.PasswordValidator;
 import org.restcomm.connect.identity.passwords.PasswordValidatorFactory;
-
-import javax.annotation.PostConstruct;
-import javax.servlet.ServletContext;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import java.net.URI;
-import java.util.List;
-
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
-import static javax.ws.rs.core.MediaType.APPLICATION_XML;
-import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.CONFLICT;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.ok;
-import static javax.ws.rs.core.Response.status;
 
 /**
  * @author quintana.thomas@gmail.com (Thomas Quintana)
  */
-@NotThreadSafe
-public abstract class ClientsEndpoint extends SecuredEndpoint {
+@Path("/Accounts/{accountSid}/Clients")
+@ThreadSafe
+@Singleton
+public class ClientsEndpoint extends AbstractEndpoint {
     @Context
-    protected ServletContext context;
-    protected Configuration configuration;
+    private ServletContext context;
+    private Configuration configuration;
     protected ClientsDao dao;
-    protected Gson gson;
-    protected XStream xstream;
-    protected AccountsDao accountsDao;
+    private Gson gson;
+    private XStream xstream;
+
+
+
 
     public ClientsEndpoint() {
         super();
@@ -79,7 +96,6 @@ public abstract class ClientsEndpoint extends SecuredEndpoint {
     public void init() {
         final DaoManager storage = (DaoManager) context.getAttribute(DaoManager.class.getName());
         dao = storage.getClientsDao();
-        accountsDao = storage.getAccountsDao();
         configuration = (Configuration) context.getAttribute(Configuration.class.getName());
         configuration = configuration.subset("runtime-settings");
         super.init(configuration);
@@ -102,13 +118,17 @@ public abstract class ClientsEndpoint extends SecuredEndpoint {
         builder.setApiVersion(getApiVersion(data));
         builder.setFriendlyName(getFriendlyName(data.getFirst("Login"), data));
         builder.setAccountSid(accountSid);
-        builder.setLogin(data.getFirst("Login"));
+        String username = data.getFirst("Login");
+        builder.setLogin(username);
         // Validate the password. Should be strong enough
         String password = data.getFirst("Password");
         PasswordValidator validator = PasswordValidatorFactory.createDefault();
         if (!validator.isStrongEnough(password))
             throw new PasswordTooWeak();
-        builder.setPassword(password);
+        String realm = organizationsDao.getOrganization(accountsDao.getAccount(accountSid).getOrganizationSid()).getDomainName();
+
+        builder.setPasswordAlgorithm(RestcommConfiguration.getInstance().getMain().getClientAlgorithm());
+        builder.setPassword(username, password, realm, RestcommConfiguration.getInstance().getMain().getClientAlgorithm());
         builder.setStatus(getStatus(data));
         URI voiceUrl = getUrl("VoiceUrl", data);
         if (voiceUrl != null && voiceUrl.toString().equals("")) {
@@ -137,18 +157,25 @@ public abstract class ClientsEndpoint extends SecuredEndpoint {
         return builder.build();
     }
 
-    protected Response getClient(final String accountSid, final String sid, final MediaType responseType) {
+    protected Response getClient(final String accountSid,
+            final String sid,
+            final MediaType responseType,
+            UserIdentityContext userIdentityContext) {
         Account operatedAccount = accountsDao.getAccount(accountSid);
-        secure(operatedAccount, "RestComm:Read:Clients");
+        permissionEvaluator.secure(operatedAccount, "RestComm:Read:Clients",
+                userIdentityContext);
         final Client client = dao.getClient(new Sid(sid));
         if (client == null) {
             return status(NOT_FOUND).build();
         } else {
-            secure(operatedAccount, client.getAccountSid(), SecuredType.SECURED_STANDARD);
-            if (APPLICATION_XML_TYPE == responseType) {
+            permissionEvaluator.secure(operatedAccount,
+                    client.getAccountSid(),
+                    SecuredType.SECURED_STANDARD,
+                    userIdentityContext);
+            if (APPLICATION_XML_TYPE.equals(responseType)) {
                 final RestCommResponse response = new RestCommResponse(client);
                 return ok(xstream.toXML(response), APPLICATION_XML).build();
-            } else if (APPLICATION_JSON_TYPE == responseType) {
+            } else if (APPLICATION_JSON_TYPE.equals(responseType)) {
                 return ok(gson.toJson(client), APPLICATION_JSON).build();
             } else {
                 return null;
@@ -156,13 +183,16 @@ public abstract class ClientsEndpoint extends SecuredEndpoint {
         }
     }
 
-    protected Response getClients(final String accountSid, final MediaType responseType) {
-        secure(accountsDao.getAccount(accountSid), "RestComm:Read:Clients");
+    protected Response getClients(final String accountSid, final MediaType responseType,
+            UserIdentityContext userIdentityContext) {
+        permissionEvaluator.secure(accountsDao.getAccount(accountSid),
+                "RestComm:Read:Clients",
+                userIdentityContext);
         final List<Client> clients = dao.getClients(new Sid(accountSid));
-        if (APPLICATION_XML_TYPE == responseType) {
+        if (APPLICATION_XML_TYPE.equals(responseType)) {
             final RestCommResponse response = new RestCommResponse(new ClientList(clients));
             return ok(xstream.toXML(response), APPLICATION_XML).build();
-        } else if (APPLICATION_JSON_TYPE == responseType) {
+        } else if (APPLICATION_JSON_TYPE.equals(responseType)) {
             return ok(gson.toJson(clients), APPLICATION_JSON).build();
         } else {
             return null;
@@ -188,9 +218,12 @@ public abstract class ClientsEndpoint extends SecuredEndpoint {
         return status;
     }
 
-    public Response putClient(final String accountSid, final MultivaluedMap<String, String> data, final MediaType responseType) {
+    public Response putClient(final String accountSid,
+            final MultivaluedMap<String, String> data,
+            final MediaType responseType,
+            UserIdentityContext userIdentityContext) {
         final Account account = accountsDao.getAccount(accountSid);
-        secure(account, "RestComm:Create:Clients");
+        permissionEvaluator.secure(account, "RestComm:Create:Clients",userIdentityContext);
         try {
             validate(data);
         } catch (final NullPointerException | IllegalArgumentException exception) {
@@ -212,10 +245,10 @@ public abstract class ClientsEndpoint extends SecuredEndpoint {
                     .build();
         }
 
-        if (APPLICATION_XML_TYPE == responseType) {
+        if (APPLICATION_XML_TYPE.equals(responseType)) {
             final RestCommResponse response = new RestCommResponse(client);
             return ok(xstream.toXML(response), APPLICATION_XML).build();
-        } else if (APPLICATION_JSON_TYPE == responseType) {
+        } else if (APPLICATION_JSON_TYPE.equals(responseType)) {
             return ok(gson.toJson(client), APPLICATION_JSON).build();
         } else {
             return null;
@@ -223,24 +256,31 @@ public abstract class ClientsEndpoint extends SecuredEndpoint {
     }
 
     protected Response updateClient(final String accountSid, final String sid, final MultivaluedMap<String, String> data,
-            final MediaType responseType) {
+            final MediaType responseType,
+            UserIdentityContext userIdentityContext) {
         Account operatedAccount = accountsDao.getAccount(accountSid);
-        secure(operatedAccount, "RestComm:Modify:Clients");
+        permissionEvaluator.secure(operatedAccount,
+                "RestComm:Modify:Clients",
+                userIdentityContext);
         Client client = dao.getClient(new Sid(sid));
         if (client == null) {
             return status(NOT_FOUND).build();
         } else {
-            secure(operatedAccount, client.getAccountSid(), SecuredType.SECURED_STANDARD );
+            permissionEvaluator.secure(operatedAccount,
+                    client.getAccountSid(),
+                    SecuredType.SECURED_STANDARD,
+                    userIdentityContext);
             try {
-                client = update(client, data);
+                final String realm = organizationsDao.getOrganization(accountsDao.getAccount(client.getAccountSid()).getOrganizationSid()).getDomainName();
+                client = update(client, realm, data);
                 dao.updateClient(client);
             } catch (PasswordTooWeak passwordTooWeak) {
                 return status(BAD_REQUEST).entity(buildErrorResponseBody("Password too weak",responseType)).type(responseType).build();
             }
-            if (APPLICATION_XML_TYPE == responseType) {
+            if (APPLICATION_XML_TYPE.equals(responseType)) {
                 final RestCommResponse response = new RestCommResponse(client);
                 return ok(xstream.toXML(response), APPLICATION_XML).build();
-            } else if (APPLICATION_JSON_TYPE == responseType) {
+            } else if (APPLICATION_JSON_TYPE.equals(responseType)) {
                 return ok(gson.toJson(client), APPLICATION_JSON).build();
             } else {
                 return null;
@@ -254,13 +294,17 @@ public abstract class ClientsEndpoint extends SecuredEndpoint {
         } else if (!data.containsKey("Password")) {
             throw new NullPointerException("Password can not be null.");
         }
-        // https://github.com/RestComm/Restcomm-Connect/issues/1979
-        if (data.getFirst("Login").contains("@")) {
-            throw new IllegalArgumentException("Login contains invalid character: @ "+data.getFirst("Login"));
+        // https://github.com/RestComm/Restcomm-Connect/issues/1979 && https://telestax.atlassian.net/browse/RESTCOMM-1797
+        if (!ClientLoginConstrains.isValidClientLogin(data.getFirst("Login"))) {
+            String msg = String.format("Login %s contains invalid character(s)",data.getFirst("Login"));
+            if (logger.isDebugEnabled()) {
+                logger.debug(msg);
+            }
+            throw new IllegalArgumentException(msg);
         }
     }
 
-    private Client update(Client client, final MultivaluedMap<String, String> data) throws PasswordTooWeak {
+    private Client update(Client client, String realm, final MultivaluedMap<String, String> data) throws PasswordTooWeak {
         if (data.containsKey("FriendlyName")) {
             client = client.setFriendlyName(data.getFirst("FriendlyName"));
         }
@@ -270,7 +314,7 @@ public abstract class ClientsEndpoint extends SecuredEndpoint {
             if (!validator.isStrongEnough(password)) {
                 throw new PasswordTooWeak();
             }
-            client = client.setPassword(password);
+            client = client.setPassword(client.getLogin(), password, realm);
         }
         if (data.containsKey("Status")) {
             client = client.setStatus(getStatus(data));
@@ -304,5 +348,85 @@ public abstract class ClientsEndpoint extends SecuredEndpoint {
             }
         }
         return client;
+    }
+
+    private Response deleteClient(final String accountSid, final String sid,
+            UserIdentityContext userIdentityContext) {
+        Account operatedAccount =super.accountsDao.getAccount(accountSid);
+        permissionEvaluator.secure(operatedAccount,
+                "RestComm:Delete:Clients", userIdentityContext);
+        Client client = dao.getClient(new Sid(sid));
+        if (client != null) {
+            permissionEvaluator.secure(operatedAccount,
+                    client.getAccountSid(),
+                    PermissionEvaluator.SecuredType.SECURED_STANDARD,
+                    userIdentityContext);
+            dao.removeClient(new Sid(sid));
+            return ok().build();
+        } else {
+            return status(Response.Status.NOT_FOUND).build();
+        }
+    }
+
+    @Path("/{sid}")
+    @DELETE
+    public Response deleteClientAsXml(@PathParam("accountSid") final String accountSid,
+            @PathParam("sid") final String sid,
+            @Context SecurityContext sec) {
+        return deleteClient(accountSid, sid,ContextUtil.convert(sec));
+    }
+
+    @Path("/{sid}")
+    @GET
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response getClientAsXml(@PathParam("accountSid") final String accountSid,
+            @PathParam("sid") final String sid,
+            @HeaderParam("Accept") String accept,
+            @Context SecurityContext sec) {
+        return getClient(accountSid, sid, retrieveMediaType(accept),
+                ContextUtil.convert(sec));
+    }
+
+    @GET
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response getClients(@PathParam("accountSid") final String accountSid,
+            @HeaderParam("Accept") String accept,
+            @Context SecurityContext sec) {
+        return getClients(accountSid, retrieveMediaType(accept),
+                ContextUtil.convert(sec));
+    }
+
+    @POST
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response putClient(@PathParam("accountSid") final String accountSid,
+            final MultivaluedMap<String, String> data,
+            @HeaderParam("Accept") String accept,
+            @Context SecurityContext sec) {
+        return putClient(accountSid, data, retrieveMediaType(accept),
+                ContextUtil.convert(sec));
+    }
+
+    @Path("/{sid}")
+    @POST
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response updateClientAsXmlPost(@PathParam("accountSid") final String accountSid,
+            @PathParam("sid") final String sid,
+            final MultivaluedMap<String, String> data,
+            @HeaderParam("Accept") String accept,
+            @Context SecurityContext sec) {
+        return updateClient(accountSid, sid, data, retrieveMediaType(accept),
+                ContextUtil.convert(sec));
+    }
+
+    @Path("/{sid}")
+    @PUT
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
+    public Response updateClientAsXmlPut(@PathParam("accountSid") final String accountSid,
+            @PathParam("sid") final String sid,
+            final MultivaluedMap<String, String> data,
+            @HeaderParam("Accept") String accept,
+            @Context SecurityContext sec) {
+        return updateClient(accountSid, sid, data, retrieveMediaType(accept),
+                ContextUtil.convert(sec));
     }
 }

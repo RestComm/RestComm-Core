@@ -216,6 +216,7 @@ public class MgcpMediaGroup extends MediaGroup {
             builder.setFirstDigitTimer(request.timeout());
             builder.setInterDigitTimer(request.timeout());
             builder.setEndInputKey(request.endInputKey());
+            builder.setStartInputKey(request.startInputKey());
             builder.setMaxNumberOfDigits(request.numberOfDigits());
             signal = builder.build();
             this.lastEvent = AUMgcpEvent.aupc;
@@ -404,7 +405,7 @@ public class MgcpMediaGroup extends MediaGroup {
         builder.setPreSpeechTimer(request.timeout());
         builder.setPostSpeechTimer(request.timeout());
         builder.setRecordingLength(request.length());
-        if (!request.endInputKey().equals("-1")) {
+        if (request.endInputKey() != null && !request.endInputKey().equals("-1")) {
             builder.setEndInputKey(request.endInputKey());
         } else {
             builder.setEndInputKey("null");

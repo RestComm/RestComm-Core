@@ -52,14 +52,14 @@ public class RestcommOrganizationsTool {
         return organizationsUrl;
     }
 
-    public JsonObject getOrganization(String deploymentUrl, String adminUsername, String adminAuthToken, String username)
+    public JsonObject getOrganization(String deploymentUrl, String adminUsername, String adminAuthToken, String organizationSid)
             throws UniformInterfaceException {
         Client jerseyClient = Client.create();
         jerseyClient.addFilter(new HTTPBasicAuthFilter(adminUsername, adminAuthToken));
 
         WebResource webResource = jerseyClient.resource(getOrganizationsUrl(deploymentUrl));
 
-        String response = webResource.path(username).get(String.class);
+        String response = webResource.path(organizationSid).get(String.class);
         JsonParser parser = new JsonParser();
         JsonObject jsonResponse = parser.parse(response).getAsJsonObject();
 
@@ -138,5 +138,20 @@ public class RestcommOrganizationsTool {
         MultivaluedMap<String, String> params = new MultivaluedMapImpl();
         ClientResponse response = webResource.accept(MediaType.APPLICATION_JSON).put(ClientResponse.class, params);
         return response;
+    }
+
+    public JsonObject migrateClientsOfOrganization(String deploymentUrl, String operatorUsername, String operatorAuthToken, String organizationSid) {
+        Client jerseyClient = Client.create();
+        jerseyClient.addFilter(new HTTPBasicAuthFilter(operatorUsername, operatorAuthToken));
+
+        WebResource webResource = jerseyClient.resource(getOrganizationsUrl(deploymentUrl));
+
+        WebResource migrateWebResource = webResource.path(organizationSid).path("Migrate");
+
+        String response = migrateWebResource.put(String.class);
+        JsonParser parser = new JsonParser();
+        JsonObject jsonResponse = parser.parse(response).getAsJsonObject();
+
+        return jsonResponse;
     }
 }

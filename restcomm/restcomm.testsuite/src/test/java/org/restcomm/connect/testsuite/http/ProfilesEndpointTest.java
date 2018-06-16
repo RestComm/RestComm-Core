@@ -2,7 +2,6 @@ package org.restcomm.connect.testsuite.http;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -20,7 +19,7 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.jboss.shrinkwrap.resolver.api.maven.archive.ShrinkWrapMaven;
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.FixMethodOrder;
@@ -61,6 +60,7 @@ public class ProfilesEndpointTest extends EndpointTest {
     private static final String AUTH_TOKEN = "77f8c12cc7b8f8423e5c38b035249166";
 
     private static final String DEFAULT_PROFILE_SID = "PRae6e420f425248d6a26948c17a9e2acf";
+    private static final String SECONDARY_PROFILE_SID = "PRae6e420f425248d6a26948c17a9e2acg";
     private static final String UNKNOWN_PROFILE_SID = "PRafbe225ad37541eba518a74248f0ac4d";
     private static final String ORGANIZATION_SID = "ORafbe225ad37541eba518a74248f0ac4c";
     private static final String UNKNOWN_ACCOUNT_SID = "AC1111225ad37541eba518a74248f0ac4d";
@@ -101,7 +101,8 @@ public class ProfilesEndpointTest extends EndpointTest {
 
     	JsonArray jsonArray = new JsonParser().parse(responseBody).getAsJsonArray();
     	assertNotNull(jsonArray);
-    	assertEquals(1, jsonArray.size());
+    	//as we have one default and one secondary profile and based on other tests creating profiles, we may have more
+    	assertTrue(jsonArray.size()>=2);
     }
 
     /**
@@ -116,17 +117,34 @@ public class ProfilesEndpointTest extends EndpointTest {
     }
 
     /**
-     * Administrators and Developers can not read profile
+     * super admin can read any profile
+     * others can read profile applicatble only to them
      */
     @Test
     @Category(FeatureExpTests.class)
     public void getProfilePermissionTest(){
-    	ClientResponse clientResponse = RestcommProfilesTool.getInstance().getProfileResponse(deploymentUrl.toString(), ADMIN_ACCOUNT_SID, AUTH_TOKEN, DEFAULT_PROFILE_SID);
+    	// super admin account gets associated profile - should be able to get it
+    	ClientResponse clientResponse = RestcommProfilesTool.getInstance().getProfileResponse(deploymentUrl.toString(), SUPER_ADMIN_ACCOUNT_SID, AUTH_TOKEN, DEFAULT_PROFILE_SID);
+    	assertNotNull(clientResponse);
+    	assertEquals(200, clientResponse.getStatus());
+    	// super admin account gets not associated profile - should be able to get it
+    	clientResponse = RestcommProfilesTool.getInstance().getProfileResponse(deploymentUrl.toString(), SUPER_ADMIN_ACCOUNT_SID, AUTH_TOKEN, SECONDARY_PROFILE_SID);
+    	assertNotNull(clientResponse);
+    	assertEquals(200, clientResponse.getStatus());
+    	// admin account gets associated profile - should be able to get it
+    	clientResponse = RestcommProfilesTool.getInstance().getProfileResponse(deploymentUrl.toString(), ADMIN_ACCOUNT_SID, AUTH_TOKEN, SECONDARY_PROFILE_SID);
+    	assertNotNull(clientResponse);
+    	assertEquals(200, clientResponse.getStatus());
+    	// admin account gets not associated profile - should not be able to get it
+    	clientResponse = RestcommProfilesTool.getInstance().getProfileResponse(deploymentUrl.toString(), ADMIN_ACCOUNT_SID, AUTH_TOKEN, DEFAULT_PROFILE_SID);
     	assertNotNull(clientResponse);
     	assertEquals(403, clientResponse.getStatus());
-
-
+    	// dev account gets associated profile that is not explicitly assign to it but associated by inheritance - should be able to get it
     	clientResponse = RestcommProfilesTool.getInstance().getProfileResponse(deploymentUrl.toString(), DEVELOPER_ACCOUNT_SID, AUTH_TOKEN, DEFAULT_PROFILE_SID);
+    	assertNotNull(clientResponse);
+    	assertEquals(200, clientResponse.getStatus());
+    	// dev account gets un associated profile - should not be able to get it
+    	clientResponse = RestcommProfilesTool.getInstance().getProfileResponse(deploymentUrl.toString(), DEVELOPER_ACCOUNT_SID, AUTH_TOKEN, SECONDARY_PROFILE_SID);
     	assertNotNull(clientResponse);
     	assertEquals(403, clientResponse.getStatus());
 
@@ -328,7 +346,7 @@ public class ProfilesEndpointTest extends EndpointTest {
 		/*
 		 * link a profile to an account
 		 */
-    	HttpResponse response = RestcommProfilesTool.getInstance().linkProfileWithOverride(deploymentUrl.toString(), SUPER_ADMIN_ACCOUNT_SID, AUTH_TOKEN, DEFAULT_PROFILE_SID, SUPER_ADMIN_ACCOUNT_SID, RestcommProfilesTool.AssociatedResourceType.ACCOUNT);
+    	HttpResponse response = RestcommProfilesTool.getInstance().linkProfileWithOverride(deploymentUrl.toString(), SUPER_ADMIN_ACCOUNT_SID, AUTH_TOKEN, SECONDARY_PROFILE_SID, SUPER_ADMIN_ACCOUNT_SID, RestcommProfilesTool.AssociatedResourceType.ACCOUNT);
     	logger.info("HttpResponse: "+response);
     	assertEquals(200, response.getStatusLine().getStatusCode());
 
@@ -344,12 +362,12 @@ public class ProfilesEndpointTest extends EndpointTest {
     	LinkHeader linkHeader = linkHeaders.getLink(RestcommProfilesTool.PROFILE_REL_TYPE);
     	logger.info("accountEndopintResponse WebResourceLinkHeaders linkHeader: "+linkHeader);
     	assertNotNull(linkHeader);
-    	assertTrue(linkHeader.getUri().toString().contains(DEFAULT_PROFILE_SID));
+    	assertTrue(linkHeader.getUri().toString().contains(SECONDARY_PROFILE_SID));
 
     	/*
 		 * unlink a profile from an account
 		 */
-    	response = RestcommProfilesTool.getInstance().unLinkProfileWithOverride(deploymentUrl.toString(), SUPER_ADMIN_ACCOUNT_SID, AUTH_TOKEN, DEFAULT_PROFILE_SID, SUPER_ADMIN_ACCOUNT_SID, RestcommProfilesTool.AssociatedResourceType.ACCOUNT);
+    	response = RestcommProfilesTool.getInstance().unLinkProfileWithOverride(deploymentUrl.toString(), SUPER_ADMIN_ACCOUNT_SID, AUTH_TOKEN, SECONDARY_PROFILE_SID, SUPER_ADMIN_ACCOUNT_SID, RestcommProfilesTool.AssociatedResourceType.ACCOUNT);
     	logger.info("HttpResponse: "+response);
     	assertEquals(200, response.getStatusLine().getStatusCode());
 
@@ -363,7 +381,8 @@ public class ProfilesEndpointTest extends EndpointTest {
     	logger.info("accountEndopintResponse WebResourceLinkHeaders: "+linkHeaders);
     	linkHeader = linkHeaders.getLink(RestcommProfilesTool.PROFILE_REL_TYPE);
     	logger.info("accountEndopintResponse WebResourceLinkHeaders linkHeader: "+linkHeader);
-    	assertNull(linkHeader);
+    	assertNotNull(linkHeader);
+    	assertTrue(linkHeader.getUri().toString().contains(DEFAULT_PROFILE_SID));
     }
 
     /**
@@ -377,7 +396,7 @@ public class ProfilesEndpointTest extends EndpointTest {
     	/*
 		 * link a profile to an organizations
 		 */
-    	HttpResponse response = RestcommProfilesTool.getInstance().linkProfile(deploymentUrl.toString(), SUPER_ADMIN_ACCOUNT_SID, AUTH_TOKEN, DEFAULT_PROFILE_SID, ORGANIZATION_SID, RestcommProfilesTool.AssociatedResourceType.ORGANIZATION);
+    	HttpResponse response = RestcommProfilesTool.getInstance().linkProfile(deploymentUrl.toString(), SUPER_ADMIN_ACCOUNT_SID, AUTH_TOKEN, SECONDARY_PROFILE_SID, ORGANIZATION_SID, RestcommProfilesTool.AssociatedResourceType.ORGANIZATION);
     	logger.info("HttpResponse: "+response);
     	assertEquals(200, response.getStatusLine().getStatusCode());
 
@@ -393,12 +412,12 @@ public class ProfilesEndpointTest extends EndpointTest {
     	LinkHeader linkHeader = linkHeaders.getLink(RestcommProfilesTool.PROFILE_REL_TYPE);
     	logger.info("accountEndopintResponse WebResourceLinkHeaders linkHeader: "+linkHeader);
     	assertNotNull(linkHeader);
-    	assertTrue(linkHeader.getUri().toString().contains(DEFAULT_PROFILE_SID));
+    	assertTrue(linkHeader.getUri().toString().contains(SECONDARY_PROFILE_SID));
 
     	/*
 		 * unlink a profile from an organization
 		 */
-    	response = RestcommProfilesTool.getInstance().unLinkProfile(deploymentUrl.toString(), SUPER_ADMIN_ACCOUNT_SID, AUTH_TOKEN, DEFAULT_PROFILE_SID, ORGANIZATION_SID, RestcommProfilesTool.AssociatedResourceType.ORGANIZATION);
+    	response = RestcommProfilesTool.getInstance().unLinkProfile(deploymentUrl.toString(), SUPER_ADMIN_ACCOUNT_SID, AUTH_TOKEN, SECONDARY_PROFILE_SID, ORGANIZATION_SID, RestcommProfilesTool.AssociatedResourceType.ORGANIZATION);
     	logger.info("HttpResponse: "+response);
     	assertEquals(200, response.getStatusLine().getStatusCode());
 
@@ -412,7 +431,8 @@ public class ProfilesEndpointTest extends EndpointTest {
     	logger.info("orgEndopintResponse WebResourceLinkHeaders: "+linkHeaders);
     	linkHeader = linkHeaders.getLink(RestcommProfilesTool.PROFILE_REL_TYPE);
     	logger.info("orgEndopintResponse WebResourceLinkHeaders linkHeader: "+linkHeader);
-    	assertNull(linkHeader);
+    	assertNotNull(linkHeader);
+    	assertTrue(linkHeader.getUri().toString().contains(DEFAULT_PROFILE_SID));
     }
 
 
@@ -542,7 +562,8 @@ public class ProfilesEndpointTest extends EndpointTest {
     	WebResourceLinkHeaders linkHeaders = accountEndopintResponse.getLinks();
     	LinkHeader linkHeader = linkHeaders.getLink(RestcommProfilesTool.PROFILE_REL_TYPE);
     	logger.info("linkHeader after deleteing profile: "+linkHeader);
-    	assertNull(linkHeader);
+    	assertNotNull(linkHeader);
+    	assertTrue(linkHeader.getUri().toString().contains(DEFAULT_PROFILE_SID));
     }
 
     @Test
@@ -679,14 +700,16 @@ public class ProfilesEndpointTest extends EndpointTest {
         logger.info("Packaging Test App");
         logger.info("version");
         WebArchive archive = ShrinkWrap.create(WebArchive.class, "restcomm.war");
-        final WebArchive restcommArchive = ShrinkWrapMaven.resolver()
+        final WebArchive restcommArchive = Maven.resolver()
                 .resolve("org.restcomm:restcomm-connect.application:war:" + version).withoutTransitivity()
                 .asSingle(WebArchive.class);
         archive = archive.merge(restcommArchive);
         archive.delete("/WEB-INF/sip.xml");
+archive.delete("/WEB-INF/web.xml");
         archive.delete("/WEB-INF/conf/restcomm.xml");
         archive.delete("/WEB-INF/data/hsql/restcomm.script");
         archive.addAsWebInfResource("sip.xml");
+        archive.addAsWebInfResource("web.xml");
         archive.addAsWebInfResource("restcomm.xml", "conf/restcomm.xml");
         archive.addAsWebInfResource("restcomm.script_accounts_test", "data/hsql/restcomm.script");
         logger.info("Packaged Test App");

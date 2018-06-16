@@ -8,34 +8,34 @@
     INSERT INTO "restcomm_accounts" ("sid", "date_created", "date_updated", "email_address", "friendly_name", "parent_sid", "type", "status", "auth_token", "role", "uri", "organization_sid")
     VALUES(#{sid}, #{date_created}, #{date_updated}, #{email_address}, #{friendly_name}, #{parent_sid}, #{type}, #{status}, #{auth_token}, #{role}, #{uri}, #{organization_sid});
   </insert>
-  
+
   <select id="getAccount" parameterType="string" resultType="hashmap">
     SELECT * FROM "restcomm_accounts" WHERE "sid"=#{sid};
   </select>
-  
+
   <select id="getAccountByFriendlyName" parameterType="string" resultType="hashmap">
     SELECT * FROM "restcomm_accounts" WHERE "friendly_name"=#{name};
   </select>
-  
+
     <select id="getAccountByEmail" parameterType="string" resultType="hashmap">
     SELECT * FROM "restcomm_accounts" WHERE "email_address"=#{name};
   </select>
-  
+
   <select id="getChildAccounts" parameterType="string" resultType="hashmap">
     SELECT * FROM "restcomm_accounts" WHERE "parent_sid"=#{parent_sid};
   </select>
-  
+
   <select id="getAccountsByOrganization" parameterType="string" resultType="hashmap">
     SELECT * FROM "restcomm_accounts" WHERE "organization_sid"=#{organization_sid};
   </select>
-  
+
   <delete id="removeAccount" parameterType="string">
     DELETE FROM "restcomm_accounts" WHERE "sid"=#{sid};
   </delete>
-  
+
   <update id="updateAccount" parameterType="map">
     UPDATE "restcomm_accounts" SET "date_updated"=#{date_updated}, "email_address"=#{email_address}, "friendly_name"=#{friendly_name},
-    "type"=#{type}, "status"=#{status}, "auth_token"=#{auth_token}, "role"=#{role} WHERE "sid"=#{sid};
+    "type"=#{type}, "status"=#{status}, "auth_token"=#{auth_token}, "role"=#{role}, "organization_sid"=#{organization_sid} WHERE "sid"=#{sid};
   </update>
 
   <select id="getSubAccountSids" parameterType="java.util.List" resultType="string">

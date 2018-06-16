@@ -2,7 +2,7 @@
     <div class="col-md-4 col-xs-6">
         <form class="search-form">
             <i class="fa fa-search search-icon"></i>
-            <input name="q" type="text" size="40" placeholder="Search..." ng-model="query.phone_number">
+            <input name="q" type="text" size="40" placeholder="Search..." ng-model="query.phone_number" ng-model-options="{ debounce: 500 }">
         </form>
     </div>
     <div  class="col-md-4 col-md-offset-4 col-xs-6">
@@ -16,10 +16,16 @@
 <div class="row">
     <div class="col-md-12">
 
-        <div ng-hide="!numbersList || (numbersList | filter:query).length > 0" class="jumbotron rc-no-items">
+        <div ng-show="!query.phone_number && (!numbersList || (numbersList && numbersList.length === 0))" class="jumbotron rc-no-items">
             <h1><i class="fa fa-globe"></i> </h1>
             <h2>No incoming numbers</h2>
             <h5>Register one now!</h5>
+        </div>
+
+        <div ng-show="query.phone_number && (!numbersList || (numbersList && numbersList.length === 0))" class="jumbotron rc-no-items">
+            <h1><i class="fa fa-search"></i> </h1>
+            <h2>No numbers found for "{{ query.phone_number }}"</h2>
+            <h5>Please update your search and try again.</h5>
         </div>
 
         <table ng-show="(numbersList | filter:query).length > 0" class="table table-hover rc-list numbers-list" ng-cloak>
@@ -32,7 +38,7 @@
             </thead>
 
             <tbody>
-            <tr class="number-row" ng-repeat="pn in filtered = (numbersList | filter:query)">
+            <tr class="number-row" ng-repeat="pn in numbersList">
                 <td class="numbers-list-number">
                     <div><a href="#/numbers/incoming/{{ pn.sid}}">{{ pn.phone_number }}</a></div>
                     <div class="visible-xs">{{ pn.friendly_name  }}</div>

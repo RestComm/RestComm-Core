@@ -8,9 +8,7 @@ To enable the diagram view, just hit the __Diagram__ button at the project menu
 
 image:./images/diagram_menu.png[diagram_menu,width=947,height=59]
 
-A new section will appear under the menu. Here is the diagram for the sample _IVR Clinic_ application:   
-
-image:http://docs.telestax.com/wp-content/uploads/2016/02/irv_clinic.png[irv_clinic,width=599,height=644]
+A new section will appear under the menu, showing the diagram.
 
 Points worth mentioning:
 

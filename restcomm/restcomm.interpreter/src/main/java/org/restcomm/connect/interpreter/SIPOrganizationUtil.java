@@ -19,6 +19,8 @@
  */
 package org.restcomm.connect.interpreter;
 
+import javax.servlet.sip.Address;
+import javax.servlet.sip.ServletParseException;
 import javax.servlet.sip.SipServletRequest;
 import javax.servlet.sip.SipURI;
 import org.apache.log4j.Logger;
@@ -49,6 +51,18 @@ public class SIPOrganizationUtil {
         if (destinationOrganizationSid == null) {
             // try to get destinationOrganizationSid from toUri
             destinationOrganizationSid = getOrganizationSidBySipURIHost(orgDao, (SipURI) request.getTo().getURI());
+        }
+        if (destinationOrganizationSid == null) {
+            // try to get destinationOrganizationSid from Refer-To
+            Address referAddress;
+            try {
+                referAddress = request.getAddressHeader("Refer-To");
+                if(referAddress != null){
+                    destinationOrganizationSid = getOrganizationSidBySipURIHost(orgDao, (SipURI) referAddress.getURI());
+                }
+            } catch (ServletParseException e) {
+                logger.error(e);
+            }
         }
         return destinationOrganizationSid;
     }

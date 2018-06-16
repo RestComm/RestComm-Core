@@ -80,15 +80,21 @@
             <hr class=" small">
         </form>
 
-        <div ng-hide="!callsLogsList || (callsLogsList | filter:query).length > 0" class="jumbotron rc-no-items">
+        <div ng-show="!hasCriteria && (!callsLogsList || callsLogsList.length === 0)" class="jumbotron rc-no-items">
             <h1><i class="fa fa-phone"></i> </h1>
             <h2>No call records</h2>
             <h5>Call your friends!</h5>
         </div>
 
+        <div ng-show="hasCriteria && (!callsLogsList || callsLogsList.length === 0)" class="jumbotron rc-no-items">
+            <h1><i class="fa fa-search"></i> </h1>
+            <h2>No calls matching your criteria</h2>
+            <h5>Please update your search and try again.</h5>
+        </div>
+
         <div class="row">
             <div class="col-md-12">
-            <table ng-show="(callsLogsList | filter:query).length > 0" class="table table-hover rc-list logs-calls-list" ng-class="{'logs-calls-list-extra': search.sub_accounts}">
+            <table ng-show="callsLogsList.length > 0" class="table table-hover rc-list logs-calls-list" ng-class="{'logs-calls-list-extra': search.sub_accounts}">
                 <thead>
                 <th class="logs-calls-list-date hidden-xs" rc-list-sort by="predicate" order="'date_created'" reverse="reverse" update="getCallsList()">Date <span ng-show="search.sub_accounts"> / Account SID</span></th>
                 <th class="logs-calls-list-from hidden-xs">From</th>
@@ -104,7 +110,7 @@
                 <th class="logs-calls-list-duration visible-xs">Duration<br>Price</th>
                 </thead>
                 <tbody>
-                <tr ng-repeat="call in filtered = (callsLogsList | filter:query | orderBy:predicate:reverse)" class="logs-table-row">
+                <tr ng-repeat="call in (callsLogsList | orderBy:predicate:reverse)" class="logs-table-row">
                     <td class="logs-calls-list-date rc-list-date hidden-xs">
                         <a href="" ng-click="showCallDetailsModal(call)">
                             {{ call.date_created  | toDate:'yyyy-MM-dd HH:mm:ss' }}
