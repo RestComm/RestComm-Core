@@ -4,7 +4,7 @@ NOTE: It is assumed you are running Restcomm on your local installation using th
 
 = Step 1
 
-* go to the link *http://127.0.0.1:8080/restcomm-rvd/*
+* go to the link *http://127.0.0.1:8080/visual-designer/*
 * Enter a name for your new project (Demo1 is used in this tutorial) and press the button *"Create"*
 
 In the main dashboard of the RVD, you will see the default module "Welcome": 

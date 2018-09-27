@@ -222,13 +222,13 @@
         	file="${workspace.mobicents-restcomm.dir}/restcomm.ui/target/restcomm-management.war"/>
 
 	<!-- Copy RVD -->
-        <!--<copy todir="${release.tomcat.dir}/webapps/restcomm-rvd" failonerror="true">
-		<fileset dir="${workspace.mobicents-restcomm.dir}/restcomm.rvd/target/restcomm-rvd">
+        <!--<copy todir="${release.tomcat.dir}/webapps/visual-designer" failonerror="true">
+		<fileset dir="${workspace.mobicents-restcomm.dir}/restcomm.rvd/target/visual-designer">
                         <include name="**/*" />
                 </fileset>
         </copy>-->
-	<copy tofile="${release.tomcat.dir}/webapps/restcomm-rvd.war" failonerror="true"
-		file="${workspace.mobicents-restcomm.dir}/restcomm.rvd/target/restcomm-rvd.war"/>
+	<copy tofile="${release.tomcat.dir}/webapps/visual-designer.war" failonerror="true"
+		file="${workspace.mobicents-restcomm.dir}/restcomm.rvd/target/visual-designer.war"/>
 
 	<!--Copy Rvd ES Demo-->
 	<copy tofile="${release.tomcat.dir}/webapps/RvdExternalServicesDemo.war" failonerror="true"
@@ -274,12 +274,12 @@
 	<touch file="${release.as7.dir}/standalone/deployments/restcomm-management.war.dodeploy" />
 
 	<!-- Copy RVD -->
-        <copy todir="${release.as7.dir}/standalone/deployments/restcomm-rvd.war" failonerror="true">
-		<fileset dir="${workspace.mobicents-restcomm.dir}/restcomm.rvd/target/restcomm-rvd">
+        <copy todir="${release.as7.dir}/standalone/deployments/visual-designer.war" failonerror="true">
+		<fileset dir="${workspace.mobicents-restcomm.dir}/restcomm.rvd/target/visual-designer">
                         <include name="**/*" />
                 </fileset>
         </copy>
-	<touch file="${release.as7.dir}/standalone/deployments/restcomm-rvd.war.dodeploy" />
+	<touch file="${release.as7.dir}/standalone/deployments/visual-designer.war.dodeploy" />
 
 	<!--Copy Rvd ES Demo-->
 	<copy tofile="${release.as7.dir}/standalone/deployments/RvdExternalServicesDemo.war" failonerror="true"

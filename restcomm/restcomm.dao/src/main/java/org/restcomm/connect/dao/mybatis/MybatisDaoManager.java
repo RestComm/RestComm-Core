@@ -19,15 +19,9 @@
  */
 package org.restcomm.connect.dao.mybatis;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.Reader;
-import java.util.Properties;
-
 import org.apache.commons.configuration.Configuration;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
-import org.restcomm.connect.commons.amazonS3.S3AccessTool;
 import org.restcomm.connect.commons.annotations.concurrency.ThreadSafe;
 import org.restcomm.connect.dao.AccountsDao;
 import org.restcomm.connect.dao.AnnouncementsDao;
@@ -48,8 +42,8 @@ import org.restcomm.connect.dao.MediaServersDao;
 import org.restcomm.connect.dao.NotificationsDao;
 import org.restcomm.connect.dao.OrganizationsDao;
 import org.restcomm.connect.dao.OutgoingCallerIdsDao;
-import org.restcomm.connect.dao.ProfilesDao;
 import org.restcomm.connect.dao.ProfileAssociationsDao;
+import org.restcomm.connect.dao.ProfilesDao;
 import org.restcomm.connect.dao.RecordingsDao;
 import org.restcomm.connect.dao.RegistrationsDao;
 import org.restcomm.connect.dao.ShortCodesDao;
@@ -57,7 +51,10 @@ import org.restcomm.connect.dao.SmsMessagesDao;
 import org.restcomm.connect.dao.TranscriptionsDao;
 import org.restcomm.connect.dao.UsageDao;
 
-import scala.concurrent.ExecutionContext;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.Reader;
+import java.util.Properties;
 
 /**
  * @author quintana.thomas@gmail.com (Thomas Quintana)
@@ -67,7 +64,6 @@ import scala.concurrent.ExecutionContext;
 public final class MybatisDaoManager implements DaoManager {
     private Configuration configuration;
     private Configuration runtimeConfiguration;
-    private S3AccessTool s3AccessTool;
     private AccountsDao accountsDao;
     private ApplicationsDao applicationsDao;
     private AvailablePhoneNumbersDao availablePhoneNumbersDao;
@@ -95,18 +91,15 @@ public final class MybatisDaoManager implements DaoManager {
     private OrganizationsDao organizationsDao;
     private ProfilesDao profilesDao;
 
-    private ExecutionContext ec;
 
     public MybatisDaoManager() {
         super();
     }
 
     @Override
-    public void configure(final Configuration configuration, Configuration daoManagerConfiguration, final S3AccessTool s3AccessTool, final ExecutionContext ec) {
+    public void configure(final Configuration configuration, Configuration daoManagerConfiguration) {
         this.configuration = daoManagerConfiguration.subset("dao-manager");
         this.runtimeConfiguration = configuration.subset("runtime-settings");
-        this.s3AccessTool = s3AccessTool;
-        this.ec = ec;
     }
 
     @Override
@@ -280,12 +273,7 @@ public final class MybatisDaoManager implements DaoManager {
         notificationsDao = new MybatisNotificationsDao(sessions);
         outgoingCallerIdsDao = new MybatisOutgoingCallerIdsDao(sessions);
         presenceRecordsDao = new MybatisRegistrationsDao(sessions);
-        if (s3AccessTool != null) {
-            final String recordingPath = runtimeConfiguration.getString("recordings-path");
-            recordingsDao = new MybatisRecordingsDao(sessions, s3AccessTool, recordingPath, ec);
-        } else {
-            recordingsDao = new MybatisRecordingsDao(sessions);
-        }
+        recordingsDao = new MybatisRecordingsDao(sessions);
         shortCodesDao = new MybatisShortCodesDao(sessions);
         smsMessagesDao = new MybatisSmsMessagesDao(sessions);
         usageDao = new MybatisUsageDao(sessions);

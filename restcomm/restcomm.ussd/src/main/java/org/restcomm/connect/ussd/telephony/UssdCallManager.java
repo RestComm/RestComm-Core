@@ -45,7 +45,8 @@ import org.restcomm.connect.commons.configuration.RestcommConfiguration;
 import org.restcomm.connect.commons.configuration.sets.RcmlserverConfigurationSet;
 import org.restcomm.connect.commons.dao.Sid;
 import org.restcomm.connect.commons.faulttolerance.RestcommUntypedActor;
-import org.restcomm.connect.commons.util.UriUtils;
+import org.restcomm.connect.core.service.RestcommConnectServiceProvider;
+import org.restcomm.connect.core.service.util.UriUtils;
 import org.restcomm.connect.core.service.api.NumberSelectorService;
 import org.restcomm.connect.dao.AccountsDao;
 import org.restcomm.connect.dao.ApplicationsDao;
@@ -107,6 +108,8 @@ public class UssdCallManager extends RestcommUntypedActor {
     // alternatively the Request URI can be used
     private boolean useTo;
 
+    private UriUtils uriUtils;
+
     /**
      * @param configuration
      * @param context
@@ -127,6 +130,8 @@ public class UssdCallManager extends RestcommUntypedActor {
         numberSelector = (NumberSelectorService)context.getAttribute(NumberSelectorService.class.getName());
 
         extensions = ExtensionController.getInstance().getExtensions(ExtensionType.FeatureAccessControl);
+
+        uriUtils = RestcommConnectServiceProvider.getInstance().uriUtils();
     }
 
     private ActorRef ussdCall() {
@@ -277,9 +282,9 @@ public class UssdCallManager extends RestcommUntypedActor {
                     final Application application = applications.getApplication(sid);
                     RcmlserverConfigurationSet rcmlserverConfig = RestcommConfiguration.getInstance().getRcmlserver();
                     RcmlserverResolver resolver = RcmlserverResolver.getInstance(rcmlserverConfig.getBaseUrl(), rcmlserverConfig.getApiPath());
-                    builder.setUrl(UriUtils.resolve(resolver.resolveRelative(application.getRcmlUrl())));
+                    builder.setUrl(uriUtils.resolve(resolver.resolveRelative(application.getRcmlUrl()), number.getAccountSid()));
                 } else {
-                    builder.setUrl(UriUtils.resolve(number.getUssdUrl()));
+                    builder.setUrl(uriUtils.resolve(number.getUssdUrl(), number.getAccountSid()));
                 }
                 final String ussdMethod = number.getUssdMethod();
                 if (ussdMethod == null || ussdMethod.isEmpty()) {

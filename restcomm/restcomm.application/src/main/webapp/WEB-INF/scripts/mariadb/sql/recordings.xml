@@ -106,7 +106,37 @@
             <if test="endTime != null">
                     AND date_created &lt;= DATE_ADD(#{endTime},INTERVAL 1 DAY)
             </if>
-            order by date_created
-            LIMIT #{limit} OFFSET #{offset}
+            <choose>
+                <when test="sortByDate != null">
+                    <if test="sortByDate.name() == 'ASC'">
+                        order by date_created ASC
+                    </if>
+                    <if test="sortByDate.name() == 'DESC'">
+                        order by date_created DESC
+                    </if>
+                </when>
+                <when test="sortByDuration != null">
+                    <if test="sortByDuration.name() == 'ASC'">
+                        order by duration ASC, date_created DESC
+                    </if>
+                    <if test="sortByDuration.name() == 'DESC'">
+                        order by duration DESC, date_created DESC
+                    </if>
+                </when>
+                <when test="sortByCallSid != null">
+                    <if test="sortByCallSid.name() == 'ASC'">
+                        order by call_sid ASC, date_created DESC
+                    </if>
+                    <if test="sortByCallSid.name() == 'DESC'">
+                        order by call_sid DESC, date_created DESC
+                    </if>
+                </when>
+                <otherwise>
+                    order by date_created DESC
+                </otherwise>
+            </choose>
+            <if test="limit != null">
+                LIMIT #{limit} OFFSET #{offset}
+            </if>
     </select>
 </mapper>

@@ -24,6 +24,7 @@ import akka.actor.ActorRef;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import org.restcomm.connect.commons.configuration.RestcommConfiguration;
+import org.restcomm.connect.commons.dao.Sid;
 import org.restcomm.connect.commons.faulttolerance.RestcommUntypedActor;
 import org.restcomm.connect.commons.patterns.Observing;
 import org.restcomm.connect.commons.patterns.StopObserving;
@@ -503,7 +504,7 @@ public class MonitoringService extends RestcommUntypedActor {
 
         MonitoringServiceResponse callInfoList = null;
         if (message.isWithLiveCallDetails()) {
-            callInfoList = new MonitoringServiceResponse(instanceId, callDetailsList, countersMap, durationMap, true, null);
+            callInfoList = new MonitoringServiceResponse(instanceId, callDetailsList, countersMap, durationMap, true, null, new Sid(message.getAccountSid()));
         } else {
             URI callDetailsUri = null;
             try {
@@ -511,7 +512,7 @@ public class MonitoringService extends RestcommUntypedActor {
             } catch (URISyntaxException e) {
                 logger.error("MonitoringService Problem while trying to create the LiveCalls detail URI");
             }
-            callInfoList = new MonitoringServiceResponse(instanceId, null, countersMap, durationMap, false, callDetailsUri);
+            callInfoList = new MonitoringServiceResponse(instanceId, null, countersMap, durationMap, false, callDetailsUri, new Sid(message.getAccountSid()));
         }
         sender.tell(callInfoList, self);
     }

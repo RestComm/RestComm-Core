@@ -132,12 +132,12 @@ To associate a single Profile with multiple Accounts/Organizations, multiple req
 **Get information about the default profile.**
 
 ....
-curl -X GET  https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Profiles/PRae6e420f425248d6a26948c17a9e2acf
+curl -X GET  https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Profiles/PRae6e420f425248d6a26948c17a9e2acf
 ....
 **Add a new Profile.**
 
 ....
-curl -X POST -H 'Content-Type: application/instance+json' --data "@/path/to/filename" https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Profiles
+curl -X POST -H 'Content-Type: application/instance+json' --data "@/path/to/filename" https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Profiles
 ....
 
 **Modify a Profile.**
@@ -146,11 +146,11 @@ To update a Profile you need to provide the Profile SID
 
 For example, update Proile using sid:
 ....
-curl -X PUT -H 'Content-Type: application/instance+json' --data "@/path/to/filename" https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Profiles/PRae6e420f425248d6a26948c17a9e2123
+curl -X PUT -H 'Content-Type: application/instance+json' --data "@/path/to/filename" https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Profiles/PRae6e420f425248d6a26948c17a9e2123
 ....
 
 ....
-curl -X GET  https://administrator%40company.com:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Profiles/PRae6e420f425248d6a26948c17a9e2123
+curl -X GET  https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/restcomm/2012-04-24/Profiles/PRae6e420f425248d6a26948c17a9e2123
 ....
 
 The above command will print an output similar to the one below:
@@ -183,25 +183,25 @@ The above command will print an output similar to the one below:
 To link a Profile to an Account
 
 ....
-curl -X PUT -H "X-HTTP-Method-Override:LINK" -H "Link:<https://127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf>;rel=related" https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Profiles/PRae6e420f425248d6a26948c17a9e2123
+curl -X PUT -H "X-HTTP-Method-Override:LINK" -H "Link:<https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf>;rel=related" https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Profiles/PRae6e420f425248d6a26948c17a9e2123
 ....
 
 To unlink a Profile from an Account
 
 ....
-curl -X PUT -H "X-HTTP-Method-Override:UNLINK" -H "Link:<https://127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf>;rel=related" https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Profiles/PRae6e420f425248d6a26948c17a9e2123
+curl -X PUT -H "X-HTTP-Method-Override:UNLINK" -H "Link:<https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf>;rel=related" https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Profiles/PRae6e420f425248d6a26948c17a9e2123
 ....
 
 To link a Profile to an Organization
 
 ....
-curl -X PUT -H "X-HTTP-Method-Override:LINK" -H "Link:<https://127.0.0.1:8080/restcomm/2012-04-24/Organizations/ORafbe225ad37541eba518a74248f0ac4c>;rel=related" https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Profiles/PRae6e420f425248d6a26948c17a9e2123
+curl -X PUT -H "X-HTTP-Method-Override:LINK" -H "Link:<https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Organizations/ORafbe225ad37541eba518a74248f0ac4c>;rel=related" https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Profiles/PRae6e420f425248d6a26948c17a9e2123
 ....
 
 To unlink a Profile from an Organization
 
 ....
-curl -X PUT -H "X-HTTP-Method-Override:UNLINK" -H  "Link:<https://127.0.0.1:8080/restcomm/2012-04-24/Organizations/ORafbe225ad37541eba518a74248f0ac4c>;rel=related" https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Profiles/PRae6e420f425248d6a26948c17a9e2123
+curl -X PUT -H "X-HTTP-Method-Override:UNLINK" -H  "Link:<https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Organizations/ORafbe225ad37541eba518a74248f0ac4c>;rel=related" https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Profiles/PRae6e420f425248d6a26948c17a9e2123
 ....
 
 [[Profiles_List]]
@@ -217,7 +217,7 @@ The response will include a JSON document in the response body with this
 format
 ....
 [{
-	"uri": "http://127.0.0.1:8080/restcomm/2012-04-24/Profiles/PRae6e420f425248d6a26948c17a9e2acf",
+	"uri": "https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Profiles/PRae6e420f425248d6a26948c17a9e2acf",
 	"sid": "PRae6e420f425248d6a26948c17a9e2acf",
 	"dateUpdated": 1516745449949,
 	"dateCreated": 1516745449949

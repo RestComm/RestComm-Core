@@ -250,6 +250,8 @@ price VARCHAR(8) NOT NULL,
 api_version VARCHAR(10) NOT NULL,
 uri MEDIUMTEXT NOT NULL,
 smpp_message_id MEDIUMTEXT,
+status_callback MEDIUMTEXT,
+status_callback_method MEDIUMTEXT,
 error_code BIGINT
 );
 
@@ -440,9 +442,9 @@ null,
 "ORafbe225ad37541eba518a74248f0ac4c");
 
 /* Create demo Applications */
-INSERT INTO restcomm_applications VALUES('AP73926e7113fa4d95981aa96b76eca854','2015-09-23 06:56:04.108000','2015-09-23 06:56:04.108000','rvdCollectVerbDemo','ACae6e420f425248d6a26948c17a9e2acf','2012-04-24',FALSE,'/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Applications/AP73926e7113fa4d95981aa96b76eca854','/restcomm-rvd/services/apps/AP73926e7113fa4d95981aa96b76eca854/controller','voice');
-INSERT INTO restcomm_applications VALUES('AP81cf45088cba4abcac1261385916d582','2015-09-23 06:56:17.977000','2015-09-23 06:56:17.977000','rvdESDemo','ACae6e420f425248d6a26948c17a9e2acf','2012-04-24',FALSE,'/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Applications/AP81cf45088cba4abcac1261385916d582','/restcomm-rvd/services/apps/AP81cf45088cba4abcac1261385916d582/controller','voice');
-INSERT INTO restcomm_applications VALUES('APb70c33bf0b6748f09eaec97030af36f3','2015-09-23 06:56:26.120000','2015-09-23 06:56:26.120000','rvdSayVerbDemo','ACae6e420f425248d6a26948c17a9e2acf','2012-04-24',FALSE,'/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Applications/APb70c33bf0b6748f09eaec97030af36f3','/restcomm-rvd/services/apps/APb70c33bf0b6748f09eaec97030af36f3/controller','voice');
+INSERT INTO restcomm_applications VALUES('AP73926e7113fa4d95981aa96b76eca854','2015-09-23 06:56:04.108000','2015-09-23 06:56:04.108000','rvdCollectVerbDemo','ACae6e420f425248d6a26948c17a9e2acf','2012-04-24',FALSE,'/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Applications/AP73926e7113fa4d95981aa96b76eca854','/visual-designer/services/apps/AP73926e7113fa4d95981aa96b76eca854/controller','voice');
+INSERT INTO restcomm_applications VALUES('AP81cf45088cba4abcac1261385916d582','2015-09-23 06:56:17.977000','2015-09-23 06:56:17.977000','rvdESDemo','ACae6e420f425248d6a26948c17a9e2acf','2012-04-24',FALSE,'/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Applications/AP81cf45088cba4abcac1261385916d582','/visual-designer/services/apps/AP81cf45088cba4abcac1261385916d582/controller','voice');
+INSERT INTO restcomm_applications VALUES('APb70c33bf0b6748f09eaec97030af36f3','2015-09-23 06:56:26.120000','2015-09-23 06:56:26.120000','rvdSayVerbDemo','ACae6e420f425248d6a26948c17a9e2acf','2012-04-24',FALSE,'/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Applications/APb70c33bf0b6748f09eaec97030af36f3','/visual-designer/services/apps/APb70c33bf0b6748f09eaec97030af36f3/controller','voice');
 
 /* Bind default DID to demo apps */
 INSERT INTO restcomm_incoming_phone_numbers VALUES('PNdd7a0a0248244615978bd5781598e5eb','2013-10-04 17:42:02.500000000','2013-10-04 17:42:02.500000000','234','ACae6e420f425248d6a26948c17a9e2acf','+1234','2012-04-24',FALSE,'/restcomm/demos/hello-play.xml','POST',NULL,'POST',NULL,'POST',NULL,NULL,'POST',NULL,'POST',NULL,'/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/IncomingPhoneNumbers/PNdd7a0a0248244615978bd5781598e5eb', true, false, false, false, true, 0.0, null, null, null, null, null, null, null, null, 'ORafbe225ad37541eba518a74248f0ac4c');

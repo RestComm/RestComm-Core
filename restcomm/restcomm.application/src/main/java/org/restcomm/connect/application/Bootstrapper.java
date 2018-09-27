@@ -37,6 +37,7 @@ import org.restcomm.connect.commons.dao.Sid;
 import org.restcomm.connect.commons.loader.ObjectFactory;
 import org.restcomm.connect.commons.loader.ObjectInstantiationException;
 import org.restcomm.connect.commons.util.DNSUtils;
+import org.restcomm.connect.core.service.RestcommConnectServiceProvider;
 import org.restcomm.connect.dao.DaoManager;
 import org.restcomm.connect.dao.entities.InstanceId;
 import org.restcomm.connect.dao.entities.Organization;
@@ -233,10 +234,10 @@ public final class Bootstrapper extends SipServlet implements SipServletListener
         }
     }
 
-    private DaoManager storage(final Configuration configuration, Configuration daoManagerConfiguration, S3AccessTool s3AccessTool, final ClassLoader loader, final ExecutionContext ec) throws ObjectInstantiationException {
+    private DaoManager storage(final Configuration configuration, Configuration daoManagerConfiguration, final ClassLoader loader) throws ObjectInstantiationException {
         final String classpath = daoManagerConfiguration.getString("dao-manager[@class]");
         final DaoManager daoManager = (DaoManager) new ObjectFactory(loader).getObjectInstance(classpath);
-        daoManager.configure(configuration, daoManagerConfiguration, s3AccessTool, ec);
+        daoManager.configure(configuration, daoManagerConfiguration);
         daoManager.start();
         return daoManager;
     }
@@ -409,6 +410,7 @@ public final class Bootstrapper extends SipServlet implements SipServletListener
             // Share the actor system with other servlets.
             context.setAttribute(ActorSystem.class.getName(), system);
             ec = system.dispatchers().lookup("restcomm-blocking-dispatcher");
+            context.setAttribute(ExecutionContext.class.getName(), ec);
 
             S3AccessTool s3AccessTool = prepareS3AccessTool(xml);
             context.setAttribute(S3AccessTool.class.getName(), s3AccessTool);
@@ -416,7 +418,7 @@ public final class Bootstrapper extends SipServlet implements SipServletListener
             // Create the storage system.
             DaoManager storage = null;
             try {
-                storage = storage(xml, daoManagerConf, s3AccessTool, loader, ec);
+                storage = storage(xml, daoManagerConf, loader);
             } catch (final ObjectInstantiationException exception) {
                 logger.error("ObjectInstantiationException during initialization: ", exception);
             }

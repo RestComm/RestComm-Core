@@ -1,7 +1,7 @@
 = Restcomm Console
 
 The Console allows you to interact visually with Restcomm in addition to the RESTful APIs for the capabilities below
-Please read <<Restcomm - Overview Admin User Interface.adoc#adminUI,Restcomm Console Overview>> for understanding how to interact with the Restcomm platform
+Please read <<console-overview.adoc#console,Restcomm Console Overview>> for understanding how to interact with the Restcomm platform
 ////
 * <<account-api.adoc#account,Restcomm API – Account>>
 * <<Restcomm - Multi-tenancy and Managing Sub-Accounts.adoc#restcomm-rest-api,Multi-tenancy and Managing Sub-Accounts>>

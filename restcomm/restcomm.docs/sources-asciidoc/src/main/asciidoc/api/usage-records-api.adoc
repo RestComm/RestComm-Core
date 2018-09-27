@@ -167,7 +167,7 @@ You cannot make requests directly to a UsageRecord resource. Instead, make a req
 == Example of Getting Daily Calls Stats
 
 ----
-curl -X GET https://ACae6e420f425248d6a26948c17a9e2acf:PWD@127.0.0.1/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Usage/Records/Daily
+curl -X GET https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Usage/Records/Daily
 ----
 
 

@@ -46,7 +46,8 @@ import org.restcomm.connect.commons.configuration.sets.RcmlserverConfigurationSe
 import org.restcomm.connect.commons.dao.Sid;
 import org.restcomm.connect.commons.faulttolerance.RestcommUntypedActor;
 import org.restcomm.connect.commons.push.PushNotificationServerHelper;
-import org.restcomm.connect.commons.util.UriUtils;
+import org.restcomm.connect.core.service.RestcommConnectServiceProvider;
+import org.restcomm.connect.core.service.util.UriUtils;
 import org.restcomm.connect.core.service.api.NumberSelectorService;
 import org.restcomm.connect.dao.AccountsDao;
 import org.restcomm.connect.dao.ApplicationsDao;
@@ -85,7 +86,6 @@ import org.restcomm.connect.telephony.api.FeatureAccessRequest;
 import org.restcomm.connect.telephony.api.TextMessage;
 import org.restcomm.connect.telephony.api.util.B2BUAHelper;
 import org.restcomm.connect.telephony.api.util.CallControlHelper;
-import org.restcomm.smpp.parameter.TlvSet;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
@@ -95,6 +95,11 @@ import akka.actor.UntypedActorContext;
 import akka.actor.UntypedActorFactory;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import org.apache.http.NameValuePair;
+import org.restcomm.connect.http.client.Downloader;
+import org.restcomm.connect.http.client.HttpRequestDescriptor;
+import static org.restcomm.connect.sms.SmsStatusNotifier.populateReqParams;
+import org.restcomm.connect.sms.api.SmsStatusUpdated;
 import scala.concurrent.duration.Duration;
 
 /**
@@ -103,6 +108,9 @@ import scala.concurrent.duration.Duration;
  * @author maria-farooq@live.com (Maria Farooq)
  */
 public final class SmsService extends RestcommUntypedActor {
+
+    private static final String RECORD_ATT="record";
+
     private final LoggingAdapter logger = Logging.getLogger(getContext().system(), this);
 
     static final int ACCOUNT_NOT_ACTIVE_FAILURE_RESPONSE_CODE = SC_FORBIDDEN;
@@ -134,6 +142,8 @@ public final class SmsService extends RestcommUntypedActor {
 
     private final NumberSelectorService numberSelector;
 
+    private UriUtils uriUtils;
+
     public SmsService(final Configuration configuration, final SipFactory factory,
             final DaoManager storage, final ServletContext servletContext) {
         super();
@@ -146,13 +156,13 @@ public final class SmsService extends RestcommUntypedActor {
         this.storage = storage;
         this.servletContext = servletContext;
         monitoringService = (ActorRef) servletContext.getAttribute(MonitoringService.class.getName());
-        numberSelector = (NumberSelectorService)servletContext.getAttribute(NumberSelectorService.class.getName());
+        numberSelector = (NumberSelectorService) servletContext.getAttribute(NumberSelectorService.class.getName());
         this.pushNotificationServerHelper = new PushNotificationServerHelper(system, configuration);
         // final Configuration runtime = configuration.subset("runtime-settings");
         // TODO this.useTo = runtime.getBoolean("use-to");
         patchForNatB2BUASessions = runtime.getBoolean("patch-for-nat-b2bua-sessions", true);
         boolean useSbc = runtime.getBoolean("use-sbc", false);
-        if(useSbc) {
+        if (useSbc) {
             if (logger.isDebugEnabled()) {
                 logger.debug("SmsService: use-sbc is true, overriding patch-for-nat-b2bua-sessions to false");
             }
@@ -161,8 +171,10 @@ public final class SmsService extends RestcommUntypedActor {
 
         extensions = ExtensionController.getInstance().getExtensions(ExtensionType.SmsService);
         if (logger.isInfoEnabled()) {
-            logger.info("SmsService extensions: "+(extensions != null ? extensions.size() : "0"));
+            logger.info("SmsService extensions: " + (extensions != null ? extensions.size() : "0"));
         }
+
+        this.uriUtils = RestcommConnectServiceProvider.getInstance().uriUtils();
     }
 
     private void message(final Object message) throws IOException {
@@ -171,9 +183,9 @@ public final class SmsService extends RestcommUntypedActor {
 
         // ignore composing messages and accept content type including text only
         // https://github.com/Mobicents/RestComm/issues/494
-        if (request.getContentLength()==0 || !request.getContentType().contains("text/plain")) {
+        if (request.getContentLength() == 0 || !request.getContentType().contains("text/plain")) {
             SipServletResponse reject = request.createResponse(SipServletResponse.SC_NOT_ACCEPTABLE);
-            reject.addHeader("Reason","Content Type is not text plain");
+            reject.addHeader("Reason", "Content Type is not text plain");
             reject.send();
             return;
         }
@@ -189,12 +201,12 @@ public final class SmsService extends RestcommUntypedActor {
 
         final Sid sourceOrganizationSid = OrganizationUtil.getOrganizationSidBySipURIHost(storage, fromURI);
 
-        if(logger.isDebugEnabled()) {
+        if (logger.isDebugEnabled()) {
             logger.debug("sourceOrganizationSid: " + sourceOrganizationSid);
-            logger.debug("destinationOrganizationSid: "+destinationOrganizationSid);
+            logger.debug("destinationOrganizationSid: " + destinationOrganizationSid);
         }
-        if(sourceOrganizationSid == null){
-            logger.error("Null Organization: fromUri: "+fromURI);
+        if (sourceOrganizationSid == null) {
+            logger.error("Null Organization: fromUri: " + fromURI);
         }
 
         final Client client = clients.getClient(fromUser, sourceOrganizationSid);
@@ -242,7 +254,7 @@ public final class SmsService extends RestcommUntypedActor {
             // Make sure we force clients to authenticate.
             if (authenticateUsers // https://github.com/Mobicents/RestComm/issues/29 Allow disabling of SIP authentication
                     && !CallControlHelper.checkAuthentication(request, storage, sourceOrganizationSid)) {
-                if(logger.isInfoEnabled()) {
+                if (logger.isInfoEnabled()) {
                     logger.info("Client " + client.getLogin() + " failed to authenticate");
                 }
                 // Since the client failed to authenticate, we will ignore the message and not process further
@@ -269,7 +281,7 @@ public final class SmsService extends RestcommUntypedActor {
         // Try to see if the request is destined for an application we are hosting.
         if (redirectToHostedSmsApp(request, applications, number)) {
             // Tell the sender we received the message okay.
-            if(logger.isInfoEnabled()) {
+            if (logger.isInfoEnabled()) {
                 logger.info("Message to :" + toUser + " matched to one of the hosted applications");
             }
 
@@ -277,7 +289,7 @@ public final class SmsService extends RestcommUntypedActor {
             final SipServletResponse messageAccepted = request.createResponse(SipServletResponse.SC_ACCEPTED);
             messageAccepted.send();
 
-            monitoringService.tell(new TextMessage(((SipURI)request.getFrom().getURI()).getUser(), ((SipURI)request.getTo().getURI()).getUser(), TextMessage.SmsState.INBOUND_TO_APP), self);
+            monitoringService.tell(new TextMessage(((SipURI) request.getFrom().getURI()).getUser(), ((SipURI) request.getTo().getURI()).getUser(), TextMessage.SmsState.INBOUND_TO_APP), self);
 
             return;
 
@@ -302,11 +314,11 @@ public final class SmsService extends RestcommUntypedActor {
                             if (B2BUAHelper.redirectToB2BUA(system, request, client, toClient, storage, sipFactory, patchForNatB2BUASessions)) {
                                 // if all goes well with proxying the SIP MESSAGE on to the target client
                                 // then we can end further processing of this request and send response to sender
-                                if(logger.isInfoEnabled()) {
+                                if (logger.isInfoEnabled()) {
                                     logger.info("P2P, Message from: " + client.getLogin() + " redirected to registered client: "
                                             + toClient.getLogin());
                                 }
-                                monitoringService.tell(new TextMessage(((SipURI)request.getFrom().getURI()).getUser(), ((SipURI)request.getTo().getURI()).getUser(), TextMessage.SmsState.INBOUND_TO_CLIENT), self);
+                                monitoringService.tell(new TextMessage(((SipURI) request.getFrom().getURI()).getUser(), ((SipURI) request.getTo().getURI()).getUser(), TextMessage.SmsState.INBOUND_TO_CLIENT), self);
                                 return;
                             } else {
                                 String errMsg = "Cannot Connect to Client: " + toClient.getFriendlyName()
@@ -362,8 +374,7 @@ public final class SmsService extends RestcommUntypedActor {
                     // Store the sms record in the sms session.
                     session.tell(new SmsSessionAttribute("record", record), self());
                     // Send the SMS.
-                    TlvSet tlvSet = new TlvSet();
-                    final SmsSessionRequest sms = new SmsSessionRequest(client.getLogin(), toUser, new String(request.getRawContent()), request, tlvSet, null);
+                    final SmsSessionRequest sms = new SmsSessionRequest(client.getLogin(), toUser, new String(request.getRawContent()), request, null);
                     monitoringService.tell(new TextMessage(((SipURI) request.getFrom().getURI()).getUser(), ((SipURI) request.getTo().getURI()).getUser(), TextMessage.SmsState.INBOUND_TO_PROXY_OUT), self);
                     session.tell(sms, self());
                 } else {
@@ -383,11 +394,11 @@ public final class SmsService extends RestcommUntypedActor {
             final SipServletResponse response = request.createResponse(SC_NOT_FOUND);
             response.send();
             // We didn't find anyway to handle the SMS.
-            String errMsg = "Restcomm cannot process this SMS because the destination number is not hosted locally. To: "+toUser;
+            String errMsg = "Restcomm cannot process this SMS because the destination number is not hosted locally. To: " + toUser;
             sendNotification(errMsg, 11005, "error", true);
-            monitoringService.tell(new TextMessage(((SipURI)request.getFrom().getURI()).getUser(), ((SipURI)request.getTo().getURI()).getUser(), TextMessage.SmsState.NOT_FOUND), self);
-        }}
-
+            monitoringService.tell(new TextMessage(((SipURI) request.getFrom().getURI()).getUser(), ((SipURI) request.getTo().getURI()).getUser(), TextMessage.SmsState.NOT_FOUND), self);
+        }
+    }
 
     private IncomingPhoneNumber getIncomingPhoneNumber(String phone, Sid sourceOrganizationSid, Sid destinationOrganization) {
         IncomingPhoneNumber number = numberSelector.searchNumber(phone, sourceOrganizationSid, destinationOrganization);
@@ -397,8 +408,8 @@ public final class SmsService extends RestcommUntypedActor {
 
     /**
      *
-     * Try to locate a hosted sms app corresponding to the callee/To address. If one is found, begin execution, otherwise return
-     * false;
+     * Try to locate a hosted sms app corresponding to the callee/To address. If
+     * one is found, begin execution, otherwise return false;
      *
      * @param request
      * @param applications
@@ -435,9 +446,9 @@ public final class SmsService extends RestcommUntypedActor {
                             final Application application = applications.getApplication(sid);
                             RcmlserverConfigurationSet rcmlserverConfig = RestcommConfiguration.getInstance().getRcmlserver();
                             RcmlserverResolver resolver = RcmlserverResolver.getInstance(rcmlserverConfig.getBaseUrl(), rcmlserverConfig.getApiPath());
-                            builder.setUrl(UriUtils.resolve(resolver.resolveRelative(application.getRcmlUrl())));
+                            builder.setUrl(uriUtils.resolve(resolver.resolveRelative(application.getRcmlUrl()), number.getAccountSid()));
                         } else {
-                            builder.setUrl(UriUtils.resolve(appUri));
+                            builder.setUrl(uriUtils.resolve(appUri, number.getAccountSid()));
                         }
                         final String smsMethod = number.getSmsMethod();
                         if (smsMethod == null || smsMethod.isEmpty()) {
@@ -447,15 +458,16 @@ public final class SmsService extends RestcommUntypedActor {
                         }
                         URI appFallbackUrl = number.getSmsFallbackUrl();
                         if (appFallbackUrl != null) {
-                            builder.setFallbackUrl(UriUtils.resolve(number.getSmsFallbackUrl()));
+                            builder.setFallbackUrl(uriUtils.resolve(number.getSmsFallbackUrl(), number.getAccountSid()));
                             builder.setFallbackMethod(number.getSmsFallbackMethod());
                         }
                         final Props props = SmsInterpreter.props(builder.build());
                         interpreter = getContext().actorOf(props);
                     }
                     Sid organizationSid = storage.getOrganizationsDao().getOrganization(storage.getAccountsDao().getAccount(number.getAccountSid()).getOrganizationSid()).getSid();
-                    if(logger.isDebugEnabled())
-                        logger.debug("redirectToHostedSmsApp organizationSid = "+organizationSid);
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("redirectToHostedSmsApp organizationSid = " + organizationSid);
+                    }
                     //TODO:do extensions check here too?
                     final ActorRef session = session(this.configuration, organizationSid);
 
@@ -487,44 +499,66 @@ public final class SmsService extends RestcommUntypedActor {
 
     @Override
     public void onReceive(final Object message) throws Exception {
-        final UntypedActorContext context = getContext();
         final Class<?> klass = message.getClass();
+        if (logger.isDebugEnabled()) {
+            logger.debug(" ********** Onreceive: " + self().path() + ", Processing Message: " + klass.getName()
+                    + " Sender is: " + sender().path() + " Message is: " + message);
+        }
+        if (CreateSmsSession.class.equals(klass)) {
+            onCreateSession(message);
+        } else if (DestroySmsSession.class.equals(klass)) {
+            onDestroySession(message);
+        } else if (message instanceof SipServletRequest) {
+            onServletRequest(message);
+        } else if (message instanceof SipServletResponse) {
+            onServletResponse(message);
+        } else if (message instanceof SmsStatusUpdated) {
+            onStatusUpdated((SmsStatusUpdated) message);
+        }
+
+    }
+
+    private void onServletResponse(Object message) throws Exception {
+        final SipServletResponse response = (SipServletResponse) message;
+        final SipServletRequest request = response.getRequest();
+        final String method = request.getMethod();
+        if ("MESSAGE".equalsIgnoreCase(method)) {
+            response(message);
+        }
+    }
+
+    private void onServletRequest(Object message) throws IOException {
+        final SipServletRequest request = (SipServletRequest) message;
+        final String method = request.getMethod();
+        if ("MESSAGE".equalsIgnoreCase(method)) {
+            message(message);
+        }
+    }
+
+    private void onDestroySession(Object message) {
+        final UntypedActorContext context = getContext();
+        final DestroySmsSession request = (DestroySmsSession) message;
+        final ActorRef session = request.session();
+        context.stop(session);
+    }
+
+    private void onCreateSession(Object message) {
+        ExtensionController ec = ExtensionController.getInstance();
         final ActorRef self = self();
         final ActorRef sender = sender();
-        ExtensionController ec = ExtensionController.getInstance();
-        if (CreateSmsSession.class.equals(klass)) {
-            IExtensionCreateSmsSessionRequest ier = (CreateSmsSession)message;
-            ier.setConfiguration(this.configuration);
-            ExtensionResponse executePreOutboundAction = ec.executePreOutboundAction(ier, this.extensions);
-            if (executePreOutboundAction.isAllowed()) {
-                CreateSmsSession createSmsSession = (CreateSmsSession) message;
-                final ActorRef session = session(ier.getConfiguration(), OrganizationUtil.getOrganizationSidByAccountSid(storage, new Sid(createSmsSession.getAccountSid())));
-                final SmsServiceResponse<ActorRef> response = new SmsServiceResponse<ActorRef>(session);
-                sender.tell(response, self);
-            } else {
-                final SmsServiceResponse<ActorRef> response = new SmsServiceResponse(new RestcommExtensionException("Now allowed to create SmsSession"));
-                sender.tell(response, self());
-            }
-            ec.executePostOutboundAction(ier, this.extensions);
-        } else if (DestroySmsSession.class.equals(klass)) {
-            final DestroySmsSession request = (DestroySmsSession) message;
-            final ActorRef session = request.session();
-            context.stop(session);
-        } else if (message instanceof SipServletRequest) {
-            final SipServletRequest request = (SipServletRequest) message;
-            final String method = request.getMethod();
-            if ("MESSAGE".equalsIgnoreCase(method)) {
-                message(message);
-            }
-        } else if (message instanceof SipServletResponse) {
-            final SipServletResponse response = (SipServletResponse) message;
-            final SipServletRequest request = response.getRequest();
-            final String method = request.getMethod();
-            if ("MESSAGE".equalsIgnoreCase(method)) {
-                response(message);
-
-            }
+        IExtensionCreateSmsSessionRequest ier = (CreateSmsSession) message;
+        ier.setConfiguration(this.configuration);
+        ExtensionResponse executePreOutboundAction = ec.executePreOutboundAction(ier, this.extensions);
+        if (executePreOutboundAction.isAllowed()) {
+            CreateSmsSession createSmsSession = (CreateSmsSession) message;
+            final ActorRef session = session(ier.getConfiguration(), OrganizationUtil.getOrganizationSidByAccountSid(storage, new Sid(createSmsSession.getAccountSid())));
+            final SmsServiceResponse<ActorRef> response = new SmsServiceResponse<ActorRef>(session);
+            sender.tell(response, self);
+        } else {
+            final SmsServiceResponse<ActorRef> response = new SmsServiceResponse(new RestcommExtensionException("Now allowed to create SmsSession"));
+            sender.tell(response, self());
         }
+        ec.executePostOutboundAction(ier, this.extensions);
     }
 
     private void response(final Object message) throws Exception {
@@ -538,10 +572,10 @@ public final class SmsService extends RestcommUntypedActor {
         final SipApplicationSession application = response.getApplicationSession();
 
         //handle SIP application session and make sure it has not being invalidated
-        if(logger.isInfoEnabled()) {
-            logger.info("Is SipApplicationSession valid: "+application.isValid());
+        if (logger.isInfoEnabled()) {
+            logger.info("Is SipApplicationSession valid: " + application.isValid());
         }
-        if(application != null){
+        if (application != null) {
             final ActorRef session = (ActorRef) application.getAttribute(SmsSession.class.getName());
             //P2P messaging doesnt include session, check if necessary
             if (session != null) {
@@ -554,7 +588,6 @@ public final class SmsService extends RestcommUntypedActor {
             }
         }
     }
-
 
     @SuppressWarnings("unchecked")
     private SipURI outboundInterface() {
@@ -599,7 +632,7 @@ public final class SmsService extends RestcommUntypedActor {
                 notifications.addNotification(notification);
             }
         } else if (errType == "info") {
-            if(logger.isInfoEnabled()) {
+            if (logger.isInfoEnabled()) {
                 logger.info(errMessage); // send message to console
             }
         }
@@ -636,9 +669,11 @@ public final class SmsService extends RestcommUntypedActor {
             e.printStackTrace();
         }
         /**
-         * if (response != null) { builder.setRequestUrl(request.getUri()); builder.setRequestMethod(request.getMethod());
+         * if (response != null) { builder.setRequestUrl(request.getUri());
+         * builder.setRequestMethod(request.getMethod());
          * builder.setRequestVariables(request.getParametersAsString()); }
-         **/
+         *
+         */
 
         builder.setRequestMethod("");
         builder.setRequestVariables("");
@@ -649,5 +684,50 @@ public final class SmsService extends RestcommUntypedActor {
         final URI uri = URI.create(buffer.toString());
         builder.setUri(uri);
         return builder.build();
+    }
+
+    private void onStatusUpdated(SmsStatusUpdated event) {
+        SmsMessage msg = (SmsMessage) event.getInfo().attributes().get(RECORD_ATT);
+        storage.getSmsMessagesDao().updateSmsMessage(msg);
+        notifyStatus(msg);
+
+    }
+
+    // The storage engine.
+    private void notifyStatus(SmsMessage message) {
+        URI callback = message.getStatusCallback();
+        if (callback != null) {
+            String method = message.getStatusCallbackMethod();
+            if (method != null && !method.isEmpty()) {
+
+                if (!org.apache.http.client.methods.HttpGet.METHOD_NAME.equalsIgnoreCase(method)
+                        && !org.apache.http.client.methods.HttpPost.METHOD_NAME.equalsIgnoreCase(method)) {
+                    final Notification notification = notification(WARNING_NOTIFICATION, 14104, method
+                            + " is not a valid HTTP method for <Sms>");
+                    storage.getNotificationsDao().addNotification(notification);
+                    method = org.apache.http.client.methods.HttpPost.METHOD_NAME;
+                }
+            } else {
+                method = org.apache.http.client.methods.HttpPost.METHOD_NAME;
+            }
+
+
+            List<NameValuePair> parameters = populateReqParams(message);
+            HttpRequestDescriptor request = new HttpRequestDescriptor(callback, method, parameters);
+            downloader().tell(request, self());
+
+        }
+    }
+
+    protected ActorRef downloader() {
+        final Props props = new Props(new UntypedActorFactory() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public UntypedActor create() throws Exception {
+                return new Downloader();
+            }
+        });
+        return getContext().actorOf(props);
     }
 }

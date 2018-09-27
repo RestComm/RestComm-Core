@@ -21,7 +21,7 @@ package org.restcomm.connect.dao.mybatis;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
-        
+
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -43,15 +43,20 @@ import org.restcomm.connect.dao.entities.CallDetailRecord;
 import org.restcomm.connect.dao.entities.CallDetailRecordFilter;
 
 import junit.framework.Assert;
+import static org.junit.Assert.assertNull;
+import org.junit.FixMethodOrder;
 import org.junit.Rule;
 import org.junit.rules.TestName;
+import org.junit.runners.MethodSorters;
+import org.restcomm.connect.dao.common.Sorting;
 
 /**
  * @author quintana.thomas@gmail.com (Thomas Quintana)
  */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class CallDetailRecordsDaoTest extends DaoTest {
     @Rule public TestName name = new TestName();
-    
+
     private static MybatisDaoManager manager;
 
     public CallDetailRecordsDaoTest() {
@@ -144,7 +149,7 @@ public class CallDetailRecordsDaoTest extends DaoTest {
         // Delete the CDR.
         cdrs.removeCallDetailRecord(sid);
         // Validate that the CDR was removed.
-        assertTrue(cdrs.getCallDetailRecord(sid) == null);
+        assertNull(cdrs.getCallDetailRecord(sid));
     }
 
     @Test
@@ -179,11 +184,11 @@ public class CallDetailRecordsDaoTest extends DaoTest {
         // Create a new CDR in the data store.
         cdrs.addCallDetailRecord(cdr);
         // Validate the results.
-        assertTrue(cdrs.getCallDetailRecordsByAccountSid(account).size() == 1);
+        assertEquals(1, cdrs.getCallDetailRecordsByAccountSid(account).size());
         // Delete the CDR.
         cdrs.removeCallDetailRecords(account);
         // Validate that the CDRs were removed.
-        assertTrue(cdrs.getCallDetailRecordsByAccountSid(account).size() == 0);
+        assertEquals(0, cdrs.getCallDetailRecordsByAccountSid(account).size());
     }
 
     public void testReadByRecipient() {
@@ -217,11 +222,11 @@ public class CallDetailRecordsDaoTest extends DaoTest {
         // Create a new CDR in the data store.
         cdrs.addCallDetailRecord(cdr);
         // Validate the results.
-        assertTrue(cdrs.getCallDetailRecordsByRecipient("+12223334444").size() == 1);
+        assertEquals(1, cdrs.getCallDetailRecordsByRecipient("+12223334444").size());
         // Delete the CDR.
         cdrs.removeCallDetailRecord(sid);
         // Validate that the CDRs were removed.
-        assertTrue(cdrs.getCallDetailRecord(sid) == null);
+        assertNull(cdrs.getCallDetailRecord(sid) == null);
     }
 
     public void testReadBySender() {
@@ -255,11 +260,11 @@ public class CallDetailRecordsDaoTest extends DaoTest {
         // Create a new CDR in the data store.
         cdrs.addCallDetailRecord(cdr);
         // Validate the results.
-        assertTrue(cdrs.getCallDetailRecordsByRecipient("+17778889999").size() == 1);
+        assertEquals(1, cdrs.getCallDetailRecordsByRecipient("+17778889999").size());
         // Delete the CDR.
         cdrs.removeCallDetailRecord(sid);
         // Validate that the CDRs were removed.
-        assertTrue(cdrs.getCallDetailRecord(sid) == null);
+        assertNull(cdrs.getCallDetailRecord(sid));
     }
 
     public void testReadByStatus() {
@@ -293,11 +298,11 @@ public class CallDetailRecordsDaoTest extends DaoTest {
         // Create a new CDR in the data store.
         cdrs.addCallDetailRecord(cdr);
         // Validate the results.
-        assertTrue(cdrs.getCallDetailRecordsByStatus("queued").size() == 1);
+        assertEquals(1, cdrs.getCallDetailRecordsByStatus("queued").size());
         // Delete the CDR.
         cdrs.removeCallDetailRecord(sid);
         // Validate that the CDRs were removed.
-        assertTrue(cdrs.getCallDetailRecord(sid) == null);
+        assertNull(cdrs.getCallDetailRecord(sid));
     }
 
     @Test
@@ -333,11 +338,11 @@ public class CallDetailRecordsDaoTest extends DaoTest {
         // Create a new CDR in the data store.
         cdrs.addCallDetailRecord(cdr);
         // Validate the results.
-        assertTrue(cdrs.getCallDetailRecordsByStartTime(now).size() == 1);
+        assertEquals(1, cdrs.getCallDetailRecordsByStartTime(now).size());
         // Delete the CDR.
         cdrs.removeCallDetailRecord(sid);
         // Validate that the CDRs were removed.
-        assertTrue(cdrs.getCallDetailRecord(sid) == null);
+        assertNull(cdrs.getCallDetailRecord(sid));
     }
 
     @Test
@@ -368,6 +373,7 @@ public class CallDetailRecordsDaoTest extends DaoTest {
         builder.setApiVersion("2012-04-24");
         builder.setCallerName("Alice");
         builder.setUri(url);
+        builder.setMsId("msId");
         CallDetailRecord cdr = builder.build();
         final CallDetailRecordsDao cdrs = manager.getCallDetailRecordsDao();
         int beforeAdding = cdrs.getCallDetailRecordsByEndTime(now).size();
@@ -378,7 +384,7 @@ public class CallDetailRecordsDaoTest extends DaoTest {
         // Delete the CDR.
         cdrs.removeCallDetailRecord(sid);
         // Validate that the CDRs were removed.
-        assertTrue(cdrs.getCallDetailRecord(sid) == null);
+        assertNull(cdrs.getCallDetailRecord(sid));
     }
 
     public void testReadByParentCall() {
@@ -412,11 +418,11 @@ public class CallDetailRecordsDaoTest extends DaoTest {
         // Create a new CDR in the data store.
         cdrs.addCallDetailRecord(cdr);
         // Validate the results.
-        assertTrue(cdrs.getCallDetailRecordsByParentCall(parent).size() == 1);
+        assertEquals(1, cdrs.getCallDetailRecordsByParentCall(parent).size());
         // Delete the CDR.
         cdrs.removeCallDetailRecord(sid);
         // Validate that the CDRs were removed.
-        assertTrue(cdrs.getCallDetailRecord(sid) == null);
+        assertNull(cdrs.getCallDetailRecord(sid));
     }
 
     @Test
@@ -454,5 +460,154 @@ public class CallDetailRecordsDaoTest extends DaoTest {
         // if no (null) accountSidSet is passed the method still works
         filter = new CallDetailRecordFilter("AC00000000000000000000000000000000", null, null, null, null, null, null, null, null, null, null);
         Assert.assertEquals(12, dao.getTotalCallDetailRecords(filter).intValue());
+    }
+
+    @Test
+    public void filterWithDateSorting() throws ParseException {
+        CallDetailRecordsDao dao = manager.getCallDetailRecordsDao();
+        CallDetailRecordFilter.Builder builder = new CallDetailRecordFilter.Builder();
+        List<String> accountSidSet = new ArrayList<String>();
+        accountSidSet.add("AC00000000000000000000000000000000");
+        builder.byAccountSidSet(accountSidSet);
+        builder.sortedByDate(Sorting.Direction.ASC);
+        CallDetailRecordFilter filter = builder.build();
+        List<CallDetailRecord> callDetailRecords = dao.getCallDetailRecords(filter);
+        assertEquals(12, callDetailRecords.size());
+        final DateTime min = DateTime.parse("2013-07-30T15:08:21.228");
+        final DateTime max = DateTime.parse("2013-09-10T14:03:36.496");
+        assertEquals(min.compareTo(callDetailRecords.get(0).getDateCreated()), 0);
+        assertEquals(max.compareTo(callDetailRecords.get(11).getDateCreated()), 0);
+
+        builder.sortedByDate(Sorting.Direction.DESC);
+        filter = builder.build();
+        callDetailRecords = dao.getCallDetailRecords(filter);
+        assertEquals(max.compareTo(callDetailRecords.get(0).getDateCreated()), 0);
+        assertEquals(min.compareTo(callDetailRecords.get(11).getDateCreated()), 0);
+    }
+
+    @Test
+    public void filterWithFromSorting() throws ParseException {
+        CallDetailRecordsDao dao = manager.getCallDetailRecordsDao();
+        CallDetailRecordFilter.Builder builder = new CallDetailRecordFilter.Builder();
+        List<String> accountSidSet = new ArrayList<String>();
+        accountSidSet.add("AC00000000000000000000000000000000");
+        builder.byAccountSidSet(accountSidSet);
+        builder.sortedByFrom(Sorting.Direction.ASC);
+        CallDetailRecordFilter filter = builder.build();
+        List<CallDetailRecord> callDetailRecords = dao.getCallDetailRecords(filter);
+        assertEquals(12, callDetailRecords.size());
+        assertEquals("+1011420534008567", callDetailRecords.get(0).getFrom());
+        assertEquals("Anonymous", callDetailRecords.get(11).getFrom());
+
+        builder.sortedByFrom(Sorting.Direction.DESC);
+        filter = builder.build();
+        callDetailRecords = dao.getCallDetailRecords(filter);
+        assertEquals("Anonymous", callDetailRecords.get(0).getFrom());
+        assertEquals("+1011420534008567", callDetailRecords.get(11).getFrom());
+    }
+
+    @Test
+    public void filterWithToSorting() throws ParseException {
+        CallDetailRecordsDao dao = manager.getCallDetailRecordsDao();
+        CallDetailRecordFilter.Builder builder = new CallDetailRecordFilter.Builder();
+        List<String> accountSidSet = new ArrayList<String>();
+        accountSidSet.add("AC00000000000000000000000000000000");
+        builder.byAccountSidSet(accountSidSet);
+        builder.sortedByTo(Sorting.Direction.ASC);
+        CallDetailRecordFilter filter = builder.build();
+        List<CallDetailRecord> callDetailRecords = dao.getCallDetailRecords(filter);
+        assertEquals(12, callDetailRecords.size());
+        assertEquals("+13052406432", callDetailRecords.get(0).getTo());
+        assertEquals("+17863580884", callDetailRecords.get(11).getTo());
+
+        builder.sortedByTo(Sorting.Direction.DESC);
+        filter = builder.build();
+        callDetailRecords = dao.getCallDetailRecords(filter);
+        assertEquals("+17863580884", callDetailRecords.get(0).getTo());
+        assertEquals("+13052406432", callDetailRecords.get(11).getTo());
+    }
+
+    @Test
+    public void filterWithDirectionSorting() throws ParseException {
+        CallDetailRecordsDao dao = manager.getCallDetailRecordsDao();
+        CallDetailRecordFilter.Builder builder = new CallDetailRecordFilter.Builder();
+        List<String> accountSidSet = new ArrayList<String>();
+        accountSidSet.add("AC00000000000000000000000000000000");
+        builder.byAccountSidSet(accountSidSet);
+        builder.sortedByDirection(Sorting.Direction.ASC);
+        CallDetailRecordFilter filter = builder.build();
+        List<CallDetailRecord> callDetailRecords = dao.getCallDetailRecords(filter);
+        assertEquals(12, callDetailRecords.size());
+        assertEquals("inbound", callDetailRecords.get(0).getDirection());
+        assertEquals("outbound", callDetailRecords.get(11).getDirection());
+
+        builder.sortedByDirection(Sorting.Direction.DESC);
+        filter = builder.build();
+        callDetailRecords = dao.getCallDetailRecords(filter);
+        assertEquals("outbound", callDetailRecords.get(0).getDirection());
+        assertEquals("inbound", callDetailRecords.get(11).getDirection());
+    }
+
+    @Test
+    public void filterWithStatusSorting() throws ParseException {
+        CallDetailRecordsDao dao = manager.getCallDetailRecordsDao();
+        CallDetailRecordFilter.Builder builder = new CallDetailRecordFilter.Builder();
+        List<String> accountSidSet = new ArrayList<String>();
+        accountSidSet.add("AC00000000000000000000000000000000");
+        builder.byAccountSidSet(accountSidSet);
+        builder.sortedByStatus(Sorting.Direction.ASC);
+        CallDetailRecordFilter filter = builder.build();
+        List<CallDetailRecord> callDetailRecords = dao.getCallDetailRecords(filter);
+        assertEquals(12, callDetailRecords.size());
+        assertEquals("completed", callDetailRecords.get(0).getStatus());
+        assertEquals("in-progress", callDetailRecords.get(11).getStatus());
+
+        builder.sortedByStatus(Sorting.Direction.DESC);
+        filter = builder.build();
+        callDetailRecords = dao.getCallDetailRecords(filter);
+        assertEquals("in-progress", callDetailRecords.get(0).getStatus());
+        assertEquals("completed", callDetailRecords.get(11).getStatus());
+    }
+
+    @Test
+    public void filterWithDurationSorting() throws ParseException {
+        CallDetailRecordsDao dao = manager.getCallDetailRecordsDao();
+        CallDetailRecordFilter.Builder builder = new CallDetailRecordFilter.Builder();
+        List<String> accountSidSet = new ArrayList<String>();
+        accountSidSet.add("AC00000000000000000000000000000000");
+        builder.byAccountSidSet(accountSidSet);
+        builder.sortedByDuration(Sorting.Direction.ASC);
+        CallDetailRecordFilter filter = builder.build();
+        List<CallDetailRecord> callDetailRecords = dao.getCallDetailRecords(filter);
+        assertEquals(12, callDetailRecords.size());
+        assertEquals("1", callDetailRecords.get(0).getDuration().toString());
+        assertEquals("44", callDetailRecords.get(11).getDuration().toString());
+
+        builder.sortedByDuration(Sorting.Direction.DESC);
+        filter = builder.build();
+        callDetailRecords = dao.getCallDetailRecords(filter);
+        assertEquals("44", callDetailRecords.get(0).getDuration().toString());
+        assertEquals("1", callDetailRecords.get(11).getDuration().toString());
+    }
+
+    @Test
+    public void filterWithPriceSorting() throws ParseException {
+        CallDetailRecordsDao dao = manager.getCallDetailRecordsDao();
+        CallDetailRecordFilter.Builder builder = new CallDetailRecordFilter.Builder();
+        List<String> accountSidSet = new ArrayList<String>();
+        accountSidSet.add("AC00000000000000000000000000000000");
+        builder.byAccountSidSet(accountSidSet);
+        builder.sortedByPrice(Sorting.Direction.ASC);
+        CallDetailRecordFilter filter = builder.build();
+        List<CallDetailRecord> callDetailRecords = dao.getCallDetailRecords(filter);
+        assertEquals(12, callDetailRecords.size());
+        assertEquals("0.00", callDetailRecords.get(0).getPrice().toString());
+        assertEquals("120.00", callDetailRecords.get(11).getPrice().toString());
+
+        builder.sortedByPrice(Sorting.Direction.DESC);
+        filter = builder.build();
+        callDetailRecords = dao.getCallDetailRecords(filter);
+        assertEquals("120.00", callDetailRecords.get(0).getPrice().toString());
+        assertEquals("0.00", callDetailRecords.get(11).getPrice().toString());
     }
 }

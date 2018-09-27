@@ -24,6 +24,7 @@ import java.lang.reflect.Type;
 import org.apache.commons.configuration.Configuration;
 import org.restcomm.connect.commons.amazonS3.RecordingSecurityLevel;
 import org.restcomm.connect.commons.annotations.concurrency.ThreadSafe;
+import org.restcomm.connect.core.service.RestcommConnectServiceProvider;
 import org.restcomm.connect.dao.entities.Recording;
 
 import com.google.gson.JsonElement;
@@ -68,7 +69,9 @@ public final class RecordingConverter extends AbstractConverter implements JsonS
         writeApiVersion(recording.getApiVersion(), writer);
         writeUri(recording.getUri(), writer);
         writer.startNode("FileUri");
-        writer.setValue(recording.getFileUri().toString());
+        //Previously MybatisRecordingsDao used to prepare absolute URL for fileUri. Now we do it in the converter
+        String fileUri = RestcommConnectServiceProvider.getInstance().uriUtils().resolve(recording.getFileUri(), recording.getAccountSid()).toString();
+        writer.setValue(fileUri);
         writer.endNode();
         if (securityLevel.equals(RecordingSecurityLevel.NONE) && recording.getS3Uri() != null) {
             writer.startNode("S3Uri");
@@ -90,7 +93,9 @@ public final class RecordingConverter extends AbstractConverter implements JsonS
         writeApiVersion(recording.getApiVersion(), object);
         writeUri(recording.getUri(), object);
         if (recording.getFileUri() != null) {
-            object.addProperty("file_uri", recording.getFileUri().toString());
+            //Previously MybatisRecordingsDao used to prepare absolute URL for fileUri. Now we do it in the converter
+            String fileUri = RestcommConnectServiceProvider.getInstance().uriUtils().resolve(recording.getFileUri(), recording.getAccountSid()).toString();
+            object.addProperty("file_uri", fileUri);
         }
         if (securityLevel.equals(RecordingSecurityLevel.NONE) && recording.getS3Uri() != null) {
             object.addProperty("s3_uri", recording.getS3Uri().toString());

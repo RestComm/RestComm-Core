@@ -71,7 +71,7 @@ public class NotificationEndpointTool {
         return jsonObject;
     }
 
-    public JsonObject getNotificationList(String deploymentUrl, String username, String authToken, Integer page, Integer pageSize, Boolean json) {
+    public JsonObject getNotificationList(String deploymentUrl, String username, String authToken, Integer page, Integer pageSize, String sortingParameters, Boolean json) {
 
         Client jerseyClient = Client.create();
         jerseyClient.addFilter(new HTTPBasicAuthFilter(username, authToken));
@@ -79,16 +79,21 @@ public class NotificationEndpointTool {
         WebResource webResource = jerseyClient.resource(url);
         String response;
 
-        if (page != null || pageSize != null) {
-            MultivaluedMap<String, String> params = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> params = new MultivaluedMapImpl();
+        if (sortingParameters != null) {
+            params.add("SortBy", sortingParameters);
+        }
 
+        if (page != null || pageSize != null) {
             if (page != null) {
                 params.add("Page", String.valueOf(page));
             }
             if (pageSize != null) {
                 params.add("PageSize", String.valueOf(pageSize));
             }
+        }
 
+        if (!params.isEmpty()) {
             response = webResource.queryParams(params).accept(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML)
                     .get(String.class);
         } else {

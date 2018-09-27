@@ -47,7 +47,7 @@
   <get src="https://api.github.com/repos/RestComm/visual-designer/releases/latest" dest="${configuration.directory}/rvd-latest-release.json"></get>
   <replaceregexp file="${configuration.directory}/rvd-latest-release.json" match='.*"browser_download_url":"([^"]+)".*' replace="\1"/>
   <loadfile property="restcomm-rvd.github-download.url" srcFile="${configuration.directory}/rvd-latest-release.json"/>
-  <property name="restcomm-rvd.path" value="${configuration.directory}/restcomm-rvd.war"/>
+  <property name="restcomm-rvd.path" value="${configuration.directory}/visual-designer.war"/>
   <delete file="${configuration.directory}/rvd-latest-release.json"/>
 
   <condition property="restcomm-rvd.download.url" value="https://oss.sonatype.org/content/groups/public/org/restcomm/restcomm-connect-rvd/${rvd.version}/restcomm-connect-rvd-${rvd.version}.war" else="${restcomm-rvd.github-download.url}">
@@ -157,7 +157,7 @@
     <exec executable="wget" failonerror="true">
       <arg value="${restcomm-rvd.download.url}"/>
     </exec>
-    <move file="${base.dir}/restcomm-rvd.war" todir="${configuration.directory}"/>
+    <move file="${base.dir}/visual-designer.war" todir="${configuration.directory}"/>
   </target>
 
   <target depends="get-restcomm-media" name="extract-restcomm-media">
@@ -218,8 +218,8 @@
     <touch file="${release.as7.dir}/standalone/deployments/restcomm-management.war.dodeploy"/>
 
     <!-- Copy RVD -->
-    <unzip dest="${release.as7.dir}/standalone/deployments/restcomm-rvd.war" src="${configuration.directory}/restcomm-rvd.war"/>
-    <touch file="${release.as7.dir}/standalone/deployments/restcomm-rvd.war.dodeploy"/>
+    <unzip dest="${release.as7.dir}/standalone/deployments/visual-designer.war" src="${configuration.directory}/visual-designer.war"/>
+    <touch file="${release.as7.dir}/standalone/deployments/visual-designer.war.dodeploy"/>
 
     <!--Copy Rvd ES Demo-->
     <copy failonerror="true" file="${configuration.directory}/RvdExternalServicesDemo.war" tofile="${release.as7.dir}/standalone/deployments/RvdExternalServicesDemo.war"/>

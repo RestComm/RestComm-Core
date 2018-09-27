@@ -363,7 +363,7 @@ corresponding Status Callback URL.
 
 ....
 curl -X POST -H "application/json"
-http://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Immediate -d "DeviceIdentifier=client:david" -d "StatusCallback=http://192.16.1.19:8080/ACae6e420f425248d6a26948c17a9e2acf"
+https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Immediate -d "DeviceIdentifier=client:david" -d "StatusCallback=http://192.16.1.19:8080/ACae6e420f425248d6a26948c17a9e2acf"
 ....
 
 
@@ -484,7 +484,7 @@ stations) as well as core and radio access network identifiers:
 
 ....
 curl -X POST -H "application/json"
-http://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Immediate -d "DeviceIdentifier=59897018375" -d "StatusCallback=http://192.16.1.19:8080/ACae6e420f425248d6a26948c17a9e2acf"
+https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Immediate -d "DeviceIdentifier=59897018375" -d "StatusCallback=http://192.16.1.19:8080/ACae6e420f425248d6a26948c17a9e2acf"
 ....
 
 See the corresponding response below:
@@ -535,7 +535,7 @@ network identifiers are available (typical of 2G cellular networks):
 
 ....
 curl -X POST -H "application/json"
-http://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Immediate.json -d "DeviceIdentifier=39897018375" -d "StatusCallback=http://192.16.1.19:8080/ACae6e420f425248d6a26948c17a9e2acf"
+https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Immediate.json -d "DeviceIdentifier=39897018375" -d "StatusCallback=http://192.16.1.19:8080/ACae6e420f425248d6a26948c17a9e2acf"
 ....
 
 See the corresponding response below:
@@ -576,7 +576,7 @@ system):
 
 ....
 curl -X POST -H "application/json"
-http://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Immediate -d "DeviceIdentifier=sip:david@65.17.24.177" -d "StatusCallback=http://192.16.1.19:8080/ACae6e420f425248d6a26948c17a9e2acf"
+https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Immediate -d "DeviceIdentifier=sip:david@65.17.24.177" -d "StatusCallback=http://192.16.1.19:8080/ACae6e420f425248d6a26948c17a9e2acf"
 ....
 
 See the corresponding response below:
@@ -645,7 +645,7 @@ See the corresponding response below:
 See below a curl example of retrieving the information of the Geolocation service request from the previous example:
 
 ....
-curl -X GET http://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Immediate/GLfa51b104354440b09213d04752f50274.json
+curl -X GET https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Immediate/GLfa51b104354440b09213d04752f50274.json
 ....
 
 See the corresponding response below (the XML response would be exactly as shown previously for the POST request):
@@ -680,7 +680,7 @@ See below a curl example for a Geolocation request originated from a RestComm Lo
 
 ....
 curl -X POST -H "application/json"
-http://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Immediate -d "DeviceIdentifier=4498750163"
+https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Immediate -d "DeviceIdentifier=4498750163"
 ....
 
 This request gets an "HTTP/1.1 400 Bad Request" response with the following text:
@@ -837,7 +837,7 @@ time the target device enters such location area.
 
 ....
 curl -X POST -H "application/json"
-http://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Notification-d "DeviceIdentifier=56790122158" -d
+https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Notification-d "DeviceIdentifier=56790122158" -d
 "EventGeofenceLatitude=-33.426280" -d
 "EventGeofenceLongitude=-70.566560" -d "GeofenceRange=1000" -d
 "GeofenceEvent=in" -d "StatusCallback=http://192.16.1.19:8080/ACae6e420f425248d6a26948c17a9e2acf"
@@ -951,7 +951,7 @@ request but for an unauthorized device at the AP management system:
 
 ....
 curl -X POST -H "application/json"
-http://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Notification -d "DeviceIdentifier=56790122158" -d
+https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Notification -d "DeviceIdentifier=56790122158" -d
 "EventGeofenceLatitude=-33.426280" -d
 "EventGeofenceLongitude=-70.566560" -d "GeofenceRange=1000" -d
 "GeofenceEvent=in" -d
@@ -991,7 +991,7 @@ request but inappropriately as GeofenceEvent parameter is missing:
 
 ....
 curl -X POST -H "application/json"
-http://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Notification -d "DeviceIdentifier=56790122158" -d
+https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Notification -d "DeviceIdentifier=56790122158" -d
 "EventGeofenceLatitude=-33.426280" -d
 "EventGeofenceLongitude=-70.566560" -d "GeofenceRange=1000" -d
 "GeofenceEvent=both" -d
@@ -1025,7 +1025,7 @@ containing a special offer):
 
 ....
 curl -X POST -H "application/json"
-http://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Notification -d "DeviceIdentifier=SB7089A" -d
+https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Notification -d "DeviceIdentifier=SB7089A" -d
 "EventGeofenceLatitude=35.526280" -d "EventGeofenceLongitude=139.566560"
 -d "GeofenceRange=200" -d "GeofenceEvent=in-out" -d
 "StatusCallback=http://192.16.1.19:8080/ACae6e420f425248d6a26948c17a9e2acf"
@@ -1084,7 +1084,7 @@ be obtained, including parameters such as civic address
 
 ....
 curl -X POST -H "application/json"
-http://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Notification.json
+https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Notification.json
 -d "Source=59897018375" -d "DeviceIdentifier=59897018375" -d
 "EventGeofenceLatitude=-34.541078" -d
 "EventGeofenceLongitude=-56.061600" -d "GeofenceRange=300" -d
@@ -1138,7 +1138,7 @@ of entering it as set in the previous example).
 
 ....
 curl -X PUT -H "application/json"
-http://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Notification/GLfa51b104354440b09213d04752f50280 -d "EventGeofenceLatitude=-34.553098" -d "EventGeofenceLongitude=56.050811" -d "GeofenceEvent=out"
+https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Notification/GLfa51b104354440b09213d04752f50280 -d "EventGeofenceLatitude=-34.553098" -d "EventGeofenceLongitude=56.050811" -d "GeofenceEvent=out"
 ....
 
 
@@ -1187,7 +1187,7 @@ See the corresponding response below:
 See below a curl example of retrieving the information of the Geolocation service request from previous example:
 
 ....
-curl -X GET http://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Notification/GLfa51b104354440b09213d04752f50280.json
+curl -X GET https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Notification/GLfa51b104354440b09213d04752f50280.json
 ....
 
 See the corresponding JSON response below (the XML response would be exactly as shown previously for the POST request):
@@ -1235,7 +1235,7 @@ created Geolocation request.
 
 ....
 curl -X DELETE
-http://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Notification/GLfa51b104354440b09213d04752f50280
+https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Geolocation/Notification/GLfa51b104354440b09213d04752f50280
 ....
 
 

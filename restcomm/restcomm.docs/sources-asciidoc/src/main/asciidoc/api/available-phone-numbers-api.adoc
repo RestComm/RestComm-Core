@@ -149,7 +149,7 @@ NOTE: You need to be using Restcomm Cloud or setup the DID Provider in Restcomm 
 Here is an example, the *AreaCode* is any valid United States Code
 
 ....
-curl -G http://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@<Elastic_IP>:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/AvailablePhoneNumbers/US/Local -d "AreaCode=305"
+curl -G https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/AvailablePhoneNumbers/US/Local -d "AreaCode=305"
 ....
 
 The *AvailablePhoneNumbers* subresources let you search for incoming local and toll-free phone numbers that are available for you to purchase from a Telestax partner.

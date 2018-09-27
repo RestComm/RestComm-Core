@@ -9,11 +9,11 @@ In this tutorial, you will learn how to send an SMS from Restcomm Visual Designe
 
 Create an SMS application using RVD
 
-* Go to http://127.0.0.1:8080/restcomm-rvd on your web browser
+* Go to http://127.0.0.1:8080/visual-designer on your web browser
 * In the *Start New Project* page, choose *Voice*
 * Create a new project RVD project. In this tutorial the project name is SMSTest and press the button Create
 
-image:./images/restcomm-rvd-smstest1.png[restcomm-rvd-smstest1,width=647,height=213]
+image:./images/visual-designer-smstest1.png[visual-designer-smstest1,width=647,height=213]
 
 Next, create two new modules.called Welcome and Send SMS
 
@@ -23,7 +23,7 @@ Next, create two new modules.called Welcome and Send SMS
 * You must create the *Send SMS* module in order to be able to select it in the *Continue to* drop down list.
 * The *Welcome* module should be similar to the screenshot below.
 
-image:./images/restcomm-rvd-smstest2.png[restcomm-rvd-smstest2,width=774,height=281]
+image:./images/visual-designer-smstest2.png[visual-designer-smstest2,width=774,height=281]
 
 Next, you need to create the *Send SMS* module
 
@@ -35,7 +35,7 @@ Next, you need to create the *Send SMS* module
 * The *Send SMS* module should look like the screen below
 * Save the project by pressing the *Save* button at the top of the page
 
-image:./images/restcomm-rvd-smstest3.png[restcomm-rvd-smstest3,width=764,height=278]
+image:./images/visual-designer-smstest3.png[visual-designer-smstest3,width=764,height=278]
 
 = Step 2
 
@@ -44,13 +44,13 @@ You must now link the newly created SMSTest to a Restcomm phone number.
 * Go to http://127.0.0.1:8080/ in order to open the Restcomm Admin Management page
 * You will see the login, screen below. Log in using your credentials.
 
-image:./images/restcomm-rvd-smstest4.png[restcomm-rvd-smstest4,width=704,height=451]
+image:./images/visual-designer-smstest4.png[visual-designer-smstest4,width=704,height=451]
 
 In the main dashboard, click on the menu *Numbers* to reveal a list of already configured phone numbers and the application to which they are linked.
 
 * Next, click on the *+Register Number* button
 
-image:./images/restcomm-rvd-smstest5.png[restcomm-rvd-smstest5,width=687,height=284]
+image:./images/visual-designer-smstest5.png[visual-designer-smstest5,width=687,height=284]
 
 In the *Register Number* window, enter a new phone number you will like to attach to your SMSTest application. In this tutorial *7777* is the number chosen. 
 
@@ -60,7 +60,7 @@ In the Voice section under **Voice Request URL**, click the option button at the
 
 Select SMSTest and at the end of the window, press the *Register* button to confirm your configuration.   
 
-image:./images/restcomm-rvd-smstest6.png[restcomm-rvd-smstest6,width=612,height=580] 
+image:./images/visual-designer-smstest6.png[visual-designer-smstest6,width=612,height=580]
 
 The number *7777* will now appear in the list of registered numbers.   
 
@@ -81,7 +81,7 @@ Configure instance with alice account
 * Password = 1234
 * Click on the *Advanced* button
 
-image:./images/restcomm-rvd-smstest7.png[restcomm-rvd-smstest7,width=475,height=311]
+image:./images/visual-designer-smstest7.png[visual-designer-smstest7,width=475,height=311]
 
 In the Account Registration Wizard, go to the Connection tab
 
@@ -92,12 +92,12 @@ In the section Proxy Options, uncheck the Configure proxy automatically and ente
 * Proxy = *127.0.0.1*
 * Port = *5080*
 
-image:./images/restcomm-rvd-smstest8a.png[restcomm-rvd-smstest8a,width=711,height=548]
+image:./images/visual-designer-smstest8a.png[visual-designer-smstest8a,width=711,height=548]
 
 * At the bottom of the window, press **Next**, then, *Sign in*
 * You should now see that *alice* is registered when you set the account to online.
 
-image:./images/restcomm-rvd-smstest9.png[restcomm-rvd-smstest9,width=250,height=600]
+image:./images/visual-designer-smstest9.png[visual-designer-smstest9,width=250,height=600]
 
 Next step is to configure the second instance with user Bob. The configuration is similar to the one used for Alice. 
 
@@ -111,7 +111,7 @@ How to check: In the Jitsi instance on which user Alice is configured,
 * Click on the tab **Advanced**, on the left pane, select *SIP*
 * That will show the screen below:
 
-image:./images/restcomm-rvd-smstest10.png[restcomm-rvd-smstest10,width=515,height=422]
+image:./images/visual-designer-smstest10.png[visual-designer-smstest10,width=515,height=422]
 
 Make sure the *SIP client port* above (**5070**)matches the port defined in the `$RESTCOMM_HOME/standalone/deployments/restcomm.war/WEB-INF/conf/restcomm.xml`
 
@@ -129,10 +129,10 @@ You can now make a call from Bob to Alice. From the Jitsi SIP phone on which Bob
 
 See screenshot below   
 
-image:./images/restcomm-rvd-smstest11.png[restcomm-rvd-smstest11,width=250,height=395]
+image:./images/visual-designer-smstest11.png[visual-designer-smstest11,width=250,height=395]
 
 The Jitsi phone to which Alice is connected will ring. 
 
 Answer the call and then hang up. The SMS message you entered in the *Send SMS* module of the RVD will appear in a pop-up window similar to the one below. Note that the number 55555 appears as the source of the SMS message.
 
-image:./images/restcomm-rvd-smstest12.png[restcomm-rvd-smstest12,width=312,height=108]
+image:./images/visual-designer-smstest12.png[visual-designer-smstest12,width=312,height=108]

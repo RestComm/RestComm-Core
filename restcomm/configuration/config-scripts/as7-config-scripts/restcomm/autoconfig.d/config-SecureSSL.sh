@@ -34,7 +34,7 @@ SslRestCommConf(){
 	echo "Will properly configure HTTPS Connector ";
 	  FILERESTCOMMXML=$BASEDIR/standalone/deployments/restcomm.war/WEB-INF/web.xml
       FILEMANAGERXML=$BASEDIR/standalone/deployments/restcomm-management.war/WEB-INF/web.xml
-      FILERVDXML=$BASEDIR/standalone/deployments/restcomm-rvd.war/WEB-INF/web.xml
+      FILERVDXML=$BASEDIR/standalone/deployments/visual-designer.war/WEB-INF/web.xml
       FILEOLYMPUSXML=$BASEDIR/standalone/deployments/olympus.war/WEB-INF/web.xml
 	#Disable HTTP if set to true.
 	if [[ "$DISABLE_HTTP" == "true" || "$DISABLE_HTTP" == "TRUE" ]]; then

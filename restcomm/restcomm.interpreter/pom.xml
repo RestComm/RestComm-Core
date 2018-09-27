@@ -136,7 +136,7 @@
 
 		<dependency>
 			<groupId>org.restcomm</groupId>
-			<artifactId>restcomm-connect.http</artifactId>
+			<artifactId>restcomm-connect.extension.controller</artifactId>
 			<version>${project.version}</version>
 			<scope>provided</scope>
 		</dependency>
@@ -178,5 +178,20 @@
 			<scope>test</scope>
 		</dependency>
 
-	</dependencies>
+                <dependency>
+                    <groupId>com.github.tomakehurst</groupId>
+                    <artifactId>wiremock</artifactId>
+                    <version>1.57</version>
+                    <!-- Include this if you have dependency conflicts for Guava, Jetty, Jackson
+                    or Apache HTTP Client -->
+                    <classifier>standalone</classifier>
+                    <scope>test</scope>
+                </dependency>
+        <dependency>
+            <groupId>org.restcomm</groupId>
+            <artifactId>restcomm-connect.core</artifactId>
+			<version>${project.version}</version>
+        </dependency>
+
+    </dependencies>
 </project>

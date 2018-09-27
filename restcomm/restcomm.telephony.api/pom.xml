@@ -22,13 +22,13 @@
             <version>${sipservletapi.version}</version>
             <scope>provided</scope>
         </dependency>
-                
-                               
+
+
         <dependency>
             <groupId>org.mobicents.servlet.sip.containers</groupId>
             <artifactId>sip-servlets-catalina-7</artifactId>
             <scope>provided</scope>
-        </dependency>                 
+        </dependency>
 
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -59,6 +59,12 @@
             <groupId>javax.sip</groupId>
             <artifactId>jain-sip-ri</artifactId>
             <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>

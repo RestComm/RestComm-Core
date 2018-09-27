@@ -23,6 +23,9 @@ import static org.junit.Assert.*;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
@@ -33,9 +36,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.restcomm.connect.dao.NotificationsDao;
+import org.restcomm.connect.dao.common.Sorting;
 import org.restcomm.connect.dao.entities.Notification;
 import org.restcomm.connect.commons.configuration.RestcommConfiguration;
 import org.restcomm.connect.commons.dao.Sid;
+import org.restcomm.connect.dao.entities.NotificationFilter;
 
 /**
  * @author quintana.thomas@gmail.com (Thomas Quintana)
@@ -222,8 +227,8 @@ public final class NotificationsDaoTest {
         final NotificationsDao notifications = manager.getNotificationsDao();
         // Create a new notification in the data store.
         notifications.addNotification(notification);
-        // Read the notification from the data store.
-        assertTrue(notifications.getNotificationsByLogLevel(0).size() == 1);
+        // Read the notification from the data store (remember that there are already notifications in the test DB, so we expect 4 existing already with log level 0 plus this one)
+        assertTrue(notifications.getNotificationsByLogLevel(0).size() == 5);
         // Delete the notification.
         notifications.removeNotification(sid);
         // Validate that the notification was removed.
@@ -264,5 +269,112 @@ public final class NotificationsDaoTest {
         notifications.removeNotification(sid);
         // Validate that the notification was removed.
         assertTrue(notifications.getNotification(sid) == null);
+    }
+
+    @Test
+    public void filterWithDateSorting() throws ParseException {
+        NotificationsDao dao = manager.getNotificationsDao();
+        NotificationFilter.Builder builder = new NotificationFilter.Builder();
+        List<String> accountSidSet = new ArrayList<String>();
+        accountSidSet.add("ACae6e420f425248d6a26948c17a9e2acf");
+        builder.byAccountSidSet(accountSidSet);
+        builder.sortedByDate(Sorting.Direction.ASC);
+        NotificationFilter filter = builder.build();
+        List<Notification> notifications = dao.getNotifications(filter);
+        assertEquals(10, notifications.size());
+        final DateTime min = DateTime.parse("2013-08-30T16:28:33.403");
+        final DateTime max = DateTime.parse("2013-09-02T16:28:33.403");
+        assertEquals(0, min.compareTo(notifications.get(0).getDateCreated()));
+        assertEquals(0, max.compareTo(notifications.get(notifications.size() - 1).getDateCreated()));
+
+        builder.sortedByDate(Sorting.Direction.DESC);
+        filter = builder.build();
+        notifications = dao.getNotifications(filter);
+        assertEquals(0, max.compareTo(notifications.get(0).getDateCreated()));
+        assertEquals(0, min.compareTo(notifications.get(notifications.size() - 1).getDateCreated()));
+    }
+
+    @Test
+    public void filterWithLogSorting() throws ParseException {
+        NotificationsDao dao = manager.getNotificationsDao();
+        NotificationFilter.Builder builder = new NotificationFilter.Builder();
+        List<String> accountSidSet = new ArrayList<String>();
+        accountSidSet.add("ACae6e420f425248d6a26948c17a9e2acf");
+        builder.byAccountSidSet(accountSidSet);
+        builder.sortedByLog(Sorting.Direction.ASC);
+        NotificationFilter filter = builder.build();
+        List<Notification> notifications = dao.getNotifications(filter);
+        assertEquals(10, notifications.size());
+        assertEquals("0", notifications.get(0).getLog().toString());
+        assertEquals("1", notifications.get(notifications.size() - 1).getLog().toString());
+
+        builder.sortedByLog(Sorting.Direction.DESC);
+        filter = builder.build();
+        notifications = dao.getNotifications(filter);
+        assertEquals("1", notifications.get(0).getLog().toString());
+        assertEquals("0", notifications.get(notifications.size() - 1).getLog().toString());
+    }
+
+    @Test
+    public void filterWithErrorCodeSorting() throws ParseException {
+        NotificationsDao dao = manager.getNotificationsDao();
+        NotificationFilter.Builder builder = new NotificationFilter.Builder();
+        List<String> accountSidSet = new ArrayList<String>();
+        accountSidSet.add("ACae6e420f425248d6a26948c17a9e2acf");
+        builder.byAccountSidSet(accountSidSet);
+        builder.sortedByErrorCode(Sorting.Direction.ASC);
+        NotificationFilter filter = builder.build();
+        List<Notification> notifications = dao.getNotifications(filter);
+        assertEquals(10, notifications.size());
+        assertEquals("0", notifications.get(0).getErrorCode().toString());
+        assertEquals("100", notifications.get(notifications.size() - 1).getErrorCode().toString());
+
+        builder.sortedByErrorCode(Sorting.Direction.DESC);
+        filter = builder.build();
+        notifications = dao.getNotifications(filter);
+        assertEquals("100", notifications.get(0).getErrorCode().toString());
+        assertEquals("0", notifications.get(notifications.size() - 1).getErrorCode().toString());
+    }
+
+    @Test
+    public void filterWithCallSidSorting() throws ParseException {
+        NotificationsDao dao = manager.getNotificationsDao();
+        NotificationFilter.Builder builder = new NotificationFilter.Builder();
+        List<String> accountSidSet = new ArrayList<String>();
+        accountSidSet.add("ACae6e420f425248d6a26948c17a9e2acf");
+        builder.byAccountSidSet(accountSidSet);
+        builder.sortedByCallSid(Sorting.Direction.ASC);
+        NotificationFilter filter = builder.build();
+        List<Notification> notifications = dao.getNotifications(filter);
+        assertEquals(10, notifications.size());
+        assertEquals("CA5EB00000000000000000000000000002", notifications.get(0).getCallSid().toString());
+        assertEquals("CA5EB00000000000000000000000000009", notifications.get(notifications.size() - 1).getCallSid().toString());
+
+        builder.sortedByCallSid(Sorting.Direction.DESC);
+        filter = builder.build();
+        notifications = dao.getNotifications(filter);
+        assertEquals("CA5EB00000000000000000000000000009", notifications.get(0).getCallSid().toString());
+        assertEquals("CA5EB00000000000000000000000000002", notifications.get(notifications.size() - 1).getCallSid().toString());
+    }
+
+    @Test
+    public void filterWithMessageTextSorting() throws ParseException {
+        NotificationsDao dao = manager.getNotificationsDao();
+        NotificationFilter.Builder builder = new NotificationFilter.Builder();
+        List<String> accountSidSet = new ArrayList<String>();
+        accountSidSet.add("ACae6e420f425248d6a26948c17a9e2acf");
+        builder.byAccountSidSet(accountSidSet);
+        builder.sortedByMessageText(Sorting.Direction.ASC);
+        NotificationFilter filter = builder.build();
+        List<Notification> notifications = dao.getNotifications(filter);
+        assertEquals(10, notifications.size());
+        assertEquals("Another fictitious message for testing", notifications.get(0).getMessageText());
+        assertEquals("Workspace migration skipped in 2016-12-28 21:12:25.758", notifications.get(notifications.size() - 1).getMessageText());
+
+        builder.sortedByMessageText(Sorting.Direction.DESC);
+        filter = builder.build();
+        notifications = dao.getNotifications(filter);
+        assertEquals("Workspace migration skipped in 2016-12-28 21:12:25.758", notifications.get(0).getMessageText());
+        assertEquals("Another fictitious message for testing", notifications.get(notifications.size() - 1).getMessageText());
     }
 }

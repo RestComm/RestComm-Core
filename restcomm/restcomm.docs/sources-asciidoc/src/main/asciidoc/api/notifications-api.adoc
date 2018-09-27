@@ -50,7 +50,7 @@ A *Notification* resource represents a single log entry made by RestComm while h
 To retrieve a list of notification run the following command from a bash terminal:
 
 ....
-curl -X GET https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Notifications  
+curl -X GET https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Notifications  
 ....
 
 [[example-get-response]]
@@ -59,7 +59,7 @@ curl -X GET https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b03
 === JSON GET Response
 
 ----
-curl -X GET https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Notifications.json 
+curl -X GET https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Notifications.json 
 ----
 
 
@@ -75,10 +75,10 @@ curl -X GET https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b03
         "api_version":"2012-04-24",
         "log":1,
         "error_code":0,
-        "more_info":"http://docs.telestax.com/rvd-workspace-upgrade",
+        "more_info":"http://restcomm.com/docs/rvd-workspace-upgrade",
         "message_text":"Workspace migration skipped in 2016-12-28 21:12:25.758",
         "message_date":"2013-08-30T16:28:33.403+09:00",
-        "request_url":"http://instance1.restcomm.com:8080/restcomm/recordings/RE50675909d9c94acda36f0e119b6cb431.wav",
+        "request_url":"https://cloud.restcomm.com/restcomm/recordings/RE50675909d9c94acda36f0e119b6cb431.wav",
         "request_method":"request method",
         "request_variables":"request variable",
         "uri":"/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Notifications/NOb88ccff6c9e04f989de9415a555ad84d.json.json"}
@@ -112,7 +112,7 @@ curl -X GET https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b03
 The example below will only return Messages sent from client Alice
 
 ....
- curl -X GET  http://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Notifications.json?ErrorCode=1
+ curl -X GET  https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Notifications.json?ErrorCode=1
 ....
 
 The result will be similar to the one below
@@ -130,10 +130,10 @@ The result will be similar to the one below
         "api_version":"2012-04-24",
         "log":1,
         "error_code":1,
-        "more_info":"http://docs.telestax.com/rvd-workspace-upgrade",
+        "more_info":"http://restcomm.com/docs/rvd-workspace-upgrade",
         "message_text":"Workspace migration skipped in 2016-12-28 21:12:25.758",
         "message_date":"2013-08-30T16:28:33.403+09:00",
-        "request_url":"http://instance1.restcomm.com:8080/restcomm/recordings/RE50675909d9c94acda36f0e119b6cb431.wav",
+        "request_url":"https://cloud.restcomm.com/restcomm/recordings/RE50675909d9c94acda36f0e119b6cb431.wav",
         "request_method":"request method",
         "request_variables":"request variable",
         "uri":"/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Notifications/NOb88ccff6c9e04f989de9415a555ad84d.json.json"}
@@ -167,7 +167,7 @@ The result will be similar to the one below
 The command below will return a single item from the list of notifications using the PageSize parameter
 
 ....
-curl -X GET  http://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Notifications.json?PageSize=1
+curl -X GET  https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Notifications.json?PageSize=1
 ....
 
 The result of the *PageSize* parameter
@@ -185,10 +185,10 @@ The result of the *PageSize* parameter
             "api_version":"2012-04-24",
             "log":1,
             "error_code":1,
-            "more_info":"http://docs.telestax.com/rvd-workspace-upgrade",
+            "more_info":"http://restcomm.com/docs/rvd-workspace-upgrade",
             "message_text":"Workspace migration skipped in 2016-12-28 21:12:25.758",
             "message_date":"2013-08-30T16:28:33.403+09:00",
-            "request_url":"http://instance1.restcomm.com:8080/restcomm/recordings/RE50675909d9c94acda36f0e119b6cb431.wav",
+            "request_url":"https://cloud.restcomm.com/restcomm/recordings/RE50675909d9c94acda36f0e119b6cb431.wav",
             "request_method":"request method",
             "request_variables":"request variable",
             "uri":"/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Notifications/NOb88ccff6c9e04f989de9415a555ad84d.json.json"}
@@ -214,3 +214,57 @@ The API returns URIs to the next, previous, first and last pages of the returned
 |Previouspageuri |The URI for the previous page of this list.
 |Lastpageuri |The URI for the last page of this list.
 |============================================================
+
+== Sorting Information
+
+*HTTP GET.* You can use the *SortBy* GET query parameter to determine which attribute you want to sort by and in which direction; direction can either be 'asc' for ascending and 'desc' for descending sort ordering. Here's the overall format: *SortBy=<sorting attribute>:<direction>*. If no direction parameter is provided, then the listing of notifications is sorted by the attribute in ascending order. Below you can find the possible attributes you can sort by:
+
+=== SortBy Attributes
+
+[cols=",",options="header",]
+|=======================================================================
+|Parameter |Description
+|DateCreated |Sort by the date the notification was created
+|Log |Sort by the severity level of the notification
+|ErrorCode |Sort by the error code of the notification
+|CallSid |Sort by the CallSid of the notification, if related to a call
+|MessageText |Sort by the message text of the notification
+|=======================================================================
+
+
+=== Example
+
+The command below will return notifications sorted by the creation date in ascending order using SortBy parameter:
+
+....
+curl -X GET  https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/<accountSid>/Notifications?SortBy=DateCreated:asc
+....
+
+The result of the *SortBy* parameter:
+
+[source,xml,decode:true]
+----
+<RestcommResponse>
+    <Notifications>
+        <Notification>
+            <Sid>NObdc6f646cad54b9bbf7f8adaea7e9552</Sid>
+            <DateCreated>Thu, 5 Jul 2018 10:46:45 +0300</DateCreated>
+            <DateUpdated>Thu, 5 Jul 2018 10:46:45 +0300</DateUpdated>
+            <Log>1</Log>
+            <ErrorCode>12003</ErrorCode>
+            <MessageText>There is no valid Restcomm SMS Request URL configured for this number : 1235</MessageText>
+            ...
+        </Notification>
+        <Notification>
+            <Sid>NO9624c8d6c7b94134bd1d25c80213b86f</Sid>
+            <DateCreated>Thu, 5 Jul 2018 10:46:54 +0300</DateCreated>
+            <DateUpdated>Thu, 5 Jul 2018 10:46:54 +0300</DateUpdated>
+            <Log>1</Log>
+            <ErrorCode>12003</ErrorCode>
+            <MessageText>There is no valid Restcomm SMS Request URL configured for this number : 1234</MessageText>
+            ...
+        </Notification>
+        ...
+    </Notifications>
+</RestcommResponse>
+----

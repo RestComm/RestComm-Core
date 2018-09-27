@@ -253,6 +253,7 @@
 			<timeout>5</timeout>
 		</media-server>
 	</mscontrol>
+	<dns-util class="org.restcomm.connect.commons.util.mock.InetAddressMock"/>
 
 	<!-- The media server manager is responsible for managing the media servers
 		in use by RestComm. The default way to control media servers is using the

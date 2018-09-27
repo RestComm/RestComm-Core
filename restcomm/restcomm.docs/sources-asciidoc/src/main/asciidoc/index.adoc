@@ -1,26 +1,26 @@
-= RestComm Connect Documentation
+= {product} Documentation
 
-Restcomm-Connect is an API Exposure layer allowing Web developers to embed Communications as a Feature without having to know anything about telecommunications as can be seen below
+Read our API Reference Documentation and Quickstarts to integrate SMS and Voice to your website, applications or unified communications clients.
 
-image::images/bridge-the-gap.png[bridgethegap,width=370,height=370,align="center"]
+Get familiar with concepts common to {product} APIs and products then start building connected applications with {product}.
 
-You can read <<tutorials/index.adoc#tutorials,Restcomm Connect Tutorials>> to learn more on how to build powerful apps or learn to master the platform.
+You can read <<tutorials/index.adoc#tutorials,{product} Connect Tutorials>> to learn more on how to build powerful apps or learn to master the platform.
 
-There is multiple ways to interact with Restcomm Connect to build applications
+There is multiple ways to interact with {product} Connect to build applications
 
-* By using the <<rvd/index.adoc#RVD,Restcomm Visual Designer (RVD)>> to build applications easily with drag and drop without knowing anything about programming
+* The <<admin/console-overview.adoc#console,{product} Console Overview>> allows you to interact with your account, build Applications, buy Numbers, configure your {product} Clients, check your logs and much more
 
-* The <<api/index.adoc#API,Restcomm API>> allows you to query meta-data about your account, phone numbers, calls, text messages, and recordings. You can also do some communications control like initiate outbound calls and send text messages.
+* By using the <<rvd/index.adoc#RVD,{product} Visual Designer (RVD)>> to build applications easily with drag and drop without knowing anything about programming
 
-* The <<rcml/index.adoc#RCML,RestComm Markup Language>> is a set of instructions you can use to tell Restcomm what to do when you receive an incoming call or SMS.
+* The <<api/index.adoc#API,{product} API>> allows you to query meta-data about your account, phone numbers, calls, text messages, and recordings. You can also do some communications control like initiate outbound calls and send text messages.
 
-* The <<sdks/index.adoc#SDKs,Restcomm Web, iOS and Android SDKs>> allows you to embed Communications as a feature in your Web, iOS and Android Native Applications
+* The <<rcml/index.adoc#RCML,{product} Markup Language>> is a set of instructions you can use to tell {product} what to do when you receive an incoming call or SMS.
 
-* The <<admin/index.adoc#AdminUI,Restcomm Administration Interface>> allows you to interact with your account, buy DIDs, configure your Restcomm Clients, check your logs and much more
+* The <<sdks/index.adoc#SDKs,{product} Web, iOS and Android SDKs>> allows you to embed Communications as a feature in your Web, iOS and Android Native Applications
 
-* The <<tutorials/index.adoc#tutorials,Restcomm Tutorials>> will help you in creating sample applications that cover common use cases in a variety of languages using the Restcomm API, RCML or Visual Designer. Download, test, and tweak for yourself. 
+* The <<tutorials/index.adoc#tutorials,{product} Tutorials>> will help you in creating sample applications that cover common use cases in a variety of languages using the {product} API, RCML or Visual Designer. Download, test, and tweak for yourself. 
 
-* The <<configuration/index.adoc#Configuration,Configuration>> will help you in setting up Restcomm Connect on your own server or development environment to build powerful apps locally.
+* The <<configuration/index.adoc#Configuration,Configuration>> will help you in setting up {product} Connect on your own server or development environment to build powerful apps locally.
 
 
 Find <<release-notes.adoc#Release Notes,Release Notes>> here

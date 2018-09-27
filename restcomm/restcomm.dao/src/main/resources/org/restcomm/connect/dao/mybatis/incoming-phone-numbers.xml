@@ -50,16 +50,26 @@
             AND "pure_sip" = #{pureSIP}
         </if>               
         <choose>
-            <when test="sortBy == 'phone_number'">
-                order by "phone_number" ${sortDirection}
+            <when test="sortByNumber !=  null and sortByNumber.name() != 'NONE'">
+                <if test="sortByNumber.name() == 'ASCENDING'">
+                    order by "phone_number" ASC
+                </if>
+                <if test="sortByNumber.name() == 'DESCENDING'">
+                    order by "phone_number" DESC
+                </if>                
             </when>
-            <when test="sortBy == 'friendly_name'">
-                order by "friendly_name" ${sortDirection}
+            <when test="sortByFriendly != null and sortByFriendly.name() != 'NONE'">
+                <if test="sortByFriendly.name() == 'ASCENDING'">
+                    order by "friendly_name" ASC
+                </if>
+                <if test="sortByFriendly.name() == 'DESCENDING'">
+                    order by "friendly_name" DESC
+                </if>                 
             </when>
             <otherwise>
-                order by "phone_number" ${sortDirection}
+                order by "phone_number"
             </otherwise>
-        </choose>   
+        </choose> 
         <if test="limit != null">
             LIMIT #{limit} OFFSET #{offset}
         </if>
@@ -96,16 +106,26 @@
             AND "n"."pure_sip" = #{pureSIP}
         </if>           
         <choose>
-            <when test="sortBy == 'phone_number'">
-                order by "n"."phone_number" ${sortDirection}
+            <when test="sortByNumber !=  null and sortByNumber.name() != 'NONE'">
+                <if test="sortByNumber.name() == 'ASCENDING'">
+                    order by "n"."phone_number" ASC
+                </if>
+                <if test="sortByNumber.name() == 'DESCENDING'">
+                    order by "n"."phone_number" DESC
+                </if>                
             </when>
-            <when test="sortBy == 'friendly_name'">
-                order by "n"."friendly_name" ${sortDirection}
+            <when test="sortByFriendly != null and sortByFriendly.name() != 'NONE'">
+                <if test="sortByFriendly.name() == 'ASCENDING'">
+                    order by "n"."friendly_name" ASC
+                </if>
+                <if test="sortByFriendly.name() == 'DESCENDING'">
+                    order by "n"."friendly_name" DESC
+                </if>                 
             </when>
             <otherwise>
-                order by "n"."phone_number" ${sortDirection}
+                order by "n"."phone_number"
             </otherwise>
-        </choose>   
+        </choose> 
         <if test="limit != null">
             LIMIT #{limit} OFFSET #{offset}
         </if>
@@ -142,16 +162,26 @@
             AND "n"."pure_sip" = #{pureSIP}
         </if>           
         <choose>
-            <when test="sortBy == 'phone_number'">
-                order by "n"."phone_number" ${sortDirection}
+            <when test="sortByNumber !=  null and sortByNumber.name() != 'NONE'">
+                <if test="sortByNumber.name() == 'ASCENDING'">
+                    order by "n"."phone_number" ASC
+                </if>
+                <if test="sortByNumber.name() == 'DESCENDING'">
+                    order by "n"."phone_number" DESC
+                </if>                
             </when>
-            <when test="sortBy == 'friendly_name'">
-                order by "n"."friendly_name" ${sortDirection}
+            <when test="sortByFriendly != null and sortByFriendly.name() != 'NONE'">
+                <if test="sortByFriendly.name() == 'ASCENDING'">
+                    order by "n"."friendly_name" ASC
+                </if>
+                <if test="sortByFriendly.name() == 'DESCENDING'">
+                    order by "n"."friendly_name" DESC
+                </if>                 
             </when>
             <otherwise>
-                order by "n"."phone_number" ${sortDirection}
+                order by "n"."phone_number"
             </otherwise>
-        </choose>   
+        </choose> 
         <if test="limit != null">
             LIMIT #{limit} OFFSET #{offset}
         </if>

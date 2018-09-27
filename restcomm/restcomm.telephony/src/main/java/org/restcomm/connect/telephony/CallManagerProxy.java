@@ -29,6 +29,7 @@ import org.apache.log4j.Logger;
 import org.restcomm.connect.dao.DaoManager;
 import org.restcomm.connect.mscontrol.api.MediaServerControllerFactory;
 import org.restcomm.connect.sms.SmsService;
+import org.restcomm.connect.telephony.api.util.B2BUAHelper;
 import org.restcomm.connect.ussd.telephony.UssdCallManager;
 
 import javax.servlet.ServletConfig;
@@ -46,12 +47,14 @@ import javax.servlet.sip.SipSession;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 import java.io.IOException;
+import javax.servlet.sip.SipApplicationSessionEvent;
+import javax.servlet.sip.SipApplicationSessionListener;
 
 /**
  * @author quintana.thomas@gmail.com (Thomas Quintana)
  * @author <a href="mailto:gvagenas@gmail.com">gvagenas</a>
  */
-public final class CallManagerProxy extends SipServlet implements SipServletListener {
+public final class CallManagerProxy extends SipServlet implements SipServletListener, SipApplicationSessionListener {
     private static final long serialVersionUID = 1L;
 
     private static final Logger logger = Logger.getLogger(CallManagerProxy.class);
@@ -203,5 +206,39 @@ public final class CallManagerProxy extends SipServlet implements SipServletList
             context.setAttribute(CallManager.class.getName(), manager);
             context.setAttribute(UssdCallManager.class.getName(), ussdManager);
         }
+    }
+
+    @Override
+    public void sessionCreated(SipApplicationSessionEvent sase) {
+
+    }
+
+    @Override
+    public void sessionDestroyed(SipApplicationSessionEvent sase) {
+
+    }
+
+    /**
+     * extension time added on expiration.
+     */
+    private static final int EXPIRATION_GRACE_PERIOD = 1;
+
+    @Override
+    public void sessionExpired(SipApplicationSessionEvent sase) {
+        //check attribute signlling Akka actor completed timeout processing
+        //if att is present, let the sesion just expire
+        logger.debug("Session expired");
+        if (sase.getApplicationSession().getAttribute(B2BUAHelper.B2BUA_CALL) != null && sase.getApplicationSession().getAttribute(CallManager.TIMEOUT_ATT) == null) {
+            logger.debug("Session expired still not processed");
+            //extend expiration a bit,to let sessions be properly disconnected
+            sase.getApplicationSession().setExpires(EXPIRATION_GRACE_PERIOD);
+            manager.tell(sase, manager);
+        }
+
+    }
+
+    @Override
+    public void sessionReadyToInvalidate(SipApplicationSessionEvent sase) {
+
     }
 }

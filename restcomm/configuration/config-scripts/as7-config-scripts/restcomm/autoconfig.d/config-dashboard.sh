@@ -24,7 +24,7 @@ fi
 DASHBOARD_ROOT="$RESTCOMM_HOME"/standalone/deployments/restcomm-management.war
 DASHBOARD_JSON_FILE="$DASHBOARD_ROOT"/conf/dashboard.json
 
-sed -i  "s|\"rvdUrl\":\"[^\"]*\"|\"rvdUrl\":\"$RVD_URL/restcomm-rvd\"|" "$DASHBOARD_JSON_FILE"
+sed -i  "s|\"rvdUrl\":\"[^\"]*\"|\"rvdUrl\":\"$RVD_URL/visual-designer\"|" "$DASHBOARD_JSON_FILE"
 
 echo "Dasboard configured:"
 cat $DASHBOARD_JSON_FILE

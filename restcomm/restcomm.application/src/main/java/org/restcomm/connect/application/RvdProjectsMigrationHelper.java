@@ -78,15 +78,15 @@ import org.restcomm.connect.dao.entities.IncomingPhoneNumberFilter;
  */
 public class RvdProjectsMigrationHelper {
 
-    private static final String CONTEXT_NAME_RVD = "restcomm-rvd.war";
+    private static final String CONTEXT_NAME_RVD = "visual-designer.war";
     private static final String WORKSPACE_DIRECTORY_NAME = "workspace";
     private static final String PROTO_DIRECTORY_PREFIX = "_proto";
     private static final String USERS_DIRECTORY_NAME = "@users";
-    private static final Pattern RVD_PROJECT_URL = Pattern.compile("^\\/restcomm-rvd.*\\/(.*)\\/controller$");
+    private static final Pattern RVD_PROJECT_URL = Pattern.compile("^\\/visual-designer.*\\/(.*)\\/controller$");
     private static final String ACCOUNT_NOTIFICATIONS_SID = "ACae6e420f425248d6a26948c17a9e2acf";
     private static final String EMBEDDED_DIRECTORY_NAME = "workspace-migration";
 
-    private boolean embeddedMigration = false; // If restcomm-rvd context is not found, search for internal structure
+    private boolean embeddedMigration = false; // If visual-designer context is not found, search for internal structure
 
     private Configuration configuration;
     private String workspacePath;
@@ -277,7 +277,7 @@ public class RvdProjectsMigrationHelper {
         try {
             if(applicationSid != null) {
                 // Update application
-                currentApplication = currentApplication.setRcmlUrl(URI.create("/restcomm-rvd/services/apps/" + applicationSid
+                currentApplication = currentApplication.setRcmlUrl(URI.create("/visual-designer/services/apps/" + applicationSid
                         + "/controller"));
                 applicationDao.updateApplication(currentApplication);
                 return applicationSid;
@@ -301,7 +301,7 @@ public class RvdProjectsMigrationHelper {
                 buffer.append(rootUri).append(configuration.subset("runtime-settings").getString("api-version"))
                 .append("/Accounts/").append(account.getSid().toString()).append("/Applications/").append(sid.toString());
                 builder.setUri(URI.create(buffer.toString()));
-                builder.setRcmlUrl(URI.create("/restcomm-rvd/services/apps/" + sid.toString() + "/controller"));
+                builder.setRcmlUrl(URI.create("/visual-designer/services/apps/" + sid.toString() + "/controller"));
                 builder.setKind(Application.Kind.getValueOf(currentStateHeader.getProjectKind()));
                 currentApplication = builder.build();
                 applicationDao.addApplication(currentApplication);

@@ -38,7 +38,7 @@ image:./images/ZendModule.jpg[ZendModule,width=504,height=382]
 +
 image:./images/webtrigger1.jpg[image,width=458,height=371]
 +
-* In our case the Web Trigger *Url is __http://23.23.228.238:8080/restcomm-rvd/services/apps/Zendesk%20Notification%20Application/start__*
+* In our case the Web Trigger *Url is __http://23.23.228.238:8080/visual-designer/services/apps/Zendesk%20Notification%20Application/start__*
 * in Fallback parameters  enter the  *To* and *From* values. See the screenshot above for example.
 * * Save* the application
 
@@ -53,7 +53,7 @@ image:./images/webtrigger1.jpg[image,width=458,height=371]
 image:./images/ZendExtension.jpg[ZendExtension,width=494,height=400]
 +
 * Specify Title for the new target. In our case we will use "**Notify when New Ticket has been received**"
-* Now go back to RVD and copy the Web Trigger Url *(http://23.23.228.238:8080/restcomm-rvd/services/apps/Zendesk%20Notification%20Application/start)*
+* Now go back to RVD and copy the Web Trigger Url *(http://23.23.228.238:8080/visual-designer/services/apps/Zendesk%20Notification%20Application/start)*
 * Go to Zendesk and past the link in Target Url section
 * Choose GET as Method
 * Use "value" as attribute name. In our case that variable will get Ticket's title

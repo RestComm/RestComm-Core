@@ -39,6 +39,8 @@
     <mapper resource="org/restcomm/connect/dao/mybatis/announcements.xml"/>
     <mapper resource="org/restcomm/connect/dao/mybatis/extensions-configuration.xml"/>
     <mapper resource="org/restcomm/connect/dao/mybatis/geolocation.xml"/>
-    <mapper resource="org/restcomm/connect/dao/mybatis/organization.xml"/>    
+    <mapper resource="org/restcomm/connect/dao/mybatis/organization.xml"/>   
+    <mapper resource="org/restcomm/connect/dao/mybatis/profile.xml"/> 
+    <mapper resource="org/restcomm/connect/dao/mybatis/profile-association.xml"/>          
   </mappers>
 </configuration>

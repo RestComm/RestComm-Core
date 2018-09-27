@@ -128,6 +128,7 @@ public final class MybatisCallDetailRecordsDao implements CallDetailRecordsDao {
         }
 
     }
+
     // Issue 153: https://bitbucket.org/telestax/telscale-restcomm/issue/153
     // Issue 110: https://bitbucket.org/telestax/telscale-restcomm/issue/110
     @Override

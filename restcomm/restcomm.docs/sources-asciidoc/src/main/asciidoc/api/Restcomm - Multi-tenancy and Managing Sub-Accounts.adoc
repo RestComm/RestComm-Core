@@ -12,7 +12,7 @@ Considering that Primary and Secondary accounts represents different Restcomm us
 
 [source,lang:default,decode:true]
 ----
-curl -X GET http://[primarySid]:[primaryAuthToken]@127.0.0.1:8080/restcomm/2012-04-24/Accounts/[secondarySid]/IncomingPhoneNumbers.json
+curl -X GET https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/[secondarySid]/IncomingPhoneNumbers.json
 ----
 
 As mentioned above, there are more possible combinations between credentials and accounts used to request information through the API. But instead list all those possibilities, we can assume the pattern used by the API to control access in a general way, grouped by the result obtained from the API: 
@@ -57,3 +57,13 @@ image:./images/Screen-Shot-2015-10-05-at-16.35.37.png[Screen Shot 2015-10-05 at 
 image:./images/Screen-Shot-2015-10-05-at-16.34.53.png[Screen Shot 2015-10-05 at 16.34.53,width=512,height=396]
 
 This is the way that multi tenancy support provides access control between accounts, ensuring that only authorized accounts will be able to see and manage another accounts info.  
+
+[[security-constraints]]
+*Security constraints*
+~~~~~~~~~~~~~~~~~~~~~~
+
+If the hostname of the request doesn't match the organization domain name of the provided account credential Restcomm-Connect will not allow access.
+
+For example, if trying to login to 'https://wonderland.restcomm.com' using account credentials that belong to organization 'https://alice.restcomm.com', Restcomm-Connect will drop the request.
+
+Same is true for accessing organization/account resources using REST API. If the hostname of the REST API request doesn't match the domain name of the organization that the account credentials belong, Restcomm-Connect will drop the request.

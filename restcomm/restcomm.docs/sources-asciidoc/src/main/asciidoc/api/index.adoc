@@ -24,20 +24,17 @@ Restcomm Accounts have the following subresources. Click on a link to read the A
 * <<calls-api.adoc#calls,Restcomm API – Calls>>
 * <<clients-api.adoc#clients,Restcomm API – Clients>>
 * <<email-api.adoc#email,Restcomm API – Email>>
-* <<geolocation-api.adoc#geolocationapi, Restcomm API - Geolocation>>
 * <<incoming-phone-numbers-api.adoc#incoming-phone-numbers,Restcomm API – IncomingPhoneNumbers>>
 * <<notifications-api.adoc#notifications,Restcomm API – Notifications>>
 * <<recordings-api.adoc#recordings,Restcomm API – Recordings>>
 * <<sms-api.adoc#sms,Restcomm API – SMS>>
-* <<transcriptions-api.adoc#transcriptions,Restcomm API – Transcriptions>>
 * <<usage-records-api.adoc#records,Restcomm API – Usage Records>>
-* <<ussd-push-api.adoc#uss-push,Restcomm API – UssdPush>>
 * <<conferences-api.adoc#conferenceapi, Restcomm API - Conference Management>>
 * <<participants-api.adoc#participantsapi, Restcomm API - Conference Participants Management>>
-* <<profile-api.adoc#profileapi, Restcomm API - Profiles Management>>
 
 === Management Sub-Resources
 
+* <<profile-api.adoc#profileapi, Restcomm API - Profiles Management>>
 * <<gateway-api.adoc#gateways,Restcomm API – Gateway>>
 * <<monitoring-service.adoc#monitoring, Restcomm API - Supervisor/Monitoring Service>>
 * <<outbound-proxy-api.adoc#outbound-proxy,Restcomm API – OutboundProxy>>

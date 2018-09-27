@@ -90,17 +90,17 @@ Logo image filename supplied by theme creator. The path should be relative to th
 |=======================
 
 === Visual Designer - STEP 1 - Copy Files
-* Go to RESTCOMM_HOME/standalone/deployments/restcomm-rvd.war/
+* Go to RESTCOMM_HOME/standalone/deployments/visual-designer.war/
 * sudo mkdir vnd
-* Go to RESTCOMM_HOME/standalone/deployments/restcomm-rvd.war/vnd
+* Go to RESTCOMM_HOME/standalone/deployments/visual-designer.war/vnd
 
 Create a new directory under `vnd` based on your Organization name. If your organization name is `mycompany.restcomm.com`, you will create a new directory called `mycompany` under the vnd directory
 
-* Go to RESTCOMM_HOME/standalone/deployments/restcomm-rvd.war/vnd/mycompany
+* Go to RESTCOMM_HOME/standalone/deployments/visual-designer.war/vnd/mycompany
 
-* Copy the `rvd.css`  `rvd-dark.css` files from RESTCOMM_HOME/standalone/deployments/restcomm-rvd.war/css/ into the newly created `mycompany` directory
+* Copy the `rvd.css`  `rvd-dark.css` files from RESTCOMM_HOME/standalone/deployments/visual-designer.war/css/ into the newly created `mycompany` directory
 
-* Copy all the content of the directory RESTCOMM_HOME/standalone/deployments/restcomm-rvd.war/images into the newly created `mycompany` directory
+* Copy all the content of the directory RESTCOMM_HOME/standalone/deployments/visual-designer.war/images into the newly created `mycompany` directory
 
 .Content of `mycompany` updated directory
 [format="csv",width="60%",cols="2"]
@@ -123,7 +123,7 @@ rvd.css,rvd-dark.css
 You must now edit the images png and svg files to match your company log and style
 
 === Visual Designer - Step 3 Update the CSS Files
-    * Edit the `$RESTCOMM_HOME/standalone/deployments/restcomm-rvd.war/`
+    * Edit the `$RESTCOMM_HOME/standalone/deployments/visual-designer.war/`
     * Change the `--main-logo-url:` to the following value :
     * `--main-logo-url: url('mycompany-logo.svg')`
 

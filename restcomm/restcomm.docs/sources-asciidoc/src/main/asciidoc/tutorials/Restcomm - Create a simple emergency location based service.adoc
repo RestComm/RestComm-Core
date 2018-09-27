@@ -361,7 +361,7 @@ Step 5 - Login to Restcomm and build the USSD RVD project
 
 * Login to RestcommONE-Connect at http://127.0.0.1:8080 with default user administrator@company.com and password "RestComm".
 * Change default password to "FerM19711219" (if you wish to set it to a different value, take into consideration the generated authentication token for setting it at the PHP scripts calls to Restcomm Geolocation and SMS APIs).
-* Once successfully logged in, go to http://127.0.0.1:8080/restcomm-rvd/#/login (you can do this by simply clicking in Visual Designer link once in the dashboard).
+* Once successfully logged in, go to http://127.0.0.1:8080/visual-designer/#/login (you can do this by simply clicking in Visual Designer link once in the dashboard).
 * Start a USSD project (in this tutorial we will call it "USSD_Emergency_Geolocation").
 * Rename the Welcome module to *Retrieve_CGI* and remove its default content. Drag and drop the "External Service" verb into the module's palette and set the Service Url http://127.0.0.1/Geolocation/geolocation.php. Click on "add service parameter" and set "Name" to "target" and "Value" to "$core_From". Click on "Add assignment" as many times needed so you have the following parameters of scope "application": *cid*, *lac*, *mcc*, *mnc*, *mscvlrOrSgsnOrMme* and *loc_age_mins* whose values come from *cell_id*, *location_area_code*, *mobile_country_code*, *mobile_network_code*, *network_entity_address* and *location_age* respectively. On making a route decision, mark it as *fixed* to Continue to the *Get_GCI_Coordinates* module. Optionally, on "Remote error" set *Loc_Error* module and on "On timeout" set *Loc_Timeout* modules (recommended). At the end, the module should look like in the following image:
 

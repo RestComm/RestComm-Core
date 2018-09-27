@@ -22,15 +22,11 @@
 package org.restcomm.connect.mscontrol.jsr309;
 
 
-import javax.media.mscontrol.mediagroup.CodecConstants;
-import org.apache.commons.lang.StringUtils;
-import org.restcomm.connect.dao.entities.MediaAttributes;
-
 import akka.actor.ActorRef;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import org.apache.commons.configuration.Configuration;
-
+import org.apache.commons.lang.StringUtils;
 import org.restcomm.connect.commons.dao.Sid;
 import org.restcomm.connect.commons.fsm.FiniteStateMachine;
 import org.restcomm.connect.commons.fsm.State;
@@ -39,8 +35,10 @@ import org.restcomm.connect.commons.patterns.Observe;
 import org.restcomm.connect.commons.patterns.Observing;
 import org.restcomm.connect.commons.patterns.StopObserving;
 import org.restcomm.connect.commons.util.WavUtils;
+import org.restcomm.connect.core.service.RestcommConnectServiceProvider;
 import org.restcomm.connect.dao.DaoManager;
 import org.restcomm.connect.dao.RecordingsDao;
+import org.restcomm.connect.dao.entities.MediaAttributes;
 import org.restcomm.connect.dao.entities.Recording;
 import org.restcomm.connect.mscontrol.api.MediaServerController;
 import org.restcomm.connect.mscontrol.api.MediaServerInfo;
@@ -67,6 +65,7 @@ import org.restcomm.connect.mscontrol.api.messages.StopMediaGroup;
 import org.restcomm.connect.mscontrol.api.messages.StopRecording;
 import org.restcomm.connect.mscontrol.api.messages.Unmute;
 import org.restcomm.connect.mscontrol.api.messages.UpdateMediaSession;
+import org.restcomm.connect.mscontrol.api.messages.RecordStoped;
 
 import javax.media.mscontrol.EventType;
 import javax.media.mscontrol.MediaEvent;
@@ -77,6 +76,7 @@ import javax.media.mscontrol.MsControlFactory;
 import javax.media.mscontrol.Parameter;
 import javax.media.mscontrol.Parameters;
 import javax.media.mscontrol.join.Joinable.Direction;
+import javax.media.mscontrol.mediagroup.CodecConstants;
 import javax.media.mscontrol.mediagroup.MediaGroup;
 import javax.media.mscontrol.mediagroup.Player;
 import javax.media.mscontrol.mediagroup.PlayerEvent;
@@ -809,15 +809,20 @@ public class Jsr309CallController extends MediaServerController {
                         builder.setAccountSid(accountId);
                         builder.setCallSid(callId);
                         builder.setDuration(duration);
-                        builder.setApiVersion(runtimeSettings.getString("api-version"));
-                        StringBuilder buffer = new StringBuilder();
-                        buffer.append("/").append(runtimeSettings.getString("api-version")).append("/Accounts/")
-                                .append(accountId.toString());
-                        buffer.append("/Recordings/").append(recordingSid.toString());
-                        builder.setUri(URI.create(buffer.toString()));
+                        String apiVersion = runtimeSettings.getString("api-version");
+                        builder.setApiVersion(apiVersion);
+
+                        builder.setUri(RestcommConnectServiceProvider.getInstance().recordingService()
+                                .prepareFileUrl(apiVersion, accountId.toString(), recordingSid.toString(), recordingMediaType));
+
+                        URI s3Uri = RestcommConnectServiceProvider.getInstance().recordingService().storeRecording(recordingSid, recordingMediaType);
+                        if (s3Uri != null) {
+                            builder.setS3Uri(s3Uri);
+                        }
+
                         final Recording recording = builder.build();
                         RecordingsDao recordsDao = daoManager.getRecordingsDao();
-                        recordsDao.addRecording(recording, recordingMediaType);
+                        recordsDao.addRecording(recording);
                         getContext().system().eventStream().publish(recording);
                     } else {
                         if (logger.isInfoEnabled()) {
@@ -831,6 +836,7 @@ public class Jsr309CallController extends MediaServerController {
                 this.mediaGroup.getSignalDetector().stop();
                 this.collecting = Boolean.FALSE;
             }
+            call.tell(new RecordStoped(), self);
         } catch (MsControlException e) {
             call.tell(new MediaServerControllerError(e), self);
         }

@@ -69,6 +69,7 @@ import org.restcomm.connect.commons.loader.ObjectInstantiationException;
 import org.restcomm.connect.dao.DaoManager;
 import org.restcomm.connect.dao.IncomingPhoneNumbersDao;
 import org.restcomm.connect.dao.OrganizationsDao;
+import org.restcomm.connect.dao.common.Sorting;
 import org.restcomm.connect.dao.entities.Account;
 import org.restcomm.connect.dao.entities.IncomingPhoneNumber;
 import org.restcomm.connect.dao.entities.IncomingPhoneNumberFilter;
@@ -102,6 +103,10 @@ import org.restcomm.connect.provisioning.number.api.PhoneNumberType;
 @ThreadSafe
 @Singleton
 public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
+
+    private static final String PHONE_NUMER_PARAM = "PhoneNumber";
+    private static final String FRIENDLY_NAME_PARAM = "FriendlyName";
+
     @Context
     private ServletContext context;
     private PhoneNumberProvisioningManager phoneNumberProvisioningManager;
@@ -112,9 +117,6 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
     private OrganizationsDao organizationsDao;
     private XStream xstream;
     private Gson gson;
-
-
-
 
     public IncomingPhoneNumbersEndpoint() {
         super();
@@ -142,16 +144,17 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
             phoneNumberProvisioningManager.init(phoneNumberProvisioningConfiguration, telestaxProxyConfiguration, containerConfiguration);
             context.setAttribute("phoneNumberProvisioningManager", phoneNumberProvisioningManager);
         }
-        */
+         */
         // get manager from context or create it if it does not exist
         phoneNumberProvisioningManager = new PhoneNumberProvisioningManagerProvider(configuration, context).get();
 
         Configuration callbackUrlsConfiguration = configuration.subset("phone-number-provisioning").subset("callback-urls");
         String voiceUrl = callbackUrlsConfiguration.getString("voice[@url]");
-        if(voiceUrl != null && !voiceUrl.trim().isEmpty()) {
+        if (voiceUrl != null && !voiceUrl.trim().isEmpty()) {
             String[] voiceUrlArr = voiceUrl.split(":");
-            if(voiceUrlArr != null && voiceUrlArr.length==2)
+            if (voiceUrlArr != null && voiceUrlArr.length == 2) {
                 callbackPort = voiceUrlArr[1];
+            }
         }
         phoneNumberParameters = new PhoneNumberParameters(
                 voiceUrl,
@@ -185,7 +188,7 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
         final Sid sid = Sid.generate(Sid.Type.PHONE_NUMBER);
         builder.setSid(sid);
         builder.setAccountSid(accountSid);
-        String phoneNumber = data.getFirst("PhoneNumber");
+        String phoneNumber = data.getFirst(PHONE_NUMER_PARAM);
         String cost = data.getFirst("Cost");
         builder.setPhoneNumber(phoneNumber);
         builder.setFriendlyName(getFriendlyName(phoneNumber, data));
@@ -225,25 +228,25 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
         builder.setUssdUrl(getUrl("UssdUrl", data));
         builder.setUssdMethod(getMethod("UssdMethod", data));
         builder.setUssdFallbackUrl(getUrl("UssdFallbackUrl", data));
-        builder.setUssdFallbackMethod(getMethod("UssdFallbackMethod",data));
-        builder.setUssdApplicationSid(getSid("UssdApplicationSid",data));
+        builder.setUssdFallbackMethod(getMethod("UssdFallbackMethod", data));
+        builder.setUssdApplicationSid(getSid("UssdApplicationSid", data));
 
         builder.setReferUrl(getUrl("ReferUrl", data));
         builder.setReferMethod(getMethod("ReferMethod", data));
-        builder.setReferApplicationSid(getSid("ReferApplicationSid",data));
+        builder.setReferApplicationSid(getSid("ReferApplicationSid", data));
         builder.setOrganizationSid(organizationSid);
 
         final Configuration configuration = this.configuration.subset("runtime-settings");
         final StringBuilder buffer = new StringBuilder();
         buffer.append("/").append(apiVersion).append("/Accounts/").append(accountSid.toString())
-        .append("/IncomingPhoneNumbers/").append(sid.toString());
+                .append("/IncomingPhoneNumbers/").append(sid.toString());
         builder.setUri(URI.create(buffer.toString()));
         return builder.build();
     }
 
     private String e164(String number) throws NumberParseException {
         final PhoneNumberUtil numbersUtil = PhoneNumberUtil.getInstance();
-        if(!number.startsWith("+")) {
+        if (!number.startsWith("+")) {
             number = "+" + number;
         }
         final PhoneNumber result = numbersUtil.parse(number, "US");
@@ -256,8 +259,8 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
 
     private String getFriendlyName(final String phoneNumber, final MultivaluedMap<String, String> data) {
         String friendlyName = phoneNumber;
-        if (data.containsKey("FriendlyName")) {
-            friendlyName = data.getFirst("FriendlyName");
+        if (data.containsKey(FRIENDLY_NAME_PARAM)) {
+            friendlyName = data.getFirst(FRIENDLY_NAME_PARAM);
         }
         return friendlyName;
     }
@@ -270,7 +273,7 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
         permissionEvaluator.secure(operatedAccount,
                 "RestComm:Read:IncomingPhoneNumbers",
                 userIdentityContext);
-        try{
+        try {
             final IncomingPhoneNumber incomingPhoneNumber = dao.getIncomingPhoneNumber(new Sid(sid));
             if (incomingPhoneNumber == null) {
                 return status(NOT_FOUND).build();
@@ -292,7 +295,7 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
                     return null;
                 }
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             logger.error("Exception while performing getIncomingPhoneNumber: ", e);
             return status(INTERNAL_SERVER_ERROR).build();
         }
@@ -322,14 +325,14 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
     protected Response getIncomingPhoneNumbers(final String accountSid,
             final PhoneNumberType phoneNumberType,
             UriInfo info,
-        final MediaType responseType,
-        UserIdentityContext userIdentityContext) {
+            final MediaType responseType,
+            UserIdentityContext userIdentityContext) {
         permissionEvaluator.secure(accountsDao.getAccount(accountSid),
                 "RestComm:Read:IncomingPhoneNumbers",
                 userIdentityContext);
-        try{
-            String phoneNumberFilter = info.getQueryParameters().getFirst("PhoneNumber");
-            String friendlyNameFilter = info.getQueryParameters().getFirst("FriendlyName");
+        try {
+            String phoneNumberFilter = info.getQueryParameters().getFirst(PHONE_NUMER_PARAM);
+            String friendlyNameFilter = info.getQueryParameters().getFirst(FRIENDLY_NAME_PARAM);
             String page = info.getQueryParameters().getFirst("Page");
             String reverse = info.getQueryParameters().getFirst("Reverse");
             String pageSize = info.getQueryParameters().getFirst("PageSize");
@@ -337,8 +340,8 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
 
             pageSize = (pageSize == null) ? "50" : pageSize;
             page = (page == null) ? "0" : page;
-            reverse = (reverse != null && "true".equalsIgnoreCase(reverse)) ? "DESC" : "ASC";
-            sortBy = (sortBy != null) ? sortBy : "phone_number";
+            Sorting.Direction direction = (reverse != null && "true".equalsIgnoreCase(reverse)) ? Sorting.Direction.DESC : Sorting.Direction.ASC;
+            sortBy = (sortBy != null) ? sortBy : PHONE_NUMER_PARAM;
 
             int limit = Integer.parseInt(pageSize);
             int pageAsInt = Integer.parseInt(page);
@@ -357,7 +360,12 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
             filterBuilder.byAccountSid(accountSid);
             filterBuilder.byFriendlyName(friendlyNameFilter);
             filterBuilder.byPhoneNumber(phoneNumberFilter);
-            filterBuilder.sortedBy(sortBy, reverse);
+            if (PHONE_NUMER_PARAM.equals(sortBy)) {
+                filterBuilder.sortedByPhoneNumber(direction);
+            }
+            if (FRIENDLY_NAME_PARAM.equals(sortBy)) {
+                filterBuilder.sortedByfriendly(direction);
+            }
             filterBuilder.limited(limit, offset);
             filterBuilder.usingMode(SearchFilterMode.WILDCARD_MATCH);
 
@@ -376,7 +384,7 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
             } else {
                 return null;
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             logger.error("Exception while performing getIncomingPhoneNumbers: ", e);
             return status(INTERNAL_SERVER_ERROR).build();
         }
@@ -384,9 +392,9 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
 
     protected Response putIncomingPhoneNumber(final String accountSid,
             final MultivaluedMap<String, String> data,
-        PhoneNumberType phoneNumberType,
-        final MediaType responseType,
-        UserIdentityContext userIdentityContext) {
+            PhoneNumberType phoneNumberType,
+            final MediaType responseType,
+            UserIdentityContext userIdentityContext) {
         Account account = accountsDao.getAccount(accountSid);
         permissionEvaluator.secure(account,
                 "RestComm:Create:IncomingPhoneNumbers",
@@ -396,14 +404,15 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
         } catch (final NullPointerException exception) {
             return status(BAD_REQUEST).entity(exception.getMessage()).build();
         }
-        try{
-            String number = data.getFirst("PhoneNumber");
+        try {
+            String number = data.getFirst(PHONE_NUMER_PARAM);
             String isSIP = data.getFirst("isSIP");
             // cater to SIP numbers
-            if(isSIP == null) {
+            if (isSIP == null) {
                 try {
                     number = e164(number);
-                } catch (NumberParseException e) {}
+                } catch (NumberParseException e) {
+                }
             }
             Boolean isSip = Boolean.parseBoolean(isSIP);
             Boolean available = true;
@@ -415,13 +424,13 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
              * but it has to be pure sip as provider numbers must be unique even across organizations.
              * https://github.com/RestComm/Restcomm-Connect/issues/2073
              */
-            if(incomingPhoneNumbers != null && !incomingPhoneNumbers.isEmpty()){
-                if(!isSip){
+            if (incomingPhoneNumbers != null && !incomingPhoneNumbers.isEmpty()) {
+                if (!isSip) {
                     //provider numbers must be unique even across organizations.
                     available = false;
-                }else{
-                    for(IncomingPhoneNumber incomingPhoneNumber : incomingPhoneNumbers){
-                        if(incomingPhoneNumber.getOrganizationSid().equals(account.getOrganizationSid())){
+                } else {
+                    for (IncomingPhoneNumber incomingPhoneNumber : incomingPhoneNumbers) {
+                        if (incomingPhoneNumber.getOrganizationSid().equals(account.getOrganizationSid())) {
                             available = false;
                         }
                     }
@@ -430,18 +439,19 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
             if (available) {
                 IncomingPhoneNumber incomingPhoneNumber = createFrom(new Sid(accountSid), data, account.getOrganizationSid());
                 String domainName = organizationsDao.getOrganization(account.getOrganizationSid()).getDomainName();
-                phoneNumberParameters.setVoiceUrl((callbackPort == null || callbackPort.trim().isEmpty()) ? domainName : domainName+":"+callbackPort);
+                phoneNumberParameters.setVoiceUrl((callbackPort == null || callbackPort.trim().isEmpty()) ? domainName : domainName + ":" + callbackPort);
                 phoneNumberParameters.setPhoneNumberType(phoneNumberType);
 
                 org.restcomm.connect.provisioning.number.api.PhoneNumber phoneNumber = convertIncomingPhoneNumbertoPhoneNumber(incomingPhoneNumber);
                 boolean hasSuceeded = false;
                 boolean allowed = true;
-                if(phoneNumberProvisioningManager != null && isSIP == null) {
+                if (phoneNumberProvisioningManager != null && isSIP == null) {
                     ApiRequest apiRequest = new ApiRequest(accountSid, data, ApiRequest.Type.INCOMINGPHONENUMBER);
                     //Before proceed to buy the DID, check with the extensions if the purchase is allowed or not
                     if (executePreApiAction(apiRequest)) {
-                        if(logger.isDebugEnabled())
-                            logger.debug("buyNumber " + phoneNumber +" phoneNumberParameters: " + phoneNumberParameters);
+                        if (logger.isDebugEnabled()) {
+                            logger.debug("buyNumber " + phoneNumber + " phoneNumberParameters: " + phoneNumberParameters);
+                        }
                         hasSuceeded = phoneNumberProvisioningManager.buyNumber(phoneNumber, phoneNumberParameters);
                     } else {
                         //Extensions didn't allowed this API action
@@ -460,11 +470,11 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
                 } else if (isSIP != null) {
                     hasSuceeded = true;
                 }
-                if(hasSuceeded) {
-                    if(phoneNumber.getFriendlyName() != null) {
+                if (hasSuceeded) {
+                    if (phoneNumber.getFriendlyName() != null) {
                         incomingPhoneNumber.setFriendlyName(phoneNumber.getFriendlyName());
                     }
-                    if(phoneNumber.getPhoneNumber() != null) {
+                    if (phoneNumber.getPhoneNumber() != null) {
                         incomingPhoneNumber.setPhoneNumber(phoneNumber.getPhoneNumber());
                     }
                     dao.addIncomingPhoneNumber(incomingPhoneNumber);
@@ -477,7 +487,7 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
                 }
             }
             return status(BAD_REQUEST).entity("21452").build();
-        }catch(Exception e){
+        } catch (Exception e) {
             logger.error("Exception while performing putIncomingPhoneNumber: ", e);
             return status(INTERNAL_SERVER_ERROR).build();
         }
@@ -492,7 +502,7 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
         permissionEvaluator.secure(operatedAccount,
                 "RestComm:Modify:IncomingPhoneNumbers",
                 userIdentityContext);
-        try{
+        try {
             final IncomingPhoneNumber incomingPhoneNumber = dao.getIncomingPhoneNumber(new Sid(sid));
             if (incomingPhoneNumber == null) {
                 return status(NOT_FOUND).build();
@@ -503,7 +513,7 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
                     userIdentityContext);
             boolean updated = true;
             updated = updateNumberAtPhoneNumberProvisioningManager(incomingPhoneNumber, organizationsDao.getOrganization(operatedAccount.getOrganizationSid()));
-            if(updated) {
+            if (updated) {
                 dao.updateIncomingPhoneNumber(update(incomingPhoneNumber, data));
                 if (APPLICATION_JSON_TYPE.equals(responseType)) {
                     return ok(gson.toJson(incomingPhoneNumber), APPLICATION_JSON).build();
@@ -515,14 +525,14 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
                 }
             }
             return status(BAD_REQUEST).entity("21452").build();
-        }catch(Exception e){
+        } catch (Exception e) {
             logger.error("Exception while performing updateIncomingPhoneNumber: ", e);
             return status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
     private void validate(final MultivaluedMap<String, String> data) throws RuntimeException {
-        if (!data.containsKey("PhoneNumber") && !data.containsKey("AreaCode")) {
+        if (!data.containsKey(PHONE_NUMER_PARAM) && !data.containsKey("AreaCode")) {
             throw new NullPointerException("Phone number can not be null.");
         }
     }
@@ -531,8 +541,8 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
         if (data.containsKey("ApiVersion")) {
             incomingPhoneNumber.setApiVersion(getApiVersion(data));
         }
-        if (data.containsKey("FriendlyName")) {
-            incomingPhoneNumber.setFriendlyName(data.getFirst("FriendlyName"));
+        if (data.containsKey(FRIENDLY_NAME_PARAM)) {
+            incomingPhoneNumber.setFriendlyName(data.getFirst(FRIENDLY_NAME_PARAM));
         }
         if (data.containsKey("VoiceUrl")) {
             // for all values that qualify as 'empty' populate property with null
@@ -544,14 +554,14 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
         }
         if (data.containsKey("VoiceFallbackUrl")) {
             URI uri = getUrl("VoiceFallbackUrl", data);
-            incomingPhoneNumber.setVoiceFallbackUrl( isEmpty(uri.toString()) ? null : uri );
+            incomingPhoneNumber.setVoiceFallbackUrl(isEmpty(uri.toString()) ? null : uri);
         }
         if (data.containsKey("VoiceFallbackMethod")) {
-            incomingPhoneNumber.setVoiceFallbackMethod( getMethod("VoiceFallbackMethod", data) );
+            incomingPhoneNumber.setVoiceFallbackMethod(getMethod("VoiceFallbackMethod", data));
         }
         if (data.containsKey("StatusCallback")) {
             URI uri = getUrl("StatusCallback", data);
-            incomingPhoneNumber.setStatusCallback( isEmpty(uri.toString()) ? null : uri );
+            incomingPhoneNumber.setStatusCallback(isEmpty(uri.toString()) ? null : uri);
         }
         if (data.containsKey("StatusCallbackMethod")) {
             incomingPhoneNumber.setStatusCallbackMethod(getMethod("StatusCallbackMethod", data));
@@ -560,36 +570,38 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
             incomingPhoneNumber.setHasVoiceCallerIdLookup(getHasVoiceCallerIdLookup(data));
         }
         if (data.containsKey("VoiceApplicationSid")) {
-            if ( org.apache.commons.lang.StringUtils.isEmpty( data.getFirst("VoiceApplicationSid") ) )
+            if (org.apache.commons.lang.StringUtils.isEmpty(data.getFirst("VoiceApplicationSid"))) {
                 incomingPhoneNumber.setVoiceApplicationSid(null);
-            else
+            } else {
                 incomingPhoneNumber.setVoiceApplicationSid(getSid("VoiceApplicationSid", data));
+            }
         }
         if (data.containsKey("SmsUrl")) {
             URI uri = getUrl("SmsUrl", data);
-            incomingPhoneNumber.setSmsUrl( isEmpty(uri.toString()) ? null : uri);
+            incomingPhoneNumber.setSmsUrl(isEmpty(uri.toString()) ? null : uri);
         }
         if (data.containsKey("SmsMethod")) {
             incomingPhoneNumber.setSmsMethod(getMethod("SmsMethod", data));
         }
         if (data.containsKey("SmsFallbackUrl")) {
             URI uri = getUrl("SmsFallbackUrl", data);
-            incomingPhoneNumber.setSmsFallbackUrl( isEmpty(uri.toString()) ? null : uri );
+            incomingPhoneNumber.setSmsFallbackUrl(isEmpty(uri.toString()) ? null : uri);
         }
         if (data.containsKey("SmsFallbackMethod")) {
             incomingPhoneNumber.setSmsFallbackMethod(getMethod("SmsFallbackMethod", data));
         }
         if (data.containsKey("SmsApplicationSid")) {
-            if ( org.apache.commons.lang.StringUtils.isEmpty( data.getFirst("SmsApplicationSid") ) )
+            if (org.apache.commons.lang.StringUtils.isEmpty(data.getFirst("SmsApplicationSid"))) {
                 incomingPhoneNumber.setSmsApplicationSid(null);
-            else
+            } else {
                 incomingPhoneNumber.setSmsApplicationSid(getSid("SmsApplicationSid", data));
+            }
 
         }
 
         if (data.containsKey("ReferUrl")) {
             URI uri = getUrl("ReferUrl", data);
-            incomingPhoneNumber.setReferUrl( isEmpty(uri.toString()) ? null : uri );
+            incomingPhoneNumber.setReferUrl(isEmpty(uri.toString()) ? null : uri);
         }
 
         if (data.containsKey("ReferMethod")) {
@@ -597,10 +609,11 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
         }
 
         if (data.containsKey("ReferApplicationSid")) {
-            if ( org.apache.commons.lang.StringUtils.isEmpty( data.getFirst("ReferApplicationSid") ) )
+            if (org.apache.commons.lang.StringUtils.isEmpty(data.getFirst("ReferApplicationSid"))) {
                 incomingPhoneNumber.setReferApplicationSid(null);
-            else
+            } else {
                 incomingPhoneNumber.setReferApplicationSid(getSid("ReferApplicationSid", data));
+            }
         }
 
         if (data.containsKey("VoiceCapable")) {
@@ -642,10 +655,11 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
         }
 
         if (data.containsKey("UssdApplicationSid")) {
-            if (org.apache.commons.lang.StringUtils.isEmpty(data.getFirst("UssdApplicationSid")))
+            if (org.apache.commons.lang.StringUtils.isEmpty(data.getFirst("UssdApplicationSid"))) {
                 incomingPhoneNumber.setUssdApplicationSid(null);
-            else
+            } else {
                 incomingPhoneNumber.setUssdApplicationSid(getSid("UssdApplicationSid", data));
+            }
         }
 
         incomingPhoneNumber.setDateUpdated(DateTime.now());
@@ -655,11 +669,11 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
     public Response deleteIncomingPhoneNumber(final String accountSid,
             final String sid,
             UserIdentityContext userIdentityContext) {
-            Account operatedAccount = accountsDao.getAccount(accountSid);
-            permissionEvaluator.secure(operatedAccount,
-                    "RestComm:Delete:IncomingPhoneNumbers",
-                    userIdentityContext);
-        try{
+        Account operatedAccount = accountsDao.getAccount(accountSid);
+        permissionEvaluator.secure(operatedAccount,
+                "RestComm:Delete:IncomingPhoneNumbers",
+                userIdentityContext);
+        try {
             final IncomingPhoneNumber incomingPhoneNumber = dao.getIncomingPhoneNumber(new Sid(sid));
             if (incomingPhoneNumber == null) {
                 return status(NOT_FOUND).build();
@@ -668,12 +682,12 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
                     incomingPhoneNumber.getAccountSid(),
                     SecuredType.SECURED_STANDARD,
                     userIdentityContext);
-            if(phoneNumberProvisioningManager != null && (incomingPhoneNumber.isPureSip() == null || !incomingPhoneNumber.isPureSip())) {
+            if (phoneNumberProvisioningManager != null && (incomingPhoneNumber.isPureSip() == null || !incomingPhoneNumber.isPureSip())) {
                 phoneNumberProvisioningManager.cancelNumber(convertIncomingPhoneNumbertoPhoneNumber(incomingPhoneNumber));
             }
             dao.removeIncomingPhoneNumber(new Sid(sid));
             return noContent().build();
-        }catch(Exception e){
+        } catch (Exception e) {
             logger.error("Exception while performing deleteIncomingPhoneNumber: ", e);
             return status(INTERNAL_SERVER_ERROR).build();
         }
@@ -685,8 +699,7 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
         final List<SipURI> uris = (List<SipURI>) context.getAttribute(SipServlet.OUTBOUND_INTERFACES);
         return uris;
     }
-    */
-
+     */
     public static org.restcomm.connect.provisioning.number.api.PhoneNumber convertIncomingPhoneNumbertoPhoneNumber(IncomingPhoneNumber incomingPhoneNumber) {
         return new org.restcomm.connect.provisioning.number.api.PhoneNumber(
                 incomingPhoneNumber.getFriendlyName(),
@@ -719,36 +732,36 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
         Account effectiveAccount = userIdentityContext.getEffectiveAccount();
         permissionEvaluator.secure(effectiveAccount,
                 "RestComm:Modify:IncomingPhoneNumbers",
-                 userIdentityContext);
-        try{
+                userIdentityContext);
+        try {
             Account targetAccount = accountsDao.getAccount(targetAccountSid);
             // this is to avoid if mistakenly provided super admin account as targetAccountSid
             // if this check is not in place and someone mistakenly provided super admin
             // then all accounts and sub account in platform will be impacted
-            if(targetAccount == null){
+            if (targetAccount == null) {
                 return status(NOT_FOUND).entity("Account not found").build();
             }
-            if(targetAccount.getParentSid() == null){
+            if (targetAccount.getParentSid() == null) {
                 return status(BAD_REQUEST).entity("Super Admin account numbers can not be migrated. Please provide a valid account sid").build();
-            }else{
+            } else {
                 String organizationSidStr = data.getFirst("OrganizationSid");
-                if(organizationSidStr == null){
+                if (organizationSidStr == null) {
                     return status(BAD_REQUEST).entity("OrganizationSid cannot be null").build();
                 }
                 Sid organizationSid = null;
-                try{
+                try {
                     organizationSid = new Sid(organizationSidStr);
-                }catch(IllegalArgumentException iae){
+                } catch (IllegalArgumentException iae) {
                     return status(BAD_REQUEST).entity("OrganizationSid is not valid").build();
                 }
                 Organization destinationOrganization = organizationsDao.getOrganization(organizationSid);
-                if(destinationOrganization == null){
+                if (destinationOrganization == null) {
                     return status(NOT_FOUND).entity("Destination organization not found").build();
                 }
                 migrateNumbersFromAccountTree(targetAccount, destinationOrganization);
                 return status(OK).build();
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             logger.error("Exception while performing migrateIncomingPhoneNumbers: ", e);
             return status(INTERNAL_SERVER_ERROR).build();
         }
@@ -764,7 +777,7 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
             int i = subAccountsToClose.size(); // is is the count of accounts left to process
             // we iterate backwards to handle child account numbers first, parent account's numbers next
             while (i > 0) {
-                i --;
+                i--;
                 String migrateSid = subAccountsToClose.get(i);
                 try {
                     Account subAccount = accountsDao.getAccount(new Sid(migrateSid));
@@ -786,14 +799,14 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
      */
     private void migrateSingleAccountNumbers(Account account, Organization destinationOrganization) {
         List<IncomingPhoneNumber> incomingPhoneNumbers = dao.getIncomingPhoneNumbers(account.getSid());
-        if(incomingPhoneNumbers != null) {
-            for (int i=0; i<incomingPhoneNumbers.size(); i++){
+        if (incomingPhoneNumbers != null) {
+            for (int i = 0; i < incomingPhoneNumbers.size(); i++) {
                 IncomingPhoneNumber incomingPhoneNumber = incomingPhoneNumbers.get(i);
                 incomingPhoneNumber.setOrganizationSid(destinationOrganization.getSid());
                 //update organization in db
                 dao.updateIncomingPhoneNumber(incomingPhoneNumber);
                 //update number at provider's end
-                if(!updateNumberAtPhoneNumberProvisioningManager(incomingPhoneNumber, destinationOrganization)){
+                if (!updateNumberAtPhoneNumberProvisioningManager(incomingPhoneNumber, destinationOrganization)) {
                     //if number could not be updated at provider's end, log the error and keep moving to next number.
                     logger.error(String.format("could not update number %s at number provider %s ", incomingPhoneNumber.getPhoneNumber(), phoneNumberProvisioningManager));
                 }
@@ -806,12 +819,13 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
      * @param organization
      * @return
      */
-    private boolean updateNumberAtPhoneNumberProvisioningManager(IncomingPhoneNumber incomingPhoneNumber, Organization organization){
-        if(phoneNumberProvisioningManager != null && (incomingPhoneNumber.isPureSip() == null || !incomingPhoneNumber.isPureSip())) {
+    private boolean updateNumberAtPhoneNumberProvisioningManager(IncomingPhoneNumber incomingPhoneNumber, Organization organization) {
+        if (phoneNumberProvisioningManager != null && (incomingPhoneNumber.isPureSip() == null || !incomingPhoneNumber.isPureSip())) {
             String domainName = organization.getDomainName();
-            phoneNumberParameters.setVoiceUrl((callbackPort == null || callbackPort.trim().isEmpty()) ? domainName : domainName+":"+callbackPort);
-            if(logger.isDebugEnabled())
-                logger.debug("updateNumber " + incomingPhoneNumber +" phoneNumberParameters: " + phoneNumberParameters);
+            phoneNumberParameters.setVoiceUrl((callbackPort == null || callbackPort.trim().isEmpty()) ? domainName : domainName + ":" + callbackPort);
+            if (logger.isDebugEnabled()) {
+                logger.debug("updateNumber " + incomingPhoneNumber + " phoneNumberParameters: " + phoneNumberParameters);
+            }
             return phoneNumberProvisioningManager.updateNumber(convertIncomingPhoneNumbertoPhoneNumber(incomingPhoneNumber), phoneNumberParameters);
         }
         return true;
@@ -841,7 +855,6 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
                 ContextUtil.convert(sec));
     }
 
-
     @Path("/AvailableCountries")
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
@@ -869,7 +882,7 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
     }
 
     @POST
-    @ResourceFilters({ ExtensionFilter.class })
+    @ResourceFilters({ExtensionFilter.class})
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public Response putIncomingPhoneNumber(@PathParam("accountSid") final String accountSid,
             final MultivaluedMap<String, String> data,
@@ -916,7 +929,6 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
     }
 
     // Local Numbers
-
     @Path("/Local")
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
@@ -934,7 +946,7 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
 
     @Path("/Local")
     @POST
-    @ResourceFilters({ ExtensionFilter.class })
+    @ResourceFilters({ExtensionFilter.class})
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public Response putIncomingLocalPhoneNumberAsXml(@PathParam("accountSid") final String accountSid,
             final MultivaluedMap<String, String> data,
@@ -949,7 +961,6 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
     }
 
     // Toll Free Numbers
-
     @Path("/TollFree")
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
@@ -967,7 +978,7 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
 
     @Path("/TollFree")
     @POST
-    @ResourceFilters({ ExtensionFilter.class })
+    @ResourceFilters({ExtensionFilter.class})
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public Response putIncomingTollFreePhoneNumberAsXml(@PathParam("accountSid") final String accountSid,
             final MultivaluedMap<String, String> data,
@@ -982,7 +993,6 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
     }
 
     // Mobile Numbers
-
     @Path("/Mobile")
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
@@ -1000,7 +1010,7 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
 
     @Path("/Mobile")
     @POST
-    @ResourceFilters({ ExtensionFilter.class })
+    @ResourceFilters({ExtensionFilter.class})
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     public Response putIncomingMobilePhoneNumberAsXml(@PathParam("accountSid") final String accountSid,
             final MultivaluedMap<String, String> data,
@@ -1012,7 +1022,6 @@ public class IncomingPhoneNumbersEndpoint extends AbstractEndpoint {
                 acceptType,
                 ContextUtil.convert(sec));
     }
-
 
     @Path("/migrate")
     @POST

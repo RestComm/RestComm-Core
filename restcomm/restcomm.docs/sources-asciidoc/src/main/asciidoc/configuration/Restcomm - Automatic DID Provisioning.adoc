@@ -40,7 +40,7 @@ Then Start Restcomm
 
 We are going to create a test application from the Restcomm Visual Designer (RVD)
 
-* Open you web browser and go to *http://127.0.0.1:8080/restcomm-rvd*
+* Open you web browser and go to *http://127.0.0.1:8080/visual-designer*
 * Click on the Voice button
 * Create a new Project called DIDTest
 * In the Say verb text area, modify the text to something similar to the screen below.

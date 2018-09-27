@@ -20,7 +20,7 @@ Accounts and sub-accounts are useful for things like segmenting phone numbers an
 |FriendlyName |A description of this account, up to 64 characters long. By default the FriendlyName is your email address.
 |Status |The status of this account. Possible values are active, suspended, and closed.
 |AuthToken |The authorization token for this account. This should not be shared.
-|Uri |The URI for this account, relative to https://localhost:port/restcomm.
+|Uri |The URI for this account, relative to https://cloud.restcomm.com/restcomm.
 |=========================================================================================================================
 
 === Supported Operations
@@ -123,7 +123,7 @@ In the process, all child accounts will also be migrated.
 **Get information about the default account.**
 
 ....
-curl -X GET  https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf
+curl -X GET  https://<primaryAccountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/<secondaryAccountSid>
 ....
 
 
@@ -133,19 +133,19 @@ To update an account you need to provide the SID of the account or the email add
 
 For example, update password using account sid:
 ....
-curl -X PUT https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf -d "Password=NewPassword"
+curl -X PUT https://<primaryAccountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/<secondaryAccountSid> -d "Password=NewPassword"
 ....
 
 And update password using email address of the account:
 
 ....
-curl -X PUT https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/administrator%40company.com -d "Password=NewPassword"
+curl -X PUT https://<primaryAccountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/administrator%40company.com -d "Password=NewPassword"
 ....
 
 NOTE: The above command uses the Account SID of the requestor, and the one below uses the Email Account. Note the administrator%40company.com is used instead of administrator@company.com . This is because using curl on the bash terminal doesn't parse the @ correctlyl. If you were to running on a browser, you can safely use the @ as the web browser will correctly handle it.
 
 ....
-curl -X GET  https://administrator%40company.com:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf
+curl -X GET  https://administrator%40company.com:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/<secondaryAccountSid>
 ....
 
 The above commands will print an output similar to the one below:
@@ -153,25 +153,25 @@ The above commands will print an output similar to the one below:
 ----
 <RestcommResponse>
   <Account>
-    <Sid>ACae6e420f425248d6a26948c17a9e2acf</Sid>
+    <Sid><accountSid></Sid>
     <FriendlyName>Default Administrator Account</FriendlyName>
     <Status>active</Status>
     <Type>Full</Type>
     <DateCreated>2012-04-24T00:00:00.000-06:00</DateCreated>
     <DateUpdated>2012-04-24T00:00:00.000-06:00</DateUpdated>
     <AuthToken>77f8c12cc7b8f8423e5c38b035249166</AuthToken>
-    <Uri>/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf</Uri>
+    <Uri>/2012-04-24/Accounts/<secondaryAccountSid></Uri>
     <SubresourceUris>
-      <AvailablePhoneNumbers>/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/AvailablePhoneNumbers</AvailablePhoneNumbers>
-      <Calls>/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls</Calls>
-      <Conferences>/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Conferences</Conferences>
-      <IncomingPhoneNumbers>/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/IncomingPhoneNumbers</IncomingPhoneNumbers>
-      <Notifications>/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Notifications</Notifications>
-      <OutgoingCallerIds>/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/OutgoingCallerIds</OutgoingCallerIds>
-      <Recordings>/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Recordings</Recordings>
-      <Sandbox>/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Sandbox</Sandbox>
-      <SMSMessages>/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/SMS/Messages</SMSMessages>
-      <Transcriptions>/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Transcriptions</Transcriptions>
+      <AvailablePhoneNumbers>/2012-04-24/Accounts/<secondaryAccountSid>/AvailablePhoneNumbers</AvailablePhoneNumbers>
+      <Calls>/2012-04-24/Accounts/<secondaryAccountSid>/Calls</Calls>
+      <Conferences>/2012-04-24/Accounts/<secondaryAccountSid>/Conferences</Conferences>
+      <IncomingPhoneNumbers>/2012-04-24/Accounts/<secondaryAccountSid>/IncomingPhoneNumbers</IncomingPhoneNumbers>
+      <Notifications>/2012-04-24/Accounts/<secondaryAccountSid>/Notifications</Notifications>
+      <OutgoingCallerIds>/2012-04-24/Accounts/<secondaryAccountSid>/OutgoingCallerIds</OutgoingCallerIds>
+      <Recordings>/2012-04-24/Accounts/<secondaryAccountSid>/Recordings</Recordings>
+      <Sandbox>/2012-04-24/Accounts/<secondaryAccountSid>/Sandbox</Sandbox>
+      <SMSMessages>/2012-04-24/Accounts/<secondaryAccountSid>/SMS/Messages</SMSMessages>
+      <Transcriptions>/2012-04-24/Accounts/<secondaryAccountSid>/Transcriptions</Transcriptions>
     </SubresourceUris>
   </Account>
 ----
@@ -208,19 +208,19 @@ You can read more about Sub-Accounts and Multi-tenancy http://docs.telestax.com/
 
 
 ----
-curl -X GET https://[primarySid]:[primaryAuthToken]@127.0.0.1:8080/restcomm/2012-04-24/Accounts/[secondarySid]/
+curl -X GET https://<primaryAccountSid>:<AuthToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/<secondaryAccountSid>/
 ----
 
 === Get a list of all current accounts
 
 ----
-curl -X GET https://[primarySid]:[primaryAuthToken]@127.0.0.1:8080/restcomm/2012-04-24/Accounts/
+curl -X GET https://<primaryAccountSid>:<AuthToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/
 ----
 
 Here is an example of how to create a **sub-account**. The sub-account will inherit the same permissions has the Administrator's account.
 
 ....
-curl -X POST https://administrator%40company.com:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ -d "FriendlyName=MySubAccount" -d "EmailAddress=test@telestax.com" -d "Password=restcomm"
+curl -X POST https://administrator%40company.com:<AuthToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ -d "FriendlyName=MySubAccount" -d "EmailAddress=test@telestax.com" -d "Password=restcomm"
 ....
 
 Here is an example of creating an account under a specific organization.
@@ -265,12 +265,12 @@ NOTE: the **SID**, Email and the *AuthToken* (see output below) of the sub-accou
 
 .JSON Account Closing
 ----
-curl -X PUT https://ACae6e420f425248d6a26948c17a9e2acf:PWD@127.0.0.1:8080/restcomm/2012-04-24/Accounts.json/AC3b8f0dd2e5026abde018446cbb3b185d -d "Status=closed"
+curl -X PUT https://<secondaryAccountSid>:PWD@cloud.restcomm.com/restcomm/2012-04-24/Accounts.json/<subAccountSid> -d "Status=closed"
 ----
 
 .XML Account Closing
 ----
-curl -X PUT https://ACae6e420f425248d6a26948c17a9e2acf:PWD@127.0.0.1:8080/restcomm/2012-04-24/Accounts/AC3b8f0dd2e5026abde018446cbb3b185d -d "Status=closed"
+curl -X PUT https://<secondaryAccountSid>:PWD@cloud.restcomm.com/restcomm/2012-04-24/Accounts/<subAccountSid> -d "Status=closed"
 ----
 
 The command above will close an account permanently. When an account is closed access to the system through it is revoked and most of its resources are deleted. The actual account entity will remain present though.
@@ -280,12 +280,12 @@ The command above will close an account permanently. When an account is closed a
 
 .XML Account Deletion
 ----
-curl -X DELETE https://ACae6e420f425248d6a26948c17a9e2acf:PWD@192.168.1.3:8080/restcomm/2012-04-24/Accounts/<Sub-Account-SID>
+curl -X DELETE https://<secondaryAccountSid>:PWD@cloud.restcomm.com/restcomm/2012-04-24/Accounts/<Sub-Account-SID>
 ----
 
 .JSON Account Deletion
 ----
-curl -X DELETE https://ACae6e420f425248d6a26948c17a9e2acf:PWD@192.168.1.3:8080/restcomm/2012-04-24/Accounts.json/<Sub-Account-SID>.json
+curl -X DELETE https://<secondaryAccountSid>:PWD@cloud.restcomm.com/restcomm/2012-04-24/Accounts.json/<Sub-Account-SID>.json
 ----
 
 NOTE: Account deletion has been deprecated from the REST API. Both of these methods will return HTTP 405. You will need to **close** the account instead.

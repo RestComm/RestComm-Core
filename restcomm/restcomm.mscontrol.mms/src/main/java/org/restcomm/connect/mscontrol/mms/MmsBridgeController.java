@@ -41,6 +41,7 @@ import org.restcomm.connect.commons.patterns.Observe;
 import org.restcomm.connect.commons.patterns.Observing;
 import org.restcomm.connect.commons.patterns.StopObserving;
 import org.restcomm.connect.commons.util.WavUtils;
+import org.restcomm.connect.core.service.RestcommConnectServiceProvider;
 import org.restcomm.connect.dao.DaoManager;
 import org.restcomm.connect.dao.RecordingsDao;
 import org.restcomm.connect.dao.entities.MediaAttributes;
@@ -203,14 +204,25 @@ public class MmsBridgeController extends MediaServerController {
             builder.setAccountSid(accountId);
             builder.setCallSid(callId);
             builder.setDuration(duration);
-            builder.setApiVersion(runtimeSettings.getString("api-version"));
+            String apiVersion = runtimeSettings.getString("api-version");
+            builder.setApiVersion(apiVersion);
+
             StringBuilder buffer = new StringBuilder();
-            buffer.append("/").append(runtimeSettings.getString("api-version")).append("/Accounts/").append(accountId.toString());
+            buffer.append("/").append(apiVersion).append("/Accounts/").append(accountId.toString());
             buffer.append("/Recordings/").append(recordingSid.toString());
             builder.setUri(URI.create(buffer.toString()));
+
+            builder.setFileUri(RestcommConnectServiceProvider.getInstance().recordingService()
+                    .prepareFileUrl(apiVersion, accountId.toString(), recordingSid.toString(), MediaAttributes.MediaType.AUDIO_ONLY));
+
+            URI s3Uri = RestcommConnectServiceProvider.getInstance().recordingService().storeRecording(recordingSid, MediaAttributes.MediaType.AUDIO_ONLY);
+            if (s3Uri != null) {
+                builder.setS3Uri(s3Uri);
+            }
+
             final Recording recording = builder.build();
             RecordingsDao recordsDao = daoManager.getRecordingsDao();
-            recordsDao.addRecording(recording, MediaAttributes.MediaType.AUDIO_ONLY);
+            recordsDao.addRecording(recording);
             getContext().system().eventStream().publish(recording);
         } else {
             if(logger.isInfoEnabled()) {

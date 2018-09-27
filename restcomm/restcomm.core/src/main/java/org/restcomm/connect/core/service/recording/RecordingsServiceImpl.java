@@ -19,16 +19,23 @@
 
 package org.restcomm.connect.core.service.recording;
 
+import akka.dispatch.Futures;
 import org.apache.log4j.Logger;
 import org.restcomm.connect.commons.amazonS3.S3AccessTool;
 import org.restcomm.connect.commons.configuration.RestcommConfiguration;
 import org.restcomm.connect.commons.dao.Sid;
 import org.restcomm.connect.core.service.api.RecordingService;
+import org.restcomm.connect.core.service.util.UriUtils;
 import org.restcomm.connect.dao.RecordingsDao;
+import org.restcomm.connect.dao.entities.MediaAttributes;
 import org.restcomm.connect.dao.entities.Recording;
+import scala.concurrent.ExecutionContext;
+import scala.concurrent.Future;
 
 import java.io.File;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.concurrent.Callable;
 
 public class RecordingsServiceImpl implements RecordingService {
 
@@ -37,18 +44,56 @@ public class RecordingsServiceImpl implements RecordingService {
     private final RecordingsDao recordingsDao;
     private final S3AccessTool s3AccessTool;
     private String recordingsPath;
+    private final ExecutionContext ec;
+    private final UriUtils uriUtils;
 
-    public RecordingsServiceImpl (RecordingsDao recordingsDao, S3AccessTool s3AccessTool) {
+    public RecordingsServiceImpl (RecordingsDao recordingsDao, S3AccessTool s3AccessTool, ExecutionContext ec, UriUtils uriUtils) {
         this.recordingsDao = recordingsDao;
         this.s3AccessTool = s3AccessTool;
         this.recordingsPath = RestcommConfiguration.getInstance().getMain().getRecordingPath();
+        this.ec = ec;
+        this.uriUtils = uriUtils;
     }
 
     //Used for unit testing
-    public RecordingsServiceImpl (RecordingsDao recordingsDao, S3AccessTool s3AccessTool, String recordingsPath) {
+    public RecordingsServiceImpl (RecordingsDao recordingsDao, String recordingsPath, S3AccessTool s3AccessTool,  ExecutionContext ec, UriUtils uriUtils) {
         this.recordingsDao = recordingsDao;
         this.s3AccessTool = s3AccessTool;
         this.recordingsPath = recordingsPath;
+        this.ec = ec;
+        this.uriUtils = uriUtils;
+    }
+
+    @Override
+    public URI storeRecording (final Sid recordingSid, MediaAttributes.MediaType mediaType) {
+        URI s3Uri = null;
+        final String fileExtension = mediaType.equals(MediaAttributes.MediaType.AUDIO_ONLY) ? ".wav" : ".mp4";
+        Recording recording = recordingsDao.getRecording(recordingSid);
+        if (s3AccessTool != null && ec != null) {
+            s3Uri = s3AccessTool.getS3Uri(recordingsPath+"/"+recordingSid+fileExtension);
+            Future<Boolean> f = Futures.future(new Callable<Boolean>() {
+                @Override
+                public Boolean call () throws Exception {
+                    return s3AccessTool.uploadFile(recordingsPath+"/"+recordingSid+fileExtension);
+                }
+            }, ec);
+        }
+
+        return s3Uri;
+    }
+
+    @Override
+    public URI prepareFileUrl(String apiVersion, String accountSid, String recordingSid, MediaAttributes.MediaType mediaType) {
+        final String fileExtension = mediaType.equals(MediaAttributes.MediaType.AUDIO_ONLY) ? ".wav" : ".mp4";
+        String fileUrl = String.format("/restcomm/%s/Accounts/%s/Recordings/%s",apiVersion,accountSid,recordingSid);
+        URI uriToResolve = null;
+        try {
+            //For local stored recordings, add .wav/.mp4 suffix to the URI
+            uriToResolve = new URI(fileUrl+fileExtension);
+        } catch (URISyntaxException e) {
+            logger.error(e);
+        }
+        return uriUtils.resolve(uriToResolve, new Sid(accountSid));
     }
 
     @Override
@@ -59,7 +104,7 @@ public class RecordingsServiceImpl implements RecordingService {
 
         if (isStoredAtS3) {
             if (s3AccessTool != null) {
-                s3AccessTool.removeS3Uri(recording.getS3Uri());
+                s3AccessTool.removeS3Uri(recordingSid.toString());
             }
         } else {
             if (!recordingsPath.endsWith("/"))

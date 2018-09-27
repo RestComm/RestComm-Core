@@ -53,7 +53,7 @@ image:./images/WebTrigger_copy_URL.png[copy_web_trigger_url]
 Before making the request you need to specify a destination for the call in the `to` parameter. You may use the _client_
 you just registered. The destination goes in the `to` parameter of the request:
 
- http://this:8080/restcomm-rvd/services/apps/APdc8c1eea063d4a85b64a5bebda8e8c04/start?to=client:alice
+ http://this:8080/visual-designer/services/apps/APdc8c1eea063d4a85b64a5bebda8e8c04/start?to=client:alice
 
 Notice _client:_ prefix in the `to` parameter.
 
@@ -62,7 +62,7 @@ to authenticate. In this example we will use *administrator@company.com* / *Rest
 
 Here is the cURL command to make the request:
 
- $ curl -X GET --user 'administrator@company.com:RestComm' 'http://this:8080/restcomm-rvd/services/apps/APdc8c1eea063d4a85b64a5bebda8e8c04/start?to=client:alice'
+ $ curl -X GET --user 'administrator@company.com:RestComm' 'http://this:8080/visual-designer/services/apps/APdc8c1eea063d4a85b64a5bebda8e8c04/start?to=client:alice'
 
 In addition to specifying the destination of the call, the caller ID may also be specified (optional) using
 the `from` parameter. Here is the how the trigger URL  will look like when the caller ID  is set to *bob*:
@@ -89,7 +89,7 @@ image:./images/WebTrigger_specify_application_token.png[specify_application_acce
 Since there are no Basic HTTP authentication headers involved you may easily trigger the call by typing the WebTrigger URL
 directly in the browser:
 
- http://this:8080/restcomm-rvd/services/apps/APdc8c1eea063d4a85b64a5bebda8e8c04/start?to=client:alice&token=MyTopSeCrEt
+ http://this:8080/visual-designer/services/apps/APdc8c1eea063d4a85b64a5bebda8e8c04/start?to=client:alice&token=MyTopSeCrEt
 
 IMPORTANT: Before giving it a try make sure that you have configured
  <<configure-restcomm-api-credentials,Restcomm API credentials>> in RVD settings.
@@ -147,7 +147,7 @@ image:./images/add_variables_to_the_mix.png[add_variables_to_the_mix,width=763,h
 This application will use the _firstname_ and _lastname_ parameters from a trigger URL like the
 following:
 
- http://this:8080/restcomm-rvd/services/apps/APdc8c1eea063d4a85b64a5bebda8e8c04/start?to=client:alice&firstname=nick&lastname=the+greek
+ http://this:8080/visual-designer/services/apps/APdc8c1eea063d4a85b64a5bebda8e8c04/start?to=client:alice&firstname=nick&lastname=the+greek
 
 
 ###### Variable scope

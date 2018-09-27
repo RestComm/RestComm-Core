@@ -10,6 +10,10 @@
 
     <artifactId>restcomm-connect.testsuite</artifactId>
 
+    <properties>
+        <commons-lang3.version>3.7</commons-lang3.version>
+    </properties>
+
     <dependencies>
         <!-- Testing -->
         <dependency>
@@ -129,7 +133,7 @@
             <groupId>javax.sip</groupId>
             <artifactId>jain-sip-ri</artifactId>
         </dependency>
-        
+
         <dependency>
                 <groupId>org.jboss.arquillian.junit</groupId>
                 <artifactId>arquillian-junit-container</artifactId>
@@ -143,27 +147,27 @@
                 <version>${shrinkwrap.resolver.version}</version>
                 <scope>compile</scope>
         </dependency>
-        
+
         <dependency>
                 <groupId>org.jboss.shrinkwrap.resolver</groupId>
                 <artifactId>shrinkwrap-resolver-api-maven</artifactId>
                 <version>${shrinkwrap.resolver.version}</version>
                 <scope>compile</scope>
-        </dependency>        
+        </dependency>
 
         <dependency>
                 <groupId>org.jboss.shrinkwrap.resolver</groupId>
                 <artifactId>shrinkwrap-resolver-api-maven-archive</artifactId>
                 <version>${shrinkwrap.resolver.version}</version>
                 <scope>compile</scope>
-        </dependency>   
+        </dependency>
 
         <dependency>
                 <groupId>org.jboss.shrinkwrap.resolver</groupId>
                 <artifactId>shrinkwrap-resolver-impl-maven-archive</artifactId>
                 <version>${shrinkwrap.resolver.version}</version>
                 <scope>compile</scope>
-        </dependency>        
+        </dependency>
 
         <!--Dependencies for Tomcat-7 -->
         <dependency>
@@ -176,13 +180,13 @@
             <groupId>org.mobicents.servlet.sip.containers</groupId>
             <artifactId>sip-servlets-tomcat-7</artifactId>
             <version>${sipservletapi.version}</version>
-            <scope>compile</scope>            
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.mobicents.arquillian.container</groupId>
             <artifactId>mss-tomcat-embedded-7</artifactId>
             <version>${mss.arquillian.version}</version>
-            <scope>compile</scope>            
+            <scope>compile</scope>
         </dependency>
 
         <!--Dependencies for Tomcat-7 -->
@@ -276,6 +280,12 @@
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons-lang3.version}</version>
         </dependency>
 
         <dependency>
@@ -393,7 +403,7 @@
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
-	
+
 		<dependency>
 			<groupId>org.restcomm.smpp</groupId>
 			<artifactId>smpp-extensions</artifactId>
@@ -406,14 +416,14 @@
             <testResource>
                 <directory>src/test/resources</directory>
                 <filtering>false</filtering>
-            </testResource>            
+            </testResource>
             <testResource>
                 <directory>src/test/resources/org/restcomm/connect/testsuite/http</directory>
                 <filtering>true</filtering>
                 <includes>
                     <include>*.xml</include>
                 </includes>
-                
+
             </testResource>
         </testResources>
 
@@ -552,7 +562,7 @@
                                 every forked JVM/test class-->
                                 <arquillian_http_port>${surefire.forkNumber}509</arquillian_http_port>
                                 <arquillian_sip_port>${surefire.forkNumber}508</arquillian_sip_port>
-                            </systemPropertyVariables>                            
+                            </systemPropertyVariables>
                         </configuration>
                     </plugin>
                 </plugins>

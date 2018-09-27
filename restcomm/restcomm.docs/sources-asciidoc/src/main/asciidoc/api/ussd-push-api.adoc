@@ -27,13 +27,13 @@ The USSD Gateway to which Restcomm must send the USSD message must be configured
 See below a general curl example for the USSD Push to the destination number 13019007654 (the MSISDN that will receive the USSD push session or notification according to YOUR_USSD_APP logic).
 
 ----
-curl -X POST -H "application/json" https://ACae6e420f425248d6a26948c17a9e2acf:YOUR_PWD@RESTCOMM_IP_ADDRESS/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/UssdPush -d "From=Restcomm" -d "To=13019007654" -d "Url=https://RESTCOMM_IP_ADDRESS/restcomm-rvd/services/apps/YOUR_USSD_APP/controller"
+curl -X POST -H "application/json" https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm//2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/UssdPush -d "From=Restcomm" -d "To=13019007654" -d "Url=https://cloud.restcomm.com/visual-designer/services/apps/YOUR_USSD_APP/controller"
 ----
 
 For example, let's assume Restcomm-Connect runs over IP address 10.20.42.161 and HTTPS is disabled. So, assuming Restcomm-Connect HTTP default port is left to 8080, the following shows a curl example for a USSD Push session or notification sent to MSISDN 99077937, where YOUR_USSD_APP is an RVD project identified by AP8945ca7c0a534b1c8ec9c82b4e999a8c and YOUR_PWD equals the authorization token f8bc1274677b173d1a1cf3b9924eaa7e:
 
 ----
-curl -X POST -H "application/json" http://ACae6e420f425248d6a26948c17a9e2acf:f8bc1274677b173d1a1cf3b9924eaa7e@10.20.42.161:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/UssdPush.json -d "From=myRestcommPushUssdApp" -d "To=99077937" -d "Url=http://10.20.42.161:8080/restcomm-rvd/services/apps/AP8945ca7c0a534b1c8ec9c82b4e999a8c/controller"
+curl -X POST -H "application/json" http://ACae6e420f425248d6a26948c17a9e2acf:f8bc1274677b173d1a1cf3b9924eaa7e@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/UssdPush.json -d "From=myRestcommPushUssdApp" -d "To=99077937" -d "Url=http://cloud.restcomm.com/visual-designer/services/apps/AP8945ca7c0a534b1c8ec9c82b4e999a8c/controller"
 ----
 
 Note that the previous example differs from the general one not only by the fact that HTTP is used instead of HTTPS (then port is provided), but also by using json format. Then, a json answer like the following should be displayed (otherwise, an analogous XML answer would be displayed):

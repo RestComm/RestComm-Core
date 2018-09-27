@@ -184,7 +184,7 @@ The following query string parameters allow you to limit the list returned. Note
 Gets all numbers created using *IncomingPhoneNumbers.json*
 
 ....
-curl -G  https://\{account_sid}:\{auth_token}@127.0.0.1/restcomm/2012-04-24/Accounts/\{account_sid}/IncomingPhoneNumbers.json
+curl -G  https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/\{account_sid}/IncomingPhoneNumbers.json
 ....
 
 Result of the above command
@@ -441,7 +441,7 @@ Not Supported.  
 This one uses the default application
 
 ....
-curl -X POST  https://administrator%40company.com:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/IncomingPhoneNumbers.json -d "PhoneNumber=+15105555555" -d "VoiceUrl=https://127.0.0.1/restcomm/demos/hello-play.xml"
+curl -X POST  https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/IncomingPhoneNumbers.json -d "PhoneNumber=+15105555555" -d "VoiceUrl=https://127.0.0.1/restcomm/demos/hello-play.xml"
 ....
 
 Result of the above command
@@ -473,7 +473,7 @@ IMPORTANT: If you are trying to attach a number that you didn't look up previous
 This one uses the default application
 
 ....
-curl -X POST  https://administrator%40company.com:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/IncomingPhoneNumbers.json -d "PhoneNumber=1234" -d "VoiceUrl=https://127.0.0.1/restcomm/demos/hello-play.xml" -d "isSIP=true"
+curl -X POST  https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/IncomingPhoneNumbers.json -d "PhoneNumber=1234" -d "VoiceUrl=https://127.0.0.1/restcomm/demos/hello-play.xml" -d "isSIP=true"
 ....
 
 Result of the above command
@@ -503,7 +503,7 @@ Result of the above command
 You have to get the SID of the phone and use curl to delete as follows
 
 ....
-curl -X DELETE https://administrator%40company.com:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/IncomingPhoneNumbers/PNdd7a0a0248244615978bd5781598e5eb
+curl -X DELETE https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/IncomingPhoneNumbers/PNdd7a0a0248244615978bd5781598e5eb
 ....
 
 == List of phone numbers
@@ -511,7 +511,7 @@ curl -X DELETE https://administrator%40company.com:77f8c12cc7b8f8423e5c38b035249
 Gets all numbers created using *IncomingPhoneNumbers.json*
 
 ....
-curl -X GET  https://administrator%40company.com:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/IncomingPhoneNumbers.json
+curl -X GET  https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/IncomingPhoneNumbers.json
 ....
 
 == Incoming Phone Number Regex Support

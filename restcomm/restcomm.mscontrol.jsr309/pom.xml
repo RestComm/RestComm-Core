@@ -116,5 +116,11 @@
 			<artifactId>akka-testkit_2.10</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>org.restcomm</groupId>
+			<artifactId>restcomm-connect.core</artifactId>
+            <version>${project.version}</version>
+		</dependency>
 	</dependencies>
 </project>

@@ -88,6 +88,8 @@
                                 <embedAssets>true</embedAssets>
                                 <stylesheet>${basedir}/src/main/asciidoc/stylesheets/telestax.css</stylesheet>
                                 <project-version>${project.version}</project-version>
+				<product>Restcomm </product>
+				<rcml>RCML</rcml>
                                 <this-application>Connect </this-application>
                                 <this-platform>Restcomm </this-platform>
                                 <jee-platform>JBoss Application Server</jee-platform>

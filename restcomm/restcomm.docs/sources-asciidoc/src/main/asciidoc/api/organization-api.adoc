@@ -13,7 +13,7 @@ Organization api will provide functionality to perform CRUD (create, read, updat
 |====
 | Property | Description
 | sid | A string that uniquely identifies this organization.
-| domain_name | A custom DNS hostname that you create on Restcomm Cloud. It can accept traffic for an account. If anyone makes a SIP/HTTP request using that domain, say the SIP URI sip:alice@mycompany.restcomm.com, it will route to Restcomm.
+| domain_name | A custom DNS hostname that you create on Restcomm Cloud. It can accept traffic for an account. If anyone makes a SIP/HTTP request using that domain, say the SIP URI sip:alice@cloud.restcomm.com, it will route to Restcomm.
 
 Total Length of domain_name can be upto 255 Characters. It can contain only letters, number and “-” aka hyphen sign.
 | date_created | The date that this organization was created.
@@ -38,14 +38,14 @@ HTTP PUT to above Uri will create a new organization and returns the representat
 
 |====
 | Property | Description
-| domainName | A custom DNS hostname that you create on Restcomm Cloud. It can accept traffic for an account. If anyone makes a SIP/HTTP request using that domain, say the SIP URI sip:alice@mycompany.restcomm.com, it will route to Restcomm.
+| domainName | A custom DNS hostname that you create on Restcomm Cloud. It can accept traffic for an account. If anyone makes a SIP/HTTP request using that domain, say the SIP URI sip:alice@cloud.restcomm.com, it will route to Restcomm.
 
 Total Length of domain_name can be upto 255 Characters. It can contain only letters, number and “-” aka hyphen sign.
 |====
 
 .Add new organization with domain name "test" - Example
 ====
-curl -X PUT "https://<accountSid>:<authtoke>@mycompany.restcomm.com/restcomm/2012-04-24/Organizations/test"
+curl -X PUT "https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Organizations/test"
 
   <Organization>
     <Sid>OR905d1b4e9d3045acb268f8d0fdf259ac</Sid>
@@ -65,7 +65,7 @@ curl -X PUT "https://<accountSid>:<authtoke>@mycompany.restcomm.com/restcomm/201
 
 .Add new organization with domain name "test" under a specific hosted zone - Example
 ====
-curl -X PUT "https://<accountSid>:<authToken>@mycompany.restcomm.com/restcomm/2012-04-24/Organizations/test" -d "HostedZoneId=<myHostedZoneId>"
+curl -X PUT "https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Organizations/test" -d "HostedZoneId=<myHostedZoneId>"
 
   <Organization>
     <Sid>OR905d1b4e9d3045acb268f8d0fdf259ac</Sid>
@@ -102,7 +102,7 @@ Will return single organization resource
 
 .Read Organization Example
 ====
-curl -X GET "https://{accountSid}:{authToken}@mycompany.restcomm.com/restcomm/2012-04-24/Organizations/{OrganizationSid}"
+curl -X GET "https://{accountSid}:{authToken}@cloud.restcomm.com/restcomm/2012-04-24/Organizations/{OrganizationSid}"
 
 
   <Organization>
@@ -116,7 +116,7 @@ curl -X GET "https://{accountSid}:{authToken}@mycompany.restcomm.com/restcomm/20
 
 .Read Organization Json Example
 ====
-curl -X GET "https://{accountSid}:{authToken}@mycompany.restcomm.com/restcomm/2012-04-24/Organizations.json/{OrganizationSid}"
+curl -X GET "https://{accountSid}:{authToken}@cloud.restcomm.com/restcomm/2012-04-24/Organizations.json/{OrganizationSid}"
 ====
 
 ===== List Resource URI
@@ -141,7 +141,7 @@ You can filter an organization list resource by providing following parameters.
 
 .Read Organization List with filter Example
 ====
-curl -X GET "https://{accountSid}:{authToken}@mycompany.restcomm.com/restcomm/2012-04-24/Organizations/{OrganizationSid}.json" -d "Status=active"
+curl -X GET "https://{accountSid}:{authToken}@cloud.restcomm.com/restcomm/2012-04-24/Organizations/{OrganizationSid}.json" -d "Status=active"
 ====
 
 
@@ -161,5 +161,5 @@ HTTP PUT to above Uri will encrypt all Client passwords and returns a list of Cl
 
 .Migrate Organization Example
 ====
-curl -X PUT "https://{accountSid}:{authToken}@mycompany.restcomm.com/restcomm/2012-04-24/Organizations/{OrganizationSid}.json/Migrate"
+curl -X PUT "https://{accountSid}:{authToken}@cloud.restcomm.com/restcomm/2012-04-24/Organizations/{OrganizationSid}.json/Migrate"
 ====

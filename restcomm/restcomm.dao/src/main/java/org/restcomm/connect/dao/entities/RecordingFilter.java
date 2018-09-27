@@ -19,6 +19,8 @@
  */
 package org.restcomm.connect.dao.entities;
 
+import org.restcomm.connect.dao.common.Sorting;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -38,14 +40,18 @@ public class RecordingFilter {
     private final Integer limit;
     private final Integer offset;
     private final String instanceid;
+    private final Sorting.Direction sortByDate;
+    private final Sorting.Direction sortByDuration;
+    private final Sorting.Direction sortByCallSid;
 
     public RecordingFilter(String accountSid, List<String> accountSidSet, String startTime, String endTime,
                                   String callSid, Integer limit, Integer offset) throws ParseException {
-        this(accountSid, accountSidSet, startTime,endTime, callSid, limit,offset,null);
+        this(accountSid, accountSidSet, startTime,endTime, callSid, limit,offset, null, null, null, null);
     }
 
     public RecordingFilter(String accountSid, List<String> accountSidSet, String startTime, String endTime,
-                                  String callSid, Integer limit, Integer offset, String instanceId) throws ParseException {
+                                  String callSid, Integer limit, Integer offset, String instanceId, Sorting.Direction sortByDate,
+                           Sorting.Direction sortByDuration, Sorting.Direction sortByCallSid) throws ParseException {
         this.accountSid = accountSid;
         this.accountSidSet = accountSidSet;
 
@@ -71,6 +77,10 @@ public class RecordingFilter {
         } else {
             this.instanceid = null;
         }
+
+        this.sortByDate = sortByDate;
+        this.sortByDuration = sortByDuration;
+        this.sortByCallSid = sortByCallSid;
     }
 
     public String getSid() {
@@ -93,14 +103,96 @@ public class RecordingFilter {
         return endTime;
     }
 
-    public int getLimit() {
+    public Integer getLimit() {
         return limit;
     }
 
-    public int getOffset() {
+    public Integer getOffset() {
         return offset;
     }
 
     public String getInstanceid() { return instanceid; }
 
+    public Sorting.Direction getSortByDate() { return sortByDate; }
+    public Sorting.Direction getSortByDuration() { return sortByDuration; }
+    public Sorting.Direction getSortByCallSid() { return sortByCallSid; }
+
+    public static final class Builder {
+        private String accountSid = null;
+        private List<String> accountSidSet = null;
+        private String startTime = null;
+        private String endTime = null;
+        private String callSid = null;
+        private String instanceid = null;
+        private Sorting.Direction sortByDate = null;
+        private Sorting.Direction sortByDuration = null;
+        private Sorting.Direction sortByCallSid = null;
+        private Integer limit = null;
+        private Integer offset = null;
+
+        public static RecordingFilter.Builder builder() {
+            return new RecordingFilter.Builder();
+        }
+
+        public RecordingFilter build() throws ParseException {
+            return new RecordingFilter(accountSid,
+                    accountSidSet,
+                    startTime,
+                    endTime,
+                    callSid,
+                    limit,
+                    offset,
+                    instanceid,
+                    sortByDate,
+                    sortByDuration,
+                    sortByCallSid);
+        }
+
+        // Filters
+        public Builder byAccountSid(String accountSid) {
+            this.accountSid = accountSid;
+            return this;
+        }
+        public Builder byAccountSidSet(List<String> accountSidSet) {
+            this.accountSidSet = accountSidSet;
+            return this;
+        }
+        public Builder byStartTime(String startTime) {
+            this.startTime = startTime;
+            return this;
+        }
+        public Builder byEndTime(String endTime) {
+            this.endTime = endTime;
+            return this;
+        }
+        public Builder byCallSid(String callSid) {
+            this.callSid = callSid;
+            return this;
+        }
+        public Builder byInstanceId(String instanceid) {
+            this.instanceid = instanceid;
+            return this;
+        }
+
+        // Sorters
+        public Builder sortedByDate(Sorting.Direction sortDirection) {
+            this.sortByDate = sortDirection;
+            return this;
+        }
+        public Builder sortedByDuration(Sorting.Direction sortDirection) {
+            this.sortByDuration = sortDirection;
+            return this;
+        }
+        public Builder sortedByCallSid(Sorting.Direction sortDirection) {
+            this.sortByCallSid = sortDirection;
+            return this;
+        }
+
+        // Paging
+        public Builder limited(Integer limit, Integer offset) {
+            this.limit = limit;
+            this.offset = offset;
+            return this;
+        }
+    }
 }

@@ -26,6 +26,7 @@ import com.thoughtworks.xstream.XStream;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
@@ -47,6 +48,7 @@ import org.restcomm.connect.commons.configuration.RestcommConfiguration;
 import org.restcomm.connect.commons.dao.Sid;
 import org.restcomm.connect.dao.DaoManager;
 import org.restcomm.connect.dao.NotificationsDao;
+import org.restcomm.connect.dao.common.Sorting;
 import org.restcomm.connect.dao.entities.Account;
 import org.restcomm.connect.dao.entities.Notification;
 import org.restcomm.connect.dao.entities.NotificationFilter;
@@ -66,6 +68,12 @@ import org.restcomm.connect.identity.UserIdentityContext;
 @ThreadSafe
 @Singleton
 public class NotificationsEndpoint extends AbstractEndpoint {
+    private static final String SORTING_URL_PARAM_DATE_CREATED = "DateCreated";
+    private static final String SORTING_URL_PARAM_LOG = "Log";
+    private static final String SORTING_URL_PARAM_ERROR_CODE = "ErrorCode";
+    private static final String SORTING_URL_PARAM_CALLSID = "CallSid";
+    private static final String SORTING_URL_PARAM_MESSAGE_TEXT = "MessageText";
+
     @Context
     private ServletContext context;
     private Configuration configuration;
@@ -74,9 +82,6 @@ public class NotificationsEndpoint extends AbstractEndpoint {
     private XStream xstream;
     private NotificationListConverter listConverter;
     private String instanceId;
-
-
-
 
     public NotificationsEndpoint() {
         super();
@@ -162,7 +167,71 @@ public class NotificationsEndpoint extends AbstractEndpoint {
         String error_code = info.getQueryParameters().getFirst("ErrorCode");
         String request_url = info.getQueryParameters().getFirst("RequestUrl");
         String message_text = info.getQueryParameters().getFirst("MessageText");
+        String sortParameters = info.getQueryParameters().getFirst("SortBy");
 
+        NotificationFilter.Builder filterBuilder = NotificationFilter.Builder.builder();
+
+        String sortBy = null;
+        String sortDirection = null;
+
+        if (sortParameters != null && !sortParameters.isEmpty()) {
+            try {
+                Map<String, String> sortMap = Sorting.parseUrl(sortParameters);
+                sortBy = sortMap.get(Sorting.SORT_BY_KEY);
+                sortDirection = sortMap.get(Sorting.SORT_DIRECTION_KEY);
+            }
+            catch (Exception e) {
+                return status(BAD_REQUEST).entity(buildErrorResponseBody(e.getMessage(), responseType)).build();
+            }
+        }
+
+        if (sortBy != null) {
+            if (sortBy.equals(SORTING_URL_PARAM_DATE_CREATED)) {
+                if (sortDirection != null) {
+                    if (sortDirection.equalsIgnoreCase(Sorting.Direction.ASC.name())) {
+                        filterBuilder.sortedByDate(Sorting.Direction.ASC);
+                    } else {
+                        filterBuilder.sortedByDate(Sorting.Direction.DESC);
+                    }
+                }
+            }
+            if (sortBy.equals(SORTING_URL_PARAM_LOG)) {
+                if (sortDirection != null) {
+                    if (sortDirection.equalsIgnoreCase(Sorting.Direction.ASC.name())) {
+                        filterBuilder.sortedByLog(Sorting.Direction.ASC);
+                    } else {
+                        filterBuilder.sortedByLog(Sorting.Direction.DESC);
+                    }
+                }
+            }
+            if (sortBy.equals(SORTING_URL_PARAM_ERROR_CODE)) {
+                if (sortDirection != null) {
+                    if (sortDirection.equalsIgnoreCase(Sorting.Direction.ASC.name())) {
+                        filterBuilder.sortedByErrorCode(Sorting.Direction.ASC);
+                    } else {
+                        filterBuilder.sortedByErrorCode(Sorting.Direction.DESC);
+                    }
+                }
+            }
+            if (sortBy.equals(SORTING_URL_PARAM_CALLSID)) {
+                if (sortDirection != null) {
+                    if (sortDirection.equalsIgnoreCase(Sorting.Direction.ASC.name())) {
+                        filterBuilder.sortedByCallSid(Sorting.Direction.ASC);
+                    } else {
+                        filterBuilder.sortedByCallSid(Sorting.Direction.DESC);
+                    }
+                }
+            }
+            if (sortBy.equals(SORTING_URL_PARAM_MESSAGE_TEXT)) {
+                if (sortDirection != null) {
+                    if (sortDirection.equalsIgnoreCase(Sorting.Direction.ASC.name())) {
+                        filterBuilder.sortedByMessageText(Sorting.Direction.ASC);
+                    } else {
+                        filterBuilder.sortedByMessageText(Sorting.Direction.DESC);
+                    }
+                }
+            }
+        }
         if (pageSize == null) {
             pageSize = "50";
         }
@@ -184,39 +253,28 @@ public class NotificationsEndpoint extends AbstractEndpoint {
             ownerAccounts.addAll(accountsDao.getSubAccountSidsRecursive(new Sid(accountSid)));
         }
 
-        NotificationFilter filterForTotal;
-
-        try {
-
-            if (localInstanceOnly) {
-                filterForTotal = new NotificationFilter(accountSid, ownerAccounts, startTime, endTime, error_code, request_url,
-                        message_text, null, null);
-            } else {
-                filterForTotal = new NotificationFilter(accountSid, ownerAccounts, startTime, endTime, error_code, request_url,
-                        message_text, null, null, instanceId);
-            }
-        } catch (ParseException e) {
-            return status(BAD_REQUEST).build();
-        }
-
-        final int total = dao.getTotalNotification(filterForTotal);
-
-        if (Integer.parseInt(page) > (total / limit)) {
-            return status(javax.ws.rs.core.Response.Status.BAD_REQUEST).build();
+        filterBuilder.byAccountSid(accountSid)
+                .byAccountSidSet(ownerAccounts)
+                .byStartTime(startTime)
+                .byEndTime(endTime)
+                .byErrorCode(error_code)
+                .byRequestUrl(request_url)
+                .byMessageText(message_text)
+                .limited(limit, offset);
+        if (!localInstanceOnly) {
+            filterBuilder.byInstanceId(instanceId);
         }
 
         NotificationFilter filter;
-
         try {
-            if (localInstanceOnly) {
-                filter = new NotificationFilter(accountSid, ownerAccounts, startTime, endTime, error_code, request_url,
-                        message_text, limit, offset);
-            } else {
-                filter = new NotificationFilter(accountSid, ownerAccounts, startTime, endTime, error_code, request_url,
-                        message_text, limit, offset, instanceId);
-            }
+            filter = filterBuilder.build();
         } catch (ParseException e) {
             return status(BAD_REQUEST).build();
+        }
+        final int total = dao.getTotalNotification(filter);
+
+        if (Integer.parseInt(page) > (total / limit)) {
+            return status(javax.ws.rs.core.Response.Status.BAD_REQUEST).build();
         }
 
         final List<Notification> cdrs = dao.getNotifications(filter);

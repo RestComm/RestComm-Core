@@ -84,7 +84,7 @@ You can Mute/unMute an inprogress call as shown bellow.
 
 .Mute a Participant
 ====
-curl -X POST http://<AccountSid>:<AutheToken>@<Domain>/restcomm/2012-04-24/Accounts/<AccountSid>/Conferences/<ConferenceSid>/Participants/<CallSid> -d "Mute=true"
+curl -X POST http://<AccountSid>:<AutheToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/<AccountSid>/Conferences/<ConferenceSid>/Participants/<CallSid> -d "Mute=true"
 ====
 
 *Sample Mute Response*
@@ -107,7 +107,7 @@ curl -X POST http://<AccountSid>:<AutheToken>@<Domain>/restcomm/2012-04-24/Accou
 
 .unMute a Muted Participant
 ====
-curl -X POST http://<AccountSid>:<AutheToken>@<Domain>/restcomm/2012-04-24/Accounts/<AccountSid>/Conferences/<ConferenceSid>/Participants/<CallSid> -d "Mute=false"
+curl -X POST http://<AccountSid>:<AutheToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/<AccountSid>/Conferences/<ConferenceSid>/Participants/<CallSid> -d "Mute=false"
 ====
 
 *Sample unMute Response*

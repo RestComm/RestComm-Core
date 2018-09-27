@@ -305,8 +305,9 @@ public class MockSmppServer {
             SubmitSmResp response = submitSm.createResponse();
             final String smppMessageIdLocal = System.currentTimeMillis()+"";
             response.setMessageId(smppMessageIdLocal);
-            if(sendFailureOnSubmitSmResponse)
+            if(sendFailureOnSubmitSmResponse) {
                 response.setCommandStatus(10);//just setting the status to one of error code: Source address invalid.
+            }
             smppMessageId = smppMessageIdLocal;
             return response;
         }

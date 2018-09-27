@@ -54,6 +54,7 @@ import org.junit.runners.MethodSorters;
 import org.restcomm.connect.commons.Version;
 import org.restcomm.connect.commons.annotations.FeatureAltTests;
 import org.restcomm.connect.commons.annotations.ParallelClassTests;
+import org.restcomm.connect.commons.annotations.UnstableTests;
 import org.restcomm.connect.commons.annotations.WithInSecsTests;
 import org.restcomm.connect.testsuite.NetworkPortAssigner;
 import org.restcomm.connect.testsuite.WebArchiveUtil;
@@ -212,7 +213,7 @@ public class SmsEndpointTest {
      * @throws ParseException
      */
     @Test
-    @Category(value={FeatureAltTests.class})
+    @Category(value={FeatureAltTests.class, UnstableTests.class})
     public void sendSmsTestToClientExistingInDifferentOrganizations() throws ParseException {
     	// Prepare alice org2 phone to receive call
         SipURI uri = aliceSipStackOrg2.getAddressFactory().createSipURI(null, restcommContact);

@@ -50,7 +50,8 @@ import org.restcomm.connect.commons.fsm.TransitionRollbackException;
 import org.restcomm.connect.commons.patterns.Observe;
 import org.restcomm.connect.commons.patterns.StopObserving;
 import org.restcomm.connect.commons.telephony.CreateCallType;
-import org.restcomm.connect.commons.util.UriUtils;
+import org.restcomm.connect.core.service.RestcommConnectServiceProvider;
+import org.restcomm.connect.core.service.util.UriUtils;
 import org.restcomm.connect.dao.CallDetailRecordsDao;
 import org.restcomm.connect.dao.NotificationsDao;
 import org.restcomm.connect.dao.entities.CallDetailRecord;
@@ -241,6 +242,8 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
 
     private long timeout;
 
+    private UriUtils uriUtils;
+
     public VoiceInterpreter(VoiceInterpreterParams params) {
         super();
         final ActorRef source = self();
@@ -332,9 +335,6 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
         transitions.add(new Transition(finishGathering, ready));
         transitions.add(new Transition(finishGathering, finishGathering));
         transitions.add(new Transition(finishGathering, finished));
-        transitions.add(new Transition(continuousGathering, ready));
-        transitions.add(new Transition(continuousGathering, finishGathering));
-        transitions.add(new Transition(continuousGathering, finished));
         transitions.add(new Transition(creatingSmsSession, finished));
         transitions.add(new Transition(sendingSms, ready));
         transitions.add(new Transition(sendingSms, startDialing));
@@ -480,6 +480,8 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
         this.timeout = params.getTimeout();
         this.msResponsePending = false;
         this.mediaAttributes = new MediaAttributes();
+
+        this.uriUtils = RestcommConnectServiceProvider.getInstance().uriUtils();
     }
 
     public static Props props(final VoiceInterpreterParams params) {
@@ -502,7 +504,7 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
         builder.setErrorCode(error);
         String base = configuration.subset("runtime-settings").getString("error-dictionary-uri");
         try {
-            base = UriUtils.resolve(new URI(base)).toString();
+            base = uriUtils.resolve(new URI(base), accountId).toString();
         } catch (URISyntaxException e) {
             logger.error("URISyntaxException when trying to resolve Error-Dictionary URI: " + e);
         }
@@ -673,7 +675,7 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
                     path += exitAudio == null || exitAudio.equals("") ? "alert.wav" : exitAudio;
                     URI uri = null;
                     try {
-                        uri = UriUtils.resolve(new URI(path));
+                        uri = uriUtils.resolve(new URI(path), accountId);
                     } catch (final Exception exception) {
                         final Notification notification = notification(ERROR_NOTIFICATION, 12400, exception.getMessage());
                         final NotificationsDao notifications = storage.getNotificationsDao();
@@ -848,11 +850,18 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
             }
             // This is either MMS collected digits or SIP INFO DTMF. If the DTMF is from SIP INFO, then more DTMF might
             // come later
-            else if (is(gathering) || is(continuousGathering) || (is(finishGathering) && !super.dtmfReceived)) {
+            else if (is(gathering) || (is(finishGathering) && !super.dtmfReceived)) {
                 final MediaGroupResponse dtmfResponse = (MediaGroupResponse) message;
                 Object data = dtmfResponse.get();
                 if (data instanceof CollectedResult && ((CollectedResult)data).isAsr() && ((CollectedResult)data).isPartial()) {
-                    fsm.transition(message, continuousGathering);
+                    try {
+                        //we dont need a new state for this action. The notification
+                        //is purely async, and the Interpreter logic will resume
+                        //regardless notification result.
+                        new PartialGathering(self()).execute(message);
+                    } catch (Exception ex) {
+                        this.logger.debug("Notifying partial result", ex);
+                    }
                 } else if (data instanceof CollectedResult && ((CollectedResult)data).isAsr() && !((CollectedResult)data).isPartial() && collectedDigits.length() == 0) {
                     speechResult = ((CollectedResult)data).getResult();
                     fsm.transition(message, finishGathering);
@@ -1189,7 +1198,7 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
                 logger.debug("statusCode " + response.get().getStatusCode());
         }
         if (response.succeeded() && HttpStatus.SC_OK == response.get().getStatusCode()) {
-            if (continuousGathering.equals(state)) {
+            if (gathering.equals(state)) {
                 //no need change state
                 return;
             }
@@ -1953,7 +1962,7 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
                 source.tell(verb, source);
                 return;
             } else if (downloadingRcml.equals(state) || downloadingFallbackRcml.equals(state) || redirecting.equals(state)
-                    || continuousGathering.equals(state) || finishGathering.equals(state) || finishRecording.equals(state) || sendingSms.equals(state)
+                    || finishGathering.equals(state) || finishRecording.equals(state) || sendingSms.equals(state)
                     || finishDialing.equals(state) || finishConferencing.equals(state) || is(forking)) {
                 response = ((DownloaderResponse) message).get();
                 if (parser != null) {
@@ -2530,7 +2539,7 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
             path += "ringing.wav";
             URI uri = null;
             try {
-                uri = resolve(new URI(path));
+                uri = uriUtils.resolve(new URI(path), accountId);
             } catch (final Exception exception) {
                 final Notification notification = notification(ERROR_NOTIFICATION, 12400, exception.getMessage());
                 final NotificationsDao notifications = storage.getNotificationsDao();
@@ -2614,7 +2623,7 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
         httpRecordingUri += recordingSid.toString() + ".wav";
         this.recordingUri = URI.create(path);
         try {
-            this.publicRecordingUri = UriUtils.resolve(new URI(httpRecordingUri));
+            this.publicRecordingUri = uriUtils.resolve(new URI(httpRecordingUri), accountId);
         } catch (URISyntaxException e) {
             logger.error("URISyntaxException when trying to resolve Recording URI: " + e);
         }
@@ -2789,7 +2798,7 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
                         return;
                     }
                     final URI base = request.getUri();
-                    final URI uri = UriUtils.resolve(base, target);
+                    final URI uri = uriUtils.resolveWithBase(base, target);
                     // Parse "method".
                     String method = "POST";
                     attribute = verb.attribute("method");
@@ -3139,7 +3148,7 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
                     }
 
                     final URI base = request.getUri();
-                    waitUrl = UriUtils.resolve(base, waitUrl);
+                    waitUrl = uriUtils.resolveWithBase(base, waitUrl);
                     // Parse method.
                     String method = "POST";
                     attribute = child.attribute("waitMethod");
@@ -3222,7 +3231,7 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
         path += entryAudio == null || entryAudio.equals("") ? "beep.wav" : entryAudio;
         URI uri = null;
         try {
-            uri = UriUtils.resolve(new URI(path));
+            uri = uriUtils.resolve(new URI(path), accountId);
         } catch (final Exception exception) {
             final Notification notification = notification(ERROR_NOTIFICATION, 12400, exception.getMessage());
             final NotificationsDao notifications = storage.getNotificationsDao();
@@ -3312,7 +3321,7 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
                         return;
                     }
                     final URI base = request.getUri();
-                    final URI uri = UriUtils.resolve(base, target);
+                    final URI uri = uriUtils.resolveWithBase(base, target);
                     // Parse "method".
                     String method = "POST";
                     attribute = conferenceVerb.attribute("method");
@@ -3546,9 +3555,9 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
             URI url = null;
             if (request != null) {
                 final URI base = request.getUri();
-                url = UriUtils.resolve(base, new URI(child.attribute("url").value()));
+                url = uriUtils.resolveWithBase(base, new URI(child.attribute("url").value()));
             } else {
-                url = UriUtils.resolve(new URI(child.attribute("url").value()));
+                url = uriUtils.resolve(new URI(child.attribute("url").value()), accountId);
             }
             String method;
             if (child.hasAttribute("method")) {

@@ -61,6 +61,9 @@ public final class MybatisSmsMessagesDao implements SmsMessagesDao {
     private static final String namespace = "org.mobicents.servlet.sip.restcomm.dao.SmsMessagesDao.";
     private final SqlSessionFactory sessions;
 
+    private static final String STATUS_CALLBACK_COL = "status_callback";
+    private static final String STATUS_CALLBACK_METHOD_COL = "status_callback_method";
+
     public MybatisSmsMessagesDao(final SqlSessionFactory sessions) {
         super();
         this.sessions = sessions;
@@ -243,9 +246,12 @@ public final class MybatisSmsMessagesDao implements SmsMessagesDao {
         map.put("api_version", smsMessage.getApiVersion());
         map.put("uri", writeUri(smsMessage.getUri()));
         map.put("smpp_message_id", smsMessage.getSmppMessageId());
+        map.put(STATUS_CALLBACK_COL, writeUri(smsMessage.getStatusCallback()));
+        map.put(STATUS_CALLBACK_METHOD_COL, smsMessage.getStatusCallbackMethod());
         MessageError error = smsMessage.getError();
-        if(error != null)
+        if(error != null) {
             map.put("error_code", smsMessage.getError().getErrorCode());
+        }
         return map;
     }
 
@@ -265,11 +271,16 @@ public final class MybatisSmsMessagesDao implements SmsMessagesDao {
         final String apiVersion = readString(map.get("api_version"));
         final URI uri = readUri(map.get("uri"));
         final String smppMessageId = readString(map.get("smpp_message_id"));
+        final URI statusCallback = readUri(map.get(STATUS_CALLBACK_COL));
+        final String statusCallbackMethod = readString(map.get(STATUS_CALLBACK_METHOD_COL));
         final Integer errorCode = readInteger(map.get("error_code"));
         MessageError error = null;
-        if(errorCode != null)
+        if(errorCode != null) {
             error = MessageError.getErrorValue(errorCode);
-        return new SmsMessage(sid, dateCreated, dateUpdated, dateSent, accountSid, sender, recipient, body, status, direction,
-                price, priceUnit, apiVersion, uri, smppMessageId, error);
+        }
+        return new SmsMessage(sid, dateCreated, dateUpdated, dateSent, accountSid,
+                sender, recipient, body, status, direction,
+                price, priceUnit, apiVersion, uri, smppMessageId, error,
+                statusCallback, statusCallbackMethod);
     }
 }

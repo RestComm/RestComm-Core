@@ -33,6 +33,7 @@ import org.restcomm.connect.core.service.api.RecordingService;
 import org.restcomm.connect.dao.AccountsDao;
 import org.restcomm.connect.dao.DaoManager;
 import org.restcomm.connect.dao.RecordingsDao;
+import org.restcomm.connect.dao.common.Sorting;
 import org.restcomm.connect.dao.entities.Account;
 import org.restcomm.connect.dao.entities.Recording;
 import org.restcomm.connect.dao.entities.RecordingFilter;
@@ -63,6 +64,7 @@ import java.net.URI;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
@@ -81,6 +83,10 @@ import static javax.ws.rs.core.Response.temporaryRedirect;
 @ThreadSafe
 @Singleton
 public class RecordingsEndpoint extends AbstractEndpoint {
+    private static final String SORTING_URL_PARAM_DATE_CREATED = "DateCreated";
+    private static final String SORTING_URL_PARAM_DURATION = "Duration";
+    private static final String SORTING_URL_PARAM_CALLSID = "CallSid";
+
     @Context
     private ServletContext context;
     private Configuration configuration;
@@ -93,9 +99,6 @@ public class RecordingsEndpoint extends AbstractEndpoint {
     private RecordingListConverter listConverter;
     private String instanceId;
     private RecordingService recordingService;
-
-
-
 
     public RecordingsEndpoint() {
         super();
@@ -202,6 +205,55 @@ public class RecordingsEndpoint extends AbstractEndpoint {
         String startTime = info.getQueryParameters().getFirst("StartTime");
         String endTime = info.getQueryParameters().getFirst("EndTime");
         String callSid = info.getQueryParameters().getFirst("CallSid");
+        String sortParameters = info.getQueryParameters().getFirst("SortBy");
+
+        RecordingFilter.Builder filterBuilder = RecordingFilter.Builder.builder();
+
+        String sortBy = null;
+        String sortDirection = null;
+
+        if (sortParameters != null && !sortParameters.isEmpty()) {
+            try {
+                Map<String, String> sortMap = Sorting.parseUrl(sortParameters);
+                sortBy = sortMap.get(Sorting.SORT_BY_KEY);
+                sortDirection = sortMap.get(Sorting.SORT_DIRECTION_KEY);
+            }
+            catch (Exception e) {
+                return status(BAD_REQUEST).entity(buildErrorResponseBody(e.getMessage(), responseType)).build();
+            }
+        }
+
+        if (sortBy != null) {
+            if (sortBy.equals(SORTING_URL_PARAM_DATE_CREATED)) {
+                if (sortDirection != null) {
+                    if (sortDirection.equalsIgnoreCase(Sorting.Direction.ASC.name())) {
+                        filterBuilder.sortedByDate(Sorting.Direction.ASC);
+                    } else {
+                        filterBuilder.sortedByDate(Sorting.Direction.DESC);
+                    }
+                }
+            }
+            if (sortBy.equals(SORTING_URL_PARAM_DURATION)) {
+                if (sortDirection != null) {
+                    if (sortDirection.equalsIgnoreCase(Sorting.Direction.ASC.name())) {
+                        filterBuilder.sortedByDuration(Sorting.Direction.ASC);
+                    } else {
+                        filterBuilder.sortedByDuration(Sorting.Direction.DESC);
+                    }
+                }
+            }
+            if (sortBy.equals(SORTING_URL_PARAM_CALLSID)) {
+                if (sortDirection != null) {
+                    if (sortDirection.equalsIgnoreCase(Sorting.Direction.ASC.name())) {
+                        filterBuilder.sortedByCallSid(Sorting.Direction.ASC);
+                    } else {
+                        filterBuilder.sortedByCallSid(Sorting.Direction.DESC);
+                    }
+                }
+            }
+        }
+
+        // TODO: Test that we are not imposing different ordering, compared to what we did before this enhancement, when the client is not asking for any type of sorting
 
         if (pageSize == null) {
             pageSize = "50";
@@ -224,7 +276,7 @@ public class RecordingsEndpoint extends AbstractEndpoint {
             ownerAccounts.addAll(accountsDao.getSubAccountSidsRecursive(new Sid(accountSid)));
         }
 
-        RecordingFilter filterForTotal;
+/*        RecordingFilter filterForTotal;
 
         try {
 
@@ -239,12 +291,31 @@ public class RecordingsEndpoint extends AbstractEndpoint {
             return status(BAD_REQUEST).build();
         }
 
-        final int total = dao.getTotalRecording(filterForTotal);
+        final int total = dao.getTotalRecording(filterForTotal);*/
+
+        filterBuilder.byAccountSid(accountSid)
+                .byAccountSidSet(ownerAccounts)
+                .byStartTime(startTime)
+                .byEndTime(endTime)
+                .byCallSid(callSid)
+                .limited(limit, offset);
+        if (!localInstanceOnly) {
+            filterBuilder.byInstanceId(instanceId);
+        }
+
+        RecordingFilter filter;
+        try {
+            filter = filterBuilder.build();
+        } catch (ParseException e) {
+            return status(BAD_REQUEST).build();
+        }
+        final int total = dao.getTotalRecording(filter);
 
         if (Integer.parseInt(page) > (total / limit)) {
             return status(BAD_REQUEST).build();
         }
 
+/*
         RecordingFilter filter;
 
         try {
@@ -258,6 +329,7 @@ public class RecordingsEndpoint extends AbstractEndpoint {
         } catch (ParseException e) {
             return status(BAD_REQUEST).build();
         }
+*/
 
         final List<Recording> cdrs = dao.getRecordings(filter);
 
@@ -327,8 +399,6 @@ public class RecordingsEndpoint extends AbstractEndpoint {
                         return ok(recordingUri.toURL().openStream(), contentType).build();
                     }
                 } else {
-//                    String recFile = "/restcomm/recordings/" + recording.getSid() + ".wav";
-//                    recordingUri = UriUtils.resolve(new URI(recFile));
                     String path = configuration.getString("recordings-path");
                     if (!path.endsWith("/")) {
                         path += "/";

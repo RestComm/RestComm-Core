@@ -11,12 +11,12 @@
 ## requirements:
 ##
 ##	RESTCOMM_HOME env variable to be set
-##  rvd.xml should be in place (under $RESTCOMM_HOME/standalone/deployments/restcomm-rvd.war)
+##  rvd.xml should be in place (under $RESTCOMM_HOME/standalone/deployments/visual-designer.war)
 ##
 ## Author: otsakir@gmail.com - Orestis Tsakiridis
 
 # Variables
-RVD_ROOT=$RESTCOMM_HOME/standalone/deployments/restcomm-rvd.war
+RVD_ROOT=$RESTCOMM_HOME/standalone/deployments/visual-designer.war
 RVD_XML_FILE=$RVD_ROOT/WEB-INF/rvd.xml
 
 updateVideoSupport() {

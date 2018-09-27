@@ -147,22 +147,27 @@ public class SmsEndpointTool {
         return jsonObject;
     }
 
-    public JsonObject getSmsMessageList (String deploymentUrl, String username, String authToken, Integer page, Integer pageSize, Boolean json) {
+    public JsonObject getSmsMessageList (String deploymentUrl, String username, String authToken, Integer page, Integer pageSize, String sortingParameters, Boolean json) {
 
         Client jerseyClient = Client.create();
         jerseyClient.addFilter(new HTTPBasicAuthFilter(username, authToken));
         String url = getAccountsUrl(deploymentUrl, username, true);
         WebResource webResource = jerseyClient.resource(url);
         String response;
+        MultivaluedMap<String, String> params = new MultivaluedMapImpl();
+
+        if (sortingParameters != null) {
+            params.add("SortBy", sortingParameters);
+        }
 
         if (page != null || pageSize != null) {
-            MultivaluedMap<String, String> params = new MultivaluedMapImpl();
-
             if (page != null)
                 params.add("Page", String.valueOf(page));
             if (pageSize != null)
                 params.add("PageSize", String.valueOf(pageSize));
+        }
 
+        if (!params.isEmpty()) {
             response = webResource.queryParams(params).accept(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML)
                     .get(String.class);
         } else {

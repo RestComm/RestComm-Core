@@ -1,13 +1,17 @@
-= Restcomm Visual Designer
+= {product} Visual Designer
 
 Visual Designer is a quick and great way to create Voice and Messaging applications with minimal or
-no programming skills. You can find all you need to get started below.
+no programming skills. You can find all you need to get started here.
+
+If you're new to {product}, we advise you to take a look in the <<Quick Start Guide.adoc#,Quick Start Guide>>. You can also check the
+how-to list below for specific topics.
 
 IMPORTANT: We're reworking this section of the documentation. Expect new stuff popping up and thanks for your patience. You may also find the old list of how-to articles <<index-old.adoc#,here>>.
 
 
 == How To's
 
+* <<Quick Start Guide.adoc#,{product} Visual Designer Quick Start Guide>>
 * <<Restcomm RVD - Control Element.adoc#,Making decisions with Control element>>
 * <<Restcomm - Making HTTP requests with External Service client.adoc#http,Accessing HTTP resources with ES element>>
 * <<Restcomm RVD - Using Web Trigger.adoc#web-trigger,Web Trigger>>

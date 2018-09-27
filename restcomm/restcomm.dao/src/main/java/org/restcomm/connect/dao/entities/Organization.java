@@ -28,7 +28,7 @@ import org.restcomm.connect.commons.dao.Sid;
  * @author maria-farooq@live.com (Maria Farooq)
  */
 @Immutable
-public final class Organization {
+public class Organization {
     private final Sid sid;
     private final String domainName;
     private final DateTime dateCreated;
@@ -40,7 +40,7 @@ public final class Organization {
      * @param domainName - such as customer.restcomm.com
      * @param dateCreated
      * @param dateUpdated
-     * @param Status
+     * @param status
      * @throws IllegalArgumentException if sid or domainName are null/empty
      */
     public Organization(final Sid sid, final String domainName, final DateTime dateCreated, final DateTime dateUpdated, final Status status) throws IllegalArgumentException {

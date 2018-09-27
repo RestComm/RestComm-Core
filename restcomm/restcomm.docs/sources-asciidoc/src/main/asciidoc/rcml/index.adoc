@@ -29,7 +29,6 @@ You can use different combinations of the verbs below to create all kinds of int
 ** <<number-rcml.adoc#number,Number>>
 ** <<sip-rcml.adoc#sip,SIP>>
 * <<email-rcml.adoc#email,Email- Send an Email>>
-* <<fax-rcml.adoc#fax,Fax- Send a Fax>>
 * <<gather-rcml.adoc#gather,Gather - Collect digits the caller types on their keypad>>
 * <<hangup-rcml.adoc#hangup,Hangup - Hang up the call>>
 * <<pause-rcml.adoc#pause,Pause - Wait before executing more instructions>>
@@ -39,9 +38,6 @@ You can use different combinations of the verbs below to create all kinds of int
 * <<reject-rcml.adoc#reject,Reject - Decline an incoming call without being billed.>>
 * <<say-rcml.adoc#say,Say - Read text to the caller>>
 * <<sms-rcml.adoc#sms,SMS - Send an SMS message during a phone call>>
-* <<ussd-collect-rcml.adoc#ussd-collect,USSD Collect - Collect USSD>>
-* <<geolocation-rcml.adoc#geolocation,Geolocation - Gather geolocation information>>
-* <<video-rcml.adoc#video,Video - Configure and enable video for calls and conferences>>
 
 == How Restcomm  Interacts with Your Application
 

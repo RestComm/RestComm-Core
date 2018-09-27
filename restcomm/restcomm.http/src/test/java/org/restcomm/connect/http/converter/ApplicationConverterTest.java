@@ -61,7 +61,7 @@ public class ApplicationConverterTest {
         //xstream.alias("Numbers", );
         //xstream.registerConverter(new RestCommResponseConverter(configuration));
 
-        Application app = new Application( new Sid("AP73926e7113fa4d95981aa96b76eca854"), new DateTime(), new DateTime(), "test app", new Sid("ACae6e420f425248d6a26948c17a9e2acf"), "2012-04-24", false, new URI("/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Applications/AP73926e7113fa4d95981aa96b76eca854"),new URI("/restcomm-rvd/services/apps/AP73926e7113fa4d95981aa96b76eca854/controller"), Application.Kind.VOICE);
+        Application app = new Application( new Sid("AP73926e7113fa4d95981aa96b76eca854"), new DateTime(), new DateTime(), "test app", new Sid("ACae6e420f425248d6a26948c17a9e2acf"), "2012-04-24", false, new URI("/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Applications/AP73926e7113fa4d95981aa96b76eca854"),new URI("/visual-designer/services/apps/AP73926e7113fa4d95981aa96b76eca854/controller"), Application.Kind.VOICE);
         List<ApplicationNumberSummary> numbers = new ArrayList<ApplicationNumberSummary>();
         ApplicationNumberSummary numberSummary = new ApplicationNumberSummary(
           "PN00000000000000000000000000000001",

@@ -32,7 +32,7 @@ The <Conference> represents a single conference originated and terminated from a
 ==== Example: Get Conference by ConferenceSid
 
 ....
-curl -H "Authorization: Basic <MY_ENCODED_CREDENTIALS>" https://IP/restcomm/2012-04-24/Accounts/{AccountSid}/Conferences/{ConferenceSid}
+curl -H "Authorization: Basic <MY_ENCODED_CREDENTIALS>" https://cloud.restcomm.com/restcomm/2012-04-24/Accounts/{AccountSid}/Conferences/{ConferenceSid}
 ....
 
 

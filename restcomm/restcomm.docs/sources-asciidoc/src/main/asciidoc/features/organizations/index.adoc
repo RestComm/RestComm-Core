@@ -15,11 +15,16 @@ include::organizations/uml/component.adoc[]
 
 *   Whitelabeling: Provide the ability to have a customizable user experience for a service provider’s end customers (a skinnable dashboard and RVD, etc.)
 
-*   Custom URL for API calls https://mydomain.restcomm.com/%E2%80%A6[https://mydomain.restcomm.com/…]
+*   Custom URL for API calls https://mydomain.restcomm.com/%E2%80%A6[https://mydomain.restcomm.com/]
 
 *   Sharding of organizations/domain for scale, SLA, performance
 
 *   Consolidated billing for a given Organization
+
+*   Relative URLs  will be resolved based on the Organization domain name
+
+*   Security constraints will not allow access to organization resources when hostname of the request doesn't match the domain name of the organization, even if valid credential provided.
+
 
 == High Level Routing
 

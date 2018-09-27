@@ -126,6 +126,8 @@ public class MockMediaGateway extends RestcommUntypedActor {
     private NotificationRequest recordingRqnt;
     private ActorRef recordingRqntSender;
 
+    private boolean recording = false;
+
     public MockMediaGateway () {
         super();
         system = context().system();
@@ -364,11 +366,14 @@ public class MockMediaGateway extends RestcommUntypedActor {
     }
 
     private void onReceiveTimeout (Object message) {
-        if (logger.isInfoEnabled()) {
-            logger.info("Max recording length reached");
+        getContext().setReceiveTimeout(Duration.Undefined());
+        if (recording) {
+            if (logger.isInfoEnabled()) {
+                logger.info("Max recording length reached");
+            }
+            stopRecording();
+            notify(recordingRqnt, recordingRqntSender);
         }
-        stopRecording();
-        notify(recordingRqnt, recordingRqntSender);
     }
 
     private void writeRecording (File srcWaveFile, File outWaveFile, int duration) {
@@ -570,6 +575,7 @@ public class MockMediaGateway extends RestcommUntypedActor {
 
         if (events != null && events.length > 0 && events[0].getEventIdentifier() != null) {
             if (events[0].getEventIdentifier().getName().equalsIgnoreCase("pr")) {
+                recording = true;
                 startTime = DateTime.now();
                 //Check for the Recording Length Timer parameter if the RQNT is about PlayRecord request
                 String[] paramsArray = ((EventName) events[0]).getEventIdentifier().getParms().split(" ");
@@ -593,7 +599,7 @@ public class MockMediaGateway extends RestcommUntypedActor {
             } else if (events[0].getEventIdentifier().getName().equalsIgnoreCase("es")) {
                 String signal = ((EventName) events[0]).getEventIdentifier().getParms().split("=")[1];
 
-                if (signal.equalsIgnoreCase("pr")) {
+                if (signal.equalsIgnoreCase("pr") && recording) {
                     stopRecording();
                 }
             } else if (events[0].getEventIdentifier().getName().equalsIgnoreCase("pa")) {
@@ -627,6 +633,7 @@ public class MockMediaGateway extends RestcommUntypedActor {
 
     private void stopRecording () {
         if (recordingFile != null) {
+            recording = false;
             endTime = DateTime.now();
             long recordingDuration = (int) ((endTime.getMillis() - startTime.getMillis()) / 1000);
             try {

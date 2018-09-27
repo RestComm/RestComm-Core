@@ -41,6 +41,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.FixMethodOrder;
@@ -352,7 +353,7 @@ public class DialRecordingS3UploadNoneSecurityTest {
 		verify(1, putRequestedFor(urlMatching("/s3/.*")));
 	}
 
-	@Test
+	@Test @Ignore //The code we used to support old DB schema was removed - George 26/06/2018
 	public void testGetRecordingWithOldS3Url() {
 		String callSid = "CA2d3f6354e75e46b3ac76f534129ff511";
 		DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSSSSS");

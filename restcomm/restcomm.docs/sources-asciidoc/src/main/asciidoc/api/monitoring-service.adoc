@@ -64,13 +64,13 @@ Supervisor API supports only json format.
 To get the monitoring service metrics you can use the curl command bellow
 
 ....
-curl https://ACCOUNT_ID:AUTH_TOKEN@IP_ADDRESS/restcomm/2012-04-24/Accounts/ACCOUNT_ID/Supervisor.json/metrics
+curl https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACCOUNT_ID/Supervisor.json/metrics
 ....
 
 For example for the curl command below:
 
 ....
-curl https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Supervisor.json/metrics?LiveCallDetails=true
+curl https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Supervisor.json/metrics?LiveCallDetails=true
 ....
 
 the monitoring service response for a Restcomm instance with 1 registered user and 2 live calls will return the following metrics:

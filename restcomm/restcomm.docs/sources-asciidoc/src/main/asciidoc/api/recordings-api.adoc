@@ -23,8 +23,8 @@ To download the audio file just append *.wav* after the *RecordingSid.*
 |CallSid |The unique id of the call during which the recording was made.
 |Duration |The length of the recording, in seconds.
 |ApiVersion |The API version in use during the recording.
-|Uri |The URI for this account, relative to https://localhost:restcomm.
-|FileUri |The File URI for this recording, relative to https://localhost:restcomm. It can be used to access the WAV file
+|Uri |The URI for this account, relative to https://cloud.restcomm.com/restcomm.
+|FileUri |The File URI for this recording, relative to https://cloud.restcomm.com/restcomm. It can be used to access the WAV file
 |S3Uri |The S3 URI for this recording - Exists ONLY IF Amazon S3 integration is enabled and security level is NONE-
 |==========================================================================
 
@@ -65,7 +65,7 @@ The list of recorded *wav* files can be found in the directory *$RESTCOMM_HOME/s
 From the bash terminal, you can run the command below:
 
 ....
-curl -X GET  https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Recordings.json
+curl -X GET  https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Recordings.json
 ....
 
 The response will be similar to the one below.
@@ -83,7 +83,7 @@ The response will be similar to the one below.
             "duration":"14.70275",
             "api_version":"2012-04-24",
             "uri":"/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Recordings/RE50675909d9c94acda36f0e119b6cb431.json",
-            "file_uri":"http://instance1.restcomm.com:8080/restcomm/recordings/RE50675909d9c94acda36f0e119b6cb431.wav"
+            "file_uri":"https://cloud.restcomm.com/restcomm/recordings/RE50675909d9c94acda36f0e119b6cb431.wav"
         },
         ...
     ]
@@ -95,7 +95,7 @@ NOTE: *<Sid>* holds the file name of the recorded message. The recording Sid.**w
 If you want to return the recording url you will need to parse the *<Uri>/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Recordings/REb4c03af76cdc4a27aad0d9d759e119bc</Uri>* response from Restcomm and add the extension .**wav**
 
 The *<Uri>* holds the http URI that can be used for playback or to download the recorded message.
-Here is how to access the file using http *https://IP_ADDRESS/restcomm/recordings/REb4c03af76cdc4a27aad0d9d759e119bc.wav*
+Here is how to access the file using http *https://cloud.restcomm.com/restcomm/recordings/REb4c03af76cdc4a27aad0d9d759e119bc.wav*
  
 
 == List Filter
@@ -119,7 +119,7 @@ Here is how to access the file using http *https://IP_ADDRESS/restcomm/recording
 The example below will only return Recordings that has been started from this CallSid
 
 ....
- curl -X GET  https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Recordings.json?CallSid=CAfe9ce46f104f5beeb10c83a5dad2be66
+ curl -X GET  https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Recordings.json?CallSid=CAfe9ce46f104f5beeb10c83a5dad2be66
 ....
 
 The result will be similar to the one below
@@ -137,7 +137,7 @@ The result will be similar to the one below
             "duration":"14.70275",
             "api_version":"2012-04-24",
             "uri":"/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Recordings/RE50675909d9c94acda36f0e119b6cb431.json",
-            "file_uri":"http://instance1.restcomm.com:8080/restcomm/recordings/RE50675909d9c94acda36f0e119b6cb431.wav"
+            "file_uri":"https://cloud.restcomm.com/restcomm/recordings/RE50675909d9c94acda36f0e119b6cb431.wav"
         },
         ...
     ]
@@ -168,7 +168,7 @@ The result will be similar to the one below
 The command below will return a single item from the list of recordings using the PageSize parameter
 
 ....
-curl -X GET  https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Recordings.json?PageSize=1
+curl -X GET  https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Recordings.json?PageSize=1
 ....
 
 The result of the *PageSize* parameter
@@ -186,7 +186,7 @@ The result of the *PageSize* parameter
             "duration":"14.70275",
             "api_version":"2012-04-24",
             "uri":"/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Recordings/RE50675909d9c94acda36f0e119b6cb431.json",
-            "file_uri":"http://instance1.restcomm.com:8080/restcomm/recordings/RE50675909d9c94acda36f0e119b6cb431.wav"
+            "file_uri":"https://cloud.restcomm.com/restcomm/recordings/RE50675909d9c94acda36f0e119b6cb431.wav"
         }
     ]
 }
@@ -208,6 +208,63 @@ The API returns URIs to the next, previous, first and last pages of the returned
 |Lastpageuri |The URI for the last page of this list.
 |============================================================
 
+== Sorting Information
+
+*HTTP GET.* You can use the *SortBy* GET query parameter to determine which attribute you want to sort by and in which direction; direction can either be 'asc' for ascending and 'desc' for descending sort ordering. Here's the overall format: *SortBy=<sorting attribute>:<direction>*. If no direction parameter is provided, then the listing of recordings is sorted by the attribute in ascending order. Below you can find the possible attributes you can sort by:
+
+=== SortBy Attributes
+
+[cols=",",options="header",]
+|=======================================================================
+|Parameter |Description
+|DateCreated |Sort by date at which the recording was created
+|Duration |Sort by the duration of the recording
+|CallSid |Sort by the CallSid of the recording, which points to the call to which the recording is related to
+|=======================================================================
+
+
+=== Example
+
+The command below will return recordings sorted by the creation date in ascending order using SortBy parameter:
+
+....
+curl -X GET  https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/<accountSid>/Recordings?SortBy=DateCreated:asc
+....
+
+The result of the *SortBy* parameter:
+
+[source,xml,decode:true]
+----
+<RestcommResponse>
+    <Recordings>
+        <Recording>
+            <Sid>REb3d71735549e4f91b3431305652e7309</Sid>
+            <DateCreated>Tue, 10 Jul 2018 10:58:25 +0300</DateCreated>
+            <DateUpdated>Tue, 10 Jul 2018 10:58:25 +0300</DateUpdated>
+            <CallSid>ID8555f97abe0441e0a07ca2da3a081871-CA9f2360fc21e848d291dfaf5f3d32d95b</CallSid>
+            <Duration>2</Duration>
+            ...
+        </Recording>
+        <Recording>
+            <Sid>RE4960cab74a984f85ba1c656485c981ea</Sid>
+            <DateCreated>Tue, 10 Jul 2018 10:58:33 +0300</DateCreated>
+            <DateUpdated>Tue, 10 Jul 2018 10:58:33 +0300</DateUpdated>
+            <CallSid>ID8555f97abe0441e0a07ca2da3a081871-CAfd5703072846456b9093a00c32e8b3f1</CallSid>
+            <Duration>2</Duration>
+            ...
+        </Recording>
+        <Recording>
+            <Sid>RE63d742b8b0f44e7a819302ae97775e26</Sid>
+            <DateCreated>Tue, 10 Jul 2018 11:00:19 +0300</DateCreated>
+            <DateUpdated>Tue, 10 Jul 2018 11:00:19 +0300</DateUpdated>
+            <CallSid>ID8555f97abe0441e0a07ca2da3a081871-CA79f2c079f1d145a1970118012554b154</CallSid>
+            <Duration>4</Duration>
+            ...
+        </Recording>
+    </Recordings>
+</RestcommResponse>
+----
+
 == Delete a Recording
 
 === Recording Delete Resource URI
@@ -217,7 +274,7 @@ The API returns URIs to the next, previous, first and last pages of the returned
 From the bash terminal, you can run the command below:
 
 ....
-curl -X DELETE  https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Recordings/RE10000000000000000000000000000032
+curl -X DELETE  https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Recordings/RE10000000000000000000000000000032
 ....
 
 

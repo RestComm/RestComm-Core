@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.restcomm.connect.commons.annotations.concurrency.Immutable;
+import org.restcomm.connect.dao.common.Sorting;
 
 /**
  * @author <a href="mailto:n.congvu@gmail.com">vunguyen</a>
@@ -43,14 +44,22 @@ public class NotificationFilter {
     private final Integer limit;
     private final Integer offset;
     private final String instanceid;
+    private final Sorting.Direction sortByDate;
+    private final Sorting.Direction sortByLog;
+    private final Sorting.Direction sortByErrorCode;
+    private final Sorting.Direction sortByCallSid;
+    private final Sorting.Direction sortByMessageText;
+
 
     public NotificationFilter(String accountSid, List<String> accountSidSet, String startTime, String endTime, String errorCode, String requestUrl,
                                   String messageText, Integer limit, Integer offset) throws ParseException {
-        this(accountSid, accountSidSet, startTime,endTime, errorCode, requestUrl, messageText, limit,offset,null);
+        this(accountSid, accountSidSet, startTime,endTime, errorCode, requestUrl, messageText, limit,offset,null, null, null, null, null, null);
     }
 
     public NotificationFilter(String accountSid, List<String> accountSidSet, String startTime, String endTime, String errorCode, String requestUrl,
-                                  String messageText, Integer limit, Integer offset, String instanceId) throws ParseException {
+                                  String messageText, Integer limit, Integer offset, String instanceId, Sorting.Direction sortByDate,
+                              Sorting.Direction sortByLog, Sorting.Direction sortByErrorCode, Sorting.Direction sortByCallSid,
+                              Sorting.Direction sortByMessageText) throws ParseException {
         this.accountSid = accountSid;
         this.accountSidSet = accountSidSet;
 
@@ -78,6 +87,12 @@ public class NotificationFilter {
         } else {
             this.instanceid = null;
         }
+
+        this.sortByDate = sortByDate;
+        this.sortByLog = sortByLog;
+        this.sortByErrorCode = sortByErrorCode;
+        this.sortByCallSid = sortByCallSid;
+        this.sortByMessageText = sortByMessageText;
     }
 
     public String getSid() {
@@ -108,13 +123,122 @@ public class NotificationFilter {
         return messageText;
     }
 
-    public int getLimit() {
+    public Integer getLimit() {
         return limit;
     }
 
-    public int getOffset() {
+    public Integer getOffset() {
         return offset;
     }
 
     public String getInstanceid() { return instanceid; }
+
+    public Sorting.Direction getSortByDate() { return sortByDate; }
+    public Sorting.Direction getSortByLog() { return sortByLog; }
+    public Sorting.Direction getSortByErrorCode() { return sortByErrorCode; }
+    public Sorting.Direction getSortByCallSid() { return sortByCallSid; }
+    public Sorting.Direction getSortByMessageText() { return sortByMessageText; }
+
+    public static final class Builder {
+        private String accountSid = null;
+        private List<String> accountSidSet = null;
+        private String startTime = null;
+        private String endTime = null;
+        private String errorCode = null;
+        private String requestUrl = null;
+        private String messageText = null;
+        private String instanceid = null;
+        private Sorting.Direction sortByDate = null;
+        private Sorting.Direction sortByLog = null;
+        private Sorting.Direction sortByErrorCode = null;
+        private Sorting.Direction sortByCallSid = null;
+        private Sorting.Direction sortByMessageText = null;
+        private Integer limit = null;
+        private Integer offset = null;
+
+        public static NotificationFilter.Builder builder() {
+            return new NotificationFilter.Builder();
+        }
+
+        public NotificationFilter build() throws ParseException {
+            return new NotificationFilter(accountSid,
+                    accountSidSet,
+                    startTime,
+                    endTime,
+                    errorCode,
+                    requestUrl,
+                    messageText,
+                    limit,
+                    offset,
+                    instanceid,
+                    sortByDate,
+                    sortByLog,
+                    sortByErrorCode,
+                    sortByCallSid,
+                    sortByMessageText);
+        }
+
+        // Filters
+        public Builder byAccountSid(String accountSid) {
+            this.accountSid = accountSid;
+            return this;
+        }
+        public Builder byAccountSidSet(List<String> accountSidSet) {
+            this.accountSidSet = accountSidSet;
+            return this;
+        }
+        public Builder byStartTime(String startTime) {
+            this.startTime = startTime;
+            return this;
+        }
+        public Builder byEndTime(String endTime) {
+            this.endTime = endTime;
+            return this;
+        }
+        public Builder byErrorCode(String errorCode) {
+            this.errorCode = errorCode;
+            return this;
+        }
+        public Builder byRequestUrl(String requestUrl) {
+            this.requestUrl = requestUrl;
+            return this;
+        }
+        public Builder byMessageText(String messageText) {
+            this.messageText = messageText;
+            return this;
+        }
+        public Builder byInstanceId(String instanceid) {
+            this.instanceid = instanceid;
+            return this;
+        }
+
+        // Sorters
+        public Builder sortedByDate(Sorting.Direction sortDirection) {
+            this.sortByDate = sortDirection;
+            return this;
+        }
+        public Builder sortedByLog(Sorting.Direction sortDirection) {
+            this.sortByLog = sortDirection;
+            return this;
+        }
+        public Builder sortedByErrorCode(Sorting.Direction sortDirection) {
+            this.sortByErrorCode = sortDirection;
+            return this;
+        }
+        public Builder sortedByCallSid(Sorting.Direction sortDirection) {
+            this.sortByCallSid = sortDirection;
+            return this;
+        }
+        public Builder sortedByMessageText(Sorting.Direction sortDirection) {
+            this.sortByMessageText = sortDirection;
+            return this;
+        }
+
+        // Paging
+        public Builder limited(Integer limit, Integer offset) {
+            this.limit = limit;
+            this.offset = offset;
+            return this;
+        }
+    }
 }

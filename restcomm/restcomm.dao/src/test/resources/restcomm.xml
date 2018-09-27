@@ -409,14 +409,14 @@
 
 	<!-- Control notifications sent to rcmlserver (RVD)
 		base-url: Base url where rcml server is located of the form scheme://host:port like 'http://rvdserver:8080'. Leave it empty when RVD is bundled together with restcomm.
-		api-path: relative path where rcml server api listens under like '/restcomm-rvd/services
+		api-path: relative path where rcml server api listens under like '/visual-designer/services
 		notifications: should notifications be sent or not ? defaults to 'false'
 		timeout: milis to wait response from rcmlserver before timing out when sending notifications. Defaults to 5000
 		timeout-per-notification: if several notifications are sent in one step, timeout increase for each. Defaults to 500.
 	-->
 	<rcmlserver>
 		<base-url></base-url>
-		<api-path>/restcomm-rvd/services</api-path>
+		<api-path>/visual-designer/services</api-path>
 		<notifications>true</notifications>
 		<timeout>5000</timeout>
 		<timeout-per-notification>500</timeout-per-notification>

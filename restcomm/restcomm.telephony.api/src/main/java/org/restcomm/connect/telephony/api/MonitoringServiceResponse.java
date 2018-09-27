@@ -24,6 +24,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
+import org.restcomm.connect.commons.dao.Sid;
 import org.restcomm.connect.dao.entities.InstanceId;
 
 /**
@@ -37,11 +38,11 @@ public class MonitoringServiceResponse {
     private final Map<String, Double> durationMap;
     private final boolean withCallDetailsList;
     private final URI callDetailsUrl;
-
+    private final Sid accountSid;
 
     public MonitoringServiceResponse(final InstanceId instanceId, final List<CallInfo> callDetailsList,
                                      final Map<String, Integer> countersMap, final Map<String, Double> durationMap,
-                                     final boolean withCallDetailsList, final URI callDetailsUrl) {
+                                     final boolean withCallDetailsList, final URI callDetailsUrl, final Sid accountSid) {
         super();
         this.instanceId = instanceId;
         this.callDetailsList = callDetailsList;
@@ -49,6 +50,7 @@ public class MonitoringServiceResponse {
         this.durationMap = durationMap;
         this.withCallDetailsList = withCallDetailsList;
         this.callDetailsUrl = callDetailsUrl;
+        this.accountSid = accountSid;
     }
 
     public List<CallInfo> getCallDetailsList() {
@@ -74,4 +76,6 @@ public class MonitoringServiceResponse {
     public boolean isWithCallDetailsList () {
         return withCallDetailsList;
     }
+
+    public Sid getAccountSid () { return accountSid; }
 }

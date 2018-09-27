@@ -38,6 +38,6 @@
 
 
     <mappers>
-        <mapper  url="file:MYBATIS_SANDBOX_PATH/accounts.xml"/>
+        <mapper resource="org/restcomm/connect/dao/mybatis/accounts.xml"/>
     </mappers>
 </configuration>

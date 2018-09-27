@@ -20,6 +20,7 @@
 package org.restcomm.connect.dao.entities;
 
 import org.restcomm.connect.commons.annotations.concurrency.Immutable;
+import org.restcomm.connect.dao.common.Sorting;
 
 /**
  * @author <a href="mailto:jean.deruelle@telestax.com">Jean Deruelle</a>
@@ -30,21 +31,21 @@ public class IncomingPhoneNumberFilter {
     private final String accountSid;
     private final String friendlyName;
     private final String phoneNumber;
-    private final String sortBy;
-    private final String sortDirection;
+    private final Sorting.Direction sortByNumber;
+    private final Sorting.Direction sortByFriendly;
     private final Integer limit;
     private final Integer offset;
     private final String orgSid;
     private final Boolean pureSIP;
     private SearchFilterMode filterMode;
 
-    private IncomingPhoneNumberFilter(String accountSid, String friendlyName, String phoneNumber, String sortBy,
-            String sortDirection, Integer limit, Integer offset, String orgSid, Boolean pureSIP, SearchFilterMode filterMode) {
+    private IncomingPhoneNumberFilter(String accountSid, String friendlyName, String phoneNumber,
+            Sorting.Direction sortByNumber,Sorting.Direction sortByFriendly, Integer limit, Integer offset, String orgSid, Boolean pureSIP, SearchFilterMode filterMode) {
         this.accountSid = accountSid;
         this.friendlyName = friendlyName;
         this.phoneNumber = phoneNumber;
-        this.sortBy = sortBy;
-        this.sortDirection = sortDirection;
+        this.sortByNumber = sortByNumber;
+        this.sortByFriendly = sortByFriendly;
         this.limit = limit;
         this.offset = offset;
         this.orgSid = orgSid;
@@ -56,8 +57,8 @@ public class IncomingPhoneNumberFilter {
         this.accountSid = accountSid;
         this.friendlyName = friendlyName;
         this.phoneNumber = phoneNumber;
-        this.sortBy = null;
-        this.sortDirection = null;
+        this.sortByNumber = null;
+        this.sortByFriendly = null;
         this.offset = null;
         this.limit = null;
         this.orgSid = null;
@@ -83,18 +84,12 @@ public class IncomingPhoneNumberFilter {
         return phoneNumber;
     }
 
-    /**
-     * @return the sortBy
-     */
-    public String getSortBy() {
-        return sortBy;
+    public Sorting.Direction getSortByNumber() {
+        return sortByNumber;
     }
 
-    /**
-     * @return the sortDirection
-     */
-    public String getSortDirection() {
-        return sortDirection;
+    public Sorting.Direction getSortByFriendly() {
+        return sortByFriendly;
     }
 
     /**
@@ -125,7 +120,7 @@ public class IncomingPhoneNumberFilter {
 
     @Override
     public String toString() {
-        return "IncomingPhoneNumberFilter{" + "accountSid=" + accountSid + ", friendlyName=" + friendlyName + ", phoneNumber=" + phoneNumber + ", sortBy=" + sortBy + ", sortDirection=" + sortDirection + ", limit=" + limit + ", offset=" + offset + ", orgSid=" + orgSid + ", pureSIP=" + pureSIP + '}';
+        return "IncomingPhoneNumberFilter{" + "accountSid=" + accountSid + ", friendlyName=" + friendlyName + ", phoneNumber=" + phoneNumber + ", sortByNumber=" + sortByNumber + ", limit=" + limit + ", offset=" + offset + ", orgSid=" + orgSid + ", pureSIP=" + pureSIP + '}';
     }
 
     public static final class Builder {
@@ -133,8 +128,8 @@ public class IncomingPhoneNumberFilter {
         private String accountSid = null;
         private String friendlyName = null;
         private String phoneNumber = null;
-        private String sortBy = null;
-        private String sortDirection = null;
+        private Sorting.Direction sortByPhoneNumber = null;
+        private Sorting.Direction sortByFriendly = null;
         private Integer limit = null;
         private Integer offset = null;
         private String orgSid = null;
@@ -170,8 +165,8 @@ public class IncomingPhoneNumberFilter {
             return new IncomingPhoneNumberFilter(accountSid,
                     friendlyName,
                     phoneNumber,
-                    sortBy,
-                    sortDirection,
+                    sortByPhoneNumber,
+                    sortByFriendly,
                     limit,
                     offset,
                     orgSid,
@@ -199,9 +194,13 @@ public class IncomingPhoneNumberFilter {
             return this;
         }
 
-        public Builder sortedBy(String sortBy, String sortDirection) {
-            this.sortBy = sortBy;
-            this.sortDirection = sortDirection;
+        public Builder sortedByPhoneNumber(Sorting.Direction sortDirection) {
+            this.sortByPhoneNumber = sortDirection;
+            return this;
+        }
+
+        public Builder sortedByfriendly(Sorting.Direction sortDirection) {
+            this.sortByFriendly = sortDirection;
             return this;
         }
 

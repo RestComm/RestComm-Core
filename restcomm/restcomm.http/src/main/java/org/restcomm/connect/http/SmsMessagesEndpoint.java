@@ -37,10 +37,11 @@ import com.thoughtworks.xstream.XStream;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Currency;
-import java.util.Iterator;
+import java.util.Map;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Currency;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
@@ -69,6 +70,7 @@ import org.restcomm.connect.commons.faulttolerance.RestcommUntypedActor;
 import org.restcomm.connect.commons.patterns.Observe;
 import org.restcomm.connect.dao.DaoManager;
 import org.restcomm.connect.dao.SmsMessagesDao;
+import org.restcomm.connect.dao.common.Sorting;
 import org.restcomm.connect.dao.entities.Account;
 import org.restcomm.connect.dao.entities.RestCommResponse;
 import org.restcomm.connect.dao.entities.SmsMessage;
@@ -97,6 +99,20 @@ import scala.concurrent.duration.Duration;
 @ThreadSafe
 @Singleton
 public class SmsMessagesEndpoint extends AbstractEndpoint {
+    private static final String SORTING_URL_PARAM_DATE_CREATED = "DateCreated";
+    private static final String SORTING_URL_PARAM_FROM = "From";
+    private static final String SORTING_URL_PARAM_TO = "To";
+    private static final String SORTING_URL_PARAM_DIRECTION = "Direction";
+    private static final String SORTING_URL_PARAM_STATUS = "Status";
+    private static final String SORTING_URL_PARAM_BODY = "Body";
+    private static final String SORTING_URL_PARAM_PRICE = "Price";
+
+    private static final String CALLBACK_PARAM = "StatusCallback";
+    private static final String FROM_PARAM = "From";
+    private static final String TO_PARAM = "To";
+    private static final String BODY_PARAM = "Body";
+    private static final String STATUS_PARAM = "Status";
+
     @Context
     protected ServletContext context;
     protected ActorSystem system;
@@ -107,11 +123,7 @@ public class SmsMessagesEndpoint extends AbstractEndpoint {
     protected XStream xstream;
     protected SmsMessageListConverter listConverter;
     protected String instanceId;
-
     private boolean normalizePhoneNumbers;
-
-
-
 
     public SmsMessagesEndpoint() {
         super();
@@ -197,11 +209,95 @@ public class SmsMessagesEndpoint extends AbstractEndpoint {
         String pageSize = info.getQueryParameters().getFirst("PageSize");
         String page = info.getQueryParameters().getFirst("Page");
         // String afterSid = info.getQueryParameters().getFirst("AfterSid");
-        String recipient = info.getQueryParameters().getFirst("To");
-        String sender = info.getQueryParameters().getFirst("From");
+        String recipient = info.getQueryParameters().getFirst(TO_PARAM);
+        String sender = info.getQueryParameters().getFirst(FROM_PARAM);
         String startTime = info.getQueryParameters().getFirst("StartTime");
         String endTime = info.getQueryParameters().getFirst("EndTime");
-        String body = info.getQueryParameters().getFirst("Body");
+        String body = info.getQueryParameters().getFirst(BODY_PARAM);
+        String status = info.getQueryParameters().getFirst(STATUS_PARAM);
+        String sortParameters = info.getQueryParameters().getFirst("SortBy");
+
+        SmsMessageFilter.Builder filterBuilder = SmsMessageFilter.Builder.builder();
+
+        String sortBy = null;
+        String sortDirection = null;
+
+        if (sortParameters != null && !sortParameters.isEmpty()) {
+            try {
+                Map<String, String> sortMap = Sorting.parseUrl(sortParameters);
+                sortBy = sortMap.get(Sorting.SORT_BY_KEY);
+                sortDirection = sortMap.get(Sorting.SORT_DIRECTION_KEY);
+            }
+            catch (Exception e) {
+                return status(BAD_REQUEST).entity(buildErrorResponseBody(e.getMessage(), responseType)).build();
+            }
+        }
+
+        if (sortBy != null) {
+            if (sortBy.equals(SORTING_URL_PARAM_DATE_CREATED)) {
+                if (sortDirection != null) {
+                    if (sortDirection.equalsIgnoreCase(Sorting.Direction.ASC.name())) {
+                        filterBuilder.sortedByDate(Sorting.Direction.ASC);
+                    } else {
+                        filterBuilder.sortedByDate(Sorting.Direction.DESC);
+                    }
+                }
+            }
+            if (sortBy.equals(SORTING_URL_PARAM_FROM)) {
+                if (sortDirection != null) {
+                    if (sortDirection.equalsIgnoreCase(Sorting.Direction.ASC.name())) {
+                        filterBuilder.sortedByFrom(Sorting.Direction.ASC);
+                    } else {
+                        filterBuilder.sortedByFrom(Sorting.Direction.DESC);
+                    }
+                }
+            }
+            if (sortBy.equals(SORTING_URL_PARAM_TO)) {
+                if (sortDirection != null) {
+                    if (sortDirection.equalsIgnoreCase(Sorting.Direction.ASC.name())) {
+                        filterBuilder.sortedByTo(Sorting.Direction.ASC);
+                    } else {
+                        filterBuilder.sortedByTo(Sorting.Direction.DESC);
+                    }
+                }
+            }
+            if (sortBy.equals(SORTING_URL_PARAM_DIRECTION)) {
+                if (sortDirection != null) {
+                    if (sortDirection.equalsIgnoreCase(Sorting.Direction.ASC.name())) {
+                        filterBuilder.sortedByDirection(Sorting.Direction.ASC);
+                    } else {
+                        filterBuilder.sortedByDirection(Sorting.Direction.DESC);
+                    }
+                }
+            }
+            if (sortBy.equals(SORTING_URL_PARAM_STATUS)) {
+                if (sortDirection != null) {
+                    if (sortDirection.equalsIgnoreCase(Sorting.Direction.ASC.name())) {
+                        filterBuilder.sortedByStatus(Sorting.Direction.ASC);
+                    } else {
+                        filterBuilder.sortedByStatus(Sorting.Direction.DESC);
+                    }
+                }
+            }
+            if (sortBy.equals(SORTING_URL_PARAM_BODY)) {
+                if (sortDirection != null) {
+                    if (sortDirection.equalsIgnoreCase(Sorting.Direction.ASC.name())) {
+                        filterBuilder.sortedByBody(Sorting.Direction.ASC);
+                    } else {
+                        filterBuilder.sortedByBody(Sorting.Direction.DESC);
+                    }
+                }
+            }
+            if (sortBy.equals(SORTING_URL_PARAM_PRICE)) {
+                if (sortDirection != null) {
+                    if (sortDirection.equalsIgnoreCase(Sorting.Direction.ASC.name())) {
+                        filterBuilder.sortedByPrice(Sorting.Direction.ASC);
+                    } else {
+                        filterBuilder.sortedByPrice(Sorting.Direction.DESC);
+                    }
+                }
+            }
+        }
 
         if (pageSize == null) {
             pageSize = "50";
@@ -224,39 +320,29 @@ public class SmsMessagesEndpoint extends AbstractEndpoint {
             ownerAccounts.addAll(accountsDao.getSubAccountSidsRecursive(new Sid(accountSid)));
         }
 
-        SmsMessageFilter filterForTotal;
-
-        try {
-
-            if (localInstanceOnly) {
-                filterForTotal = new SmsMessageFilter(accountSid, ownerAccounts, recipient, sender, startTime, endTime,
-                        body, null, null);
-            } else {
-                filterForTotal = new SmsMessageFilter(accountSid, ownerAccounts, recipient, sender, startTime, endTime,
-                        body, null, null, instanceId);
-            }
-        } catch (ParseException e) {
-            return status(BAD_REQUEST).build();
-        }
-
-        final int total = dao.getTotalSmsMessage(filterForTotal);
-
-        if (Integer.parseInt(page) > (total / limit)) {
-            return status(javax.ws.rs.core.Response.Status.BAD_REQUEST).build();
+        filterBuilder.byAccountSid(accountSid)
+                .byAccountSidSet(ownerAccounts)
+                .byRecipient(recipient)
+                .bySender(sender)
+                .byStatus(status)
+                .byStartTime(startTime)
+                .byEndTime(endTime)
+                .byBody(body)
+                .limited(limit, offset);
+        if (!localInstanceOnly) {
+            filterBuilder.byInstanceId(instanceId);
         }
 
         SmsMessageFilter filter;
-
         try {
-            if (localInstanceOnly) {
-                filter = new SmsMessageFilter(accountSid, ownerAccounts, recipient, sender, startTime, endTime,
-                        body, limit, offset);
-            } else {
-                filter = new SmsMessageFilter(accountSid, ownerAccounts, recipient, sender, startTime, endTime,
-                        body, limit, offset, instanceId);
-            }
+            filter = filterBuilder.build();
         } catch (ParseException e) {
             return status(BAD_REQUEST).build();
+        }
+        final int total = dao.getTotalSmsMessage(filter);
+
+        if (Integer.parseInt(page) > (total / limit)) {
+            return status(Response.Status.BAD_REQUEST).build();
         }
 
         final List<SmsMessage> cdrs = dao.getSmsMessages(filter);
@@ -278,24 +364,24 @@ public class SmsMessagesEndpoint extends AbstractEndpoint {
 
     private void normalize(final MultivaluedMap<String, String> data) throws IllegalArgumentException {
         final PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
-        final String from = data.getFirst("From");
-        data.remove("From");
+        final String from = data.getFirst(FROM_PARAM);
+        data.remove(FROM_PARAM);
         try {
-            data.putSingle("From", phoneNumberUtil.format(phoneNumberUtil.parse(from, "US"), PhoneNumberFormat.E164));
+            data.putSingle(FROM_PARAM, phoneNumberUtil.format(phoneNumberUtil.parse(from, "US"), PhoneNumberFormat.E164));
         } catch (final NumberParseException exception) {
             throw new IllegalArgumentException(exception);
         }
-        final String to = data.getFirst("To");
-        data.remove("To");
+        final String to = data.getFirst(TO_PARAM);
+        data.remove(TO_PARAM);
         try {
-            data.putSingle("To", phoneNumberUtil.format(phoneNumberUtil.parse(to, "US"), PhoneNumberFormat.E164));
+            data.putSingle(TO_PARAM, phoneNumberUtil.format(phoneNumberUtil.parse(to, "US"), PhoneNumberFormat.E164));
         } catch (final NumberParseException exception) {
             throw new IllegalArgumentException(exception);
         }
-        final String body = data.getFirst("Body");
+        final String body = data.getFirst(BODY_PARAM);
         if (body.getBytes().length > 160) {
-            data.remove("Body");
-            data.putSingle("Body", body.substring(0, 159));
+            data.remove(BODY_PARAM);
+            data.putSingle(BODY_PARAM, body.substring(0, 159));
         }
     }
 
@@ -309,19 +395,26 @@ public class SmsMessagesEndpoint extends AbstractEndpoint {
                 userIdentityContext);
         try {
             validate(data);
-            if(normalizePhoneNumbers)
+            if(normalizePhoneNumbers) {
                 normalize(data);
+            }
         } catch (final RuntimeException exception) {
             return status(BAD_REQUEST).entity(exception.getMessage()).build();
         }
-        final String sender = data.getFirst("From");
-        final String recipient = data.getFirst("To");
-        final String body = data.getFirst("Body");
+        final String sender = data.getFirst(FROM_PARAM);
+        final String recipient = data.getFirst(TO_PARAM);
+        final String body = data.getFirst(BODY_PARAM);
         final SmsSessionRequest.Encoding encoding;
         if (!data.containsKey("Encoding")) {
             encoding = SmsSessionRequest.Encoding.GSM;
         } else {
             encoding = SmsSessionRequest.Encoding.valueOf(data.getFirst("Encoding").replace('-', '_'));
+        }
+        final URI statusCallback;
+        if (!data.containsKey(CALLBACK_PARAM)) {
+            statusCallback = null;
+        } else {
+            statusCallback = URI.create(data.getFirst(CALLBACK_PARAM));
         }
         ConcurrentHashMap<String, String> customRestOutgoingHeaderMap = new ConcurrentHashMap<String, String>();
         Iterator<String> iter = data.keySet().iterator();
@@ -341,7 +434,7 @@ public class SmsMessagesEndpoint extends AbstractEndpoint {
                 if (smsServiceResponse.succeeded()) {
                     // Create an SMS record for the text message.
                     final SmsMessage record = sms(new Sid(accountSid), getApiVersion(data), sender, recipient, body,
-                            SmsMessage.Status.SENDING, SmsMessage.Direction.OUTBOUND_API);
+                            SmsMessage.Status.SENDING, SmsMessage.Direction.OUTBOUND_API, statusCallback);
                     dao.addSmsMessage(record);
                     // Send the sms.
                     final ActorRef session = smsServiceResponse.get();
@@ -371,7 +464,7 @@ public class SmsMessagesEndpoint extends AbstractEndpoint {
     }
 
     private SmsMessage sms(final Sid accountSid, final String apiVersion, final String sender, final String recipient,
-            final String body, final SmsMessage.Status status, final SmsMessage.Direction direction) {
+            final String body, final SmsMessage.Status status, final SmsMessage.Direction direction, URI callback) {
         final SmsMessage.Builder builder = SmsMessage.builder();
         final Sid sid = Sid.generate(Sid.Type.SMS_MESSAGE);
         builder.setSid(sid);
@@ -391,15 +484,16 @@ public class SmsMessagesEndpoint extends AbstractEndpoint {
         buffer.append(sid.toString());
         final URI uri = URI.create(buffer.toString());
         builder.setUri(uri);
+        builder.setStatusCallback(callback);
         return builder.build();
     }
 
     private void validate(final MultivaluedMap<String, String> data) throws NullPointerException {
-        if (!data.containsKey("From")) {
+        if (!data.containsKey(FROM_PARAM)) {
             throw new NullPointerException("From can not be null.");
-        } else if (!data.containsKey("To")) {
+        } else if (!data.containsKey(TO_PARAM)) {
             throw new NullPointerException("To can not be null.");
-        } else if (!data.containsKey("Body")) {
+        } else if (!data.containsKey(BODY_PARAM)) {
             throw new NullPointerException("Body can not be null.");
         }
     }

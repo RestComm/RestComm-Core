@@ -9,6 +9,124 @@ The folowing tags are used to categorize and state the scope of a change
 * **security improvement** tags changes related to security
 * **commercial** tags changes that are available only in the commercial RestcommOne product
 
+== 8.7.0 version 2018-07-10 (docker tag 8.7.0-226)
+=== New Features
+// New features (whether major or minor) go here
+* **REVERTED** [New security constraints applied in order to allow access to organization resources only when hostname of the request match the organization domain that the account credentials belong to.]
+
+=== Breaking Changes
+// draws attention to functionality that is getting removed
+
+
+=== Bug Fixes
+* Disable SecurityFilter check for Organization domain
+* Provided fix for LCE issue that shutdown docker container
+* Provided fix for Outbound PSTN call is not hanging up properly
+
+
+=== Migration Notes
+// Things to consider during migration from previous release
+
+==== Migration steps - part 1
+
+Follow the steps below to upgrade DB schema
+
+* Use full backup database script to backup database - follow <<configuration/MySQL_Backup_Restore_Scripts.html,Mysql backup/restore scripts>>
+* Use database schema upgrade scripts to move DB schema to the latest - follow <<configuration/How to use Mysql schema upgrade scripts.adoc#mysql-schema-upgrade,How to use Mysql schema upgrade scripts>>
+
+*At this point, you can upgrade Restcomm-Connect instance.*
+
+==== Rollback steps
+In case something goes wrong during the migration/upgrade process, you can rollback changes and run the previous version of Restcomm-Connect
+
+Follow the steps below:
+
+2. Stop 8.7.0 instance
+3. Start old version instance.
+
+*You don't need to migrate DB schema*
+
+== 8.7.0 version 2018-07-4 (docker tag 8.7.0-220)
+=== New Features
+// New features (whether major or minor) go here
+* Multi-provider routing for the organization SIP domain. RestComm will automatically inject the organization domain when calling to a destination.
+* Support for Organizations in the REST API. New security constraints applied in order to allow access to organization resources only when hostname of the request match the organization domain that the account credentials belong to.
+* Sorting Call Detail Records. Added sorting fields for CDR in Administrator Console.
+
+=== Breaking Changes
+// draws attention to functionality that is getting removed
+
+
+=== Bug Fixes
+* Send BYE on session expiration for B2BUA calls
+* Gather operation now accepts star key as initial input.
+* Elegant call termination during audio recording. *Dialogic XMS only*
+
+
+=== Migration Notes
+// Things to consider during migration from previous release
+
+==== Migration steps - part 1
+
+Follow the steps below to upgrade DB schema
+
+* Use full backup database script to backup database - follow <<configuration/MySQL_Backup_Restore_Scripts.html,Mysql backup/restore scripts>>
+* Use database schema upgrade scripts to move DB schema to the latest - follow <<configuration/How to use Mysql schema upgrade scripts.adoc#mysql-schema-upgrade,How to use Mysql schema upgrade scripts>>
+
+*At this point, you can upgrade Restcomm-Connect instance.*
+
+==== Rollback steps
+In case something goes wrong during the migration/upgrade process, you can rollback changes and run the previous version of Restcomm-Connect
+
+Follow the steps below:
+
+2. Stop 8.7.0 instance
+3. Start old version instance.
+
+*You don't need to migrate DB schema*
+
+== 8.6.0 version 2018-06-19 (docker tag 8.6.0-211)
+=== New Features
+// New features (whether major or minor) go here
+* SMS CDR Error Codes
+* REST API Recording removal
+* RC Media Cache configuration
+* REST API Sms Statuscallback and RCML status notifications
+
+
+=== Breaking Changes
+// draws attention to functionality that is getting removed
+
+
+=== Bug Fixes
+* Gracefull shutdown fixed on license issue
+
+
+=== Migration Notes
+// Things to consider during migration from previous release
+
+*Important Note* This version is adding a new columns to support SMS Error Code updates, and SMS StatusCallback notifications.
+
+*Important Note* There is new cache configuration. New settings is CACHE_PATH with value /mnt/restcomm_cache. "docker run" command needs to be inline with this to sync the EFS sharing with app configuration.
+
+==== Migration steps - part 1
+
+Follow the steps below to upgrade DB schema
+
+* Use full backup database script to backup database - follow <<configuration/MySQL_Backup_Restore_Scripts.html,Mysql backup/restore scripts>>
+* Use database schema upgrade scripts to move DB schema to the latest - follow <<configuration/How to use Mysql schema upgrade scripts.adoc#mysql-schema-upgrade,How to use Mysql schema upgrade scripts>>
+
+*At this point, you can upgrade Restcomm-Connect instance.*
+
+==== Rollback steps
+In case something goes wrong during the migration/upgrade process, you can rollback changes and run the previous version of Restcomm-Connect
+
+Follow the steps below:
+
+2. Stop 8.6.0 instance
+3. Start old version instance.
+
+*You don't need to migrate DB schema*
 
 == 8.5.0 version 2018-06-04
 === New Features
@@ -29,7 +147,7 @@ The folowing tags are used to categorize and state the scope of a change
 === Migration Notes
 // Things to consider during migration from previous release
 
-*Important Note* This version is adding a new column to support SMS CDR updates. 
+*Important Note* This version is adding a new column to support SMS CDR updates.
 
 ==== Migration steps - part 1
 

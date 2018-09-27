@@ -163,7 +163,7 @@ public final class Recording implements StreamEvent {
         }
 
         public void setFileUri(final URI uri) {
-            this.fileUri = fileUri;
+            this.fileUri = uri;
         }
 
         public void setS3Uri(final URI s3Uri) { this.s3Uri = s3Uri; }

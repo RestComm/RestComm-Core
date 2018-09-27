@@ -19,48 +19,18 @@
  */
 package org.restcomm.connect.telephony;
 
-import static akka.pattern.Patterns.ask;
-import static javax.servlet.sip.SipServlet.OUTBOUND_INTERFACES;
-import static javax.servlet.sip.SipServletResponse.SC_ACCEPTED;
-import static javax.servlet.sip.SipServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.sip.SipServletResponse.SC_FORBIDDEN;
-import static javax.servlet.sip.SipServletResponse.SC_NOT_FOUND;
-import static javax.servlet.sip.SipServletResponse.SC_OK;
-import static javax.servlet.sip.SipServletResponse.SC_SERVER_INTERNAL_ERROR;
-
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Pattern;
-
-import javax.sdp.SdpParseException;
-import javax.servlet.ServletContext;
-import javax.servlet.sip.Address;
-import javax.servlet.sip.AuthInfo;
-import javax.servlet.sip.ServletParseException;
-import javax.servlet.sip.SipApplicationSession;
-import javax.servlet.sip.SipApplicationSessionEvent;
-import javax.servlet.sip.SipFactory;
-import javax.servlet.sip.SipServletRequest;
-import javax.servlet.sip.SipServletResponse;
-import javax.servlet.sip.SipSession;
-import javax.servlet.sip.SipURI;
-import javax.servlet.sip.TelURL;
-import javax.sip.header.RouteHeader;
-import javax.sip.message.Response;
-
+import akka.actor.ActorContext;
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.actor.Props;
+import akka.actor.UntypedActor;
+import akka.actor.UntypedActorContext;
+import akka.actor.UntypedActorFactory;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
+import akka.util.Timeout;
+import com.google.i18n.phonenumbers.NumberParseException;
+import gov.nist.javax.sip.header.UserAgent;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.joda.time.DateTime;
@@ -74,9 +44,10 @@ import org.restcomm.connect.commons.telephony.CreateCallType;
 import org.restcomm.connect.commons.telephony.ProxyRule;
 import org.restcomm.connect.commons.util.DNSUtils;
 import org.restcomm.connect.commons.util.SdpUtils;
-import org.restcomm.connect.commons.util.UriUtils;
+import org.restcomm.connect.core.service.RestcommConnectServiceProvider;
 import org.restcomm.connect.core.service.api.NumberSelectorService;
 import org.restcomm.connect.core.service.number.api.NumberSelectionResult;
+import org.restcomm.connect.core.service.util.UriUtils;
 import org.restcomm.connect.dao.AccountsDao;
 import org.restcomm.connect.dao.ApplicationsDao;
 import org.restcomm.connect.dao.CallDetailRecordsDao;
@@ -128,24 +99,50 @@ import org.restcomm.connect.telephony.api.SwitchProxy;
 import org.restcomm.connect.telephony.api.UpdateCallScript;
 import org.restcomm.connect.telephony.api.util.B2BUAHelper;
 import org.restcomm.connect.telephony.api.util.CallControlHelper;
-
-import com.google.i18n.phonenumbers.NumberParseException;
-
-import akka.actor.ActorContext;
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.actor.ReceiveTimeout;
-import akka.actor.UntypedActor;
-import akka.actor.UntypedActorContext;
-import akka.actor.UntypedActorFactory;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
-import akka.util.Timeout;
-import gov.nist.javax.sip.header.UserAgent;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
+
+import javax.sdp.SdpParseException;
+import javax.servlet.ServletContext;
+import javax.servlet.sip.Address;
+import javax.servlet.sip.AuthInfo;
+import javax.servlet.sip.ServletParseException;
+import javax.servlet.sip.SipApplicationSession;
+import javax.servlet.sip.SipApplicationSessionEvent;
+import javax.servlet.sip.SipFactory;
+import javax.servlet.sip.SipServletRequest;
+import javax.servlet.sip.SipServletResponse;
+import javax.servlet.sip.SipSession;
+import javax.servlet.sip.SipURI;
+import javax.servlet.sip.TelURL;
+import javax.sip.header.RouteHeader;
+import javax.sip.message.Response;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
+
+import static akka.pattern.Patterns.ask;
+import static javax.servlet.sip.SipServlet.OUTBOUND_INTERFACES;
+import static javax.servlet.sip.SipServletResponse.SC_ACCEPTED;
+import static javax.servlet.sip.SipServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.sip.SipServletResponse.SC_FORBIDDEN;
+import static javax.servlet.sip.SipServletResponse.SC_NOT_FOUND;
+import static javax.servlet.sip.SipServletResponse.SC_OK;
+import static javax.servlet.sip.SipServletResponse.SC_SERVER_INTERNAL_ERROR;
 
 /**
  * @author quintana.thomas@gmail.com (Thomas Quintana)
@@ -155,6 +152,10 @@ import scala.concurrent.duration.Duration;
  * @author maria.farooq@telestax.com
  */
 public final class CallManager extends RestcommUntypedActor {
+
+    public static final String TIMEOUT_ATT ="org.restcomm.connect.telephony.timeoutProcessed";
+
+
 
     static final int ERROR_NOTIFICATION = 0;
     static final int WARNING_NOTIFICATION = 1;
@@ -215,10 +216,15 @@ public final class CallManager extends RestcommUntypedActor {
     private String imsDomain;
     private String imsAccount;
 
+    //Maximum P2P call length
+    private int maxP2PCallLength;
+
     private boolean actAsProxyOut;
     private List<ProxyRule> proxyOutRules;
 
     private boolean isActAsProxyOutUseFromHeader;
+
+    private UriUtils uriUtils;
 
     // Push notification server
     private final PushNotificationServerHelper pushNotificationServerHelper;
@@ -327,6 +333,8 @@ public final class CallManager extends RestcommUntypedActor {
             patchForNatB2BUASessions = false;
         }
 
+        maxP2PCallLength = runtime.getInt("max-p2p-call-length", 60);
+
         //Monitoring Service
         this.monitoring = (ActorRef) context.getAttribute(MonitoringService.class.getName());
 
@@ -379,6 +387,8 @@ public final class CallManager extends RestcommUntypedActor {
                 actAsProxyOut = actAsProxyOut && (proxyOutRules != null) && !proxyOutRules.isEmpty();
             }
         }
+
+        this.uriUtils = RestcommConnectServiceProvider.getInstance().uriUtils();
 
         // Push notification server
         this.pushNotificationServerHelper = new PushNotificationServerHelper(system, configuration);
@@ -1251,9 +1261,9 @@ public final class CallManager extends RestcommUntypedActor {
             Application application = storage.getApplicationsDao().getApplication(number.getReferApplicationSid());
             RcmlserverConfigurationSet rcmlserverConfig = RestcommConfiguration.getInstance().getRcmlserver();
             RcmlserverResolver resolver = RcmlserverResolver.getInstance(rcmlserverConfig.getBaseUrl(), rcmlserverConfig.getApiPath());
-            builder.setUrl(UriUtils.resolve(resolver.resolveRelative(application.getRcmlUrl())));
+            builder.setUrl(uriUtils.resolve(resolver.resolveRelative(application.getRcmlUrl()), number.getAccountSid()));
         } else {
-            builder.setUrl(UriUtils.resolve(number.getReferUrl()));
+            builder.setUrl(uriUtils.resolve(number.getReferUrl(), number.getAccountSid()));
         }
 
         builder.setMethod((number.getReferMethod() != null && number.getReferMethod().length() > 0) ? number.getReferMethod() : "POST");
@@ -1367,9 +1377,9 @@ public final class CallManager extends RestcommUntypedActor {
                         final Application application = applications.getApplication(sid);
                         RcmlserverConfigurationSet rcmlserverConfig = RestcommConfiguration.getInstance().getRcmlserver();
                         RcmlserverResolver rcmlserverResolver = RcmlserverResolver.getInstance(rcmlserverConfig.getBaseUrl(), rcmlserverConfig.getApiPath());
-                        builder.setUrl(UriUtils.resolve(rcmlserverResolver.resolveRelative(application.getRcmlUrl())));
+                        builder.setUrl(uriUtils.resolve(rcmlserverResolver.resolveRelative(application.getRcmlUrl()), number.getAccountSid()));
                     } else {
-                        builder.setUrl(UriUtils.resolve(number.getVoiceUrl()));
+                        builder.setUrl(uriUtils.resolve(number.getVoiceUrl(), number.getAccountSid()));
                     }
                     final String voiceMethod = number.getVoiceMethod();
                     if (voiceMethod == null || voiceMethod.isEmpty()) {
@@ -1379,7 +1389,7 @@ public final class CallManager extends RestcommUntypedActor {
                     }
                     URI uri = number.getVoiceFallbackUrl();
                     if (uri != null)
-                        builder.setFallbackUrl(UriUtils.resolve(uri));
+                        builder.setFallbackUrl(uriUtils.resolve(uri, number.getAccountSid()));
                     else
                         builder.setFallbackUrl(null);
                     builder.setFallbackMethod(number.getVoiceFallbackMethod());
@@ -1441,7 +1451,7 @@ public final class CallManager extends RestcommUntypedActor {
             final Application application = applications.getApplication(applicationSid);
             RcmlserverConfigurationSet rcmlserverConfig = RestcommConfiguration.getInstance().getRcmlserver();
             RcmlserverResolver resolver = RcmlserverResolver.getInstance(rcmlserverConfig.getBaseUrl(), rcmlserverConfig.getApiPath());
-            clientAppVoiceUrl = UriUtils.resolve(resolver.resolveRelative(application.getRcmlUrl()));
+            clientAppVoiceUrl = uriUtils.resolve(resolver.resolveRelative(application.getRcmlUrl()), client.getAccountSid());
         }
         if (clientAppVoiceUrl == null) {
             clientAppVoiceUrl = client.getVoiceUrl();
@@ -1465,7 +1475,7 @@ public final class CallManager extends RestcommUntypedActor {
             builder.setMethod(client.getVoiceMethod());
             URI uri = client.getVoiceFallbackUrl();
             if (uri != null)
-                builder.setFallbackUrl(UriUtils.resolve(uri));
+                builder.setFallbackUrl(uriUtils.resolve(uri, client.getAccountSid()));
             else
                 builder.setFallbackUrl(null);
             builder.setFallbackMethod(client.getVoiceFallbackMethod());
@@ -1646,7 +1656,7 @@ public final class CallManager extends RestcommUntypedActor {
             ack.send();
             SipApplicationSession sipApplicationSession = request.getApplicationSession();
             // Defaulting the sip application session to 1h
-            sipApplicationSession.setExpires(60);
+            sipApplicationSession.setExpires(maxP2PCallLength);
         } else {
             if (logger.isInfoEnabled()) {
                 logger.info("Linked Response couldn't be found for ACK request");
@@ -2437,8 +2447,15 @@ public final class CallManager extends RestcommUntypedActor {
         final SipApplicationSessionEvent event = (SipApplicationSessionEvent) message;
         final SipApplicationSession application = event.getApplicationSession();
         final ActorRef call = (ActorRef) application.getAttribute(Call.class.getName());
-        final ReceiveTimeout timeout = ReceiveTimeout.getInstance();
-        call.tell(timeout, self);
+        if (call == null) {
+            if (application.isValid()) {
+                B2BUAHelper.dropB2BUA(application);
+            }
+        }
+        //if there is Call actor, session was set to never expired, since Call
+        //Akka actor is handling its own call expiration. so, do nothing in that case
+        //mark timeout as processed
+        application.setAttribute(TIMEOUT_ATT, "completed");
     }
 
     public void checkErrorResponse(SipServletResponse response) {

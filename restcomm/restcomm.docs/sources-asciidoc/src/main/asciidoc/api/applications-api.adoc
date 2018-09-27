@@ -117,7 +117,7 @@ The output of the command will be similar to the one below
     <ApiVersion>2012-04-24</ApiVersion>
     <VoiceCallerIdLookup>false</VoiceCallerIdLookup>
     <Uri>/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Applications/APdc46145309d14e97b62230cd3f269ed4</Uri>
-    <RcmlUrl>http://127.0.0.1:8080/restcomm-rvd/services/apps/foobar/controller</RcmlUrl>
+    <RcmlUrl>https://cloud.restcomm.com/visual-designer/services/apps/foobar/controller</RcmlUrl>
     <Kind>voice</Kind>
   </Application>
 </RestcommResponse>
@@ -126,7 +126,7 @@ The output of the command will be similar to the one below
 == Update a Application
 
 ----
-curl -X POST http://ACae6e420f425248d6a26948c17a9e2acf:f8b593f84593130c39700c11ee996c0e@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Applications/APdc46145309d14e97b62230cd3f269ed4 -d "FriendlyName=Application X"
+curl -X POST https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Applications/APdc46145309d14e97b62230cd3f269ed4 -d "FriendlyName=Application X"
 ----
 
 The output of the command will be similar to the one below
@@ -143,7 +143,7 @@ The output of the command will be similar to the one below
     <ApiVersion>2012-04-24</ApiVersion>
     <VoiceCallerIdLookup>false</VoiceCallerIdLookup>
     <Uri>/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Applications/APdc46145309d14e97b62230cd3f269ed4</Uri>
-    <RcmlUrl>http://127.0.0.1:8080/restcomm-rvd/services/apps/foobar/controller</RcmlUrl>
+    <RcmlUrl>https://cloud.restcomm.com/visual-designer/services/apps/foobar/controller</RcmlUrl>
     <Kind>voice</Kind>
   </Application>
 </RestcommResponse>
@@ -152,7 +152,7 @@ The output of the command will be similar to the one below
 == Delete a Application
 
 ----
-curl -X DELETE http://ACae6e420f425248d6a26948c17a9e2acf:f8b593f84593130c39700c11ee996c0e@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Applications/APdc46145309d14e97b62230cd3f269ed4
+curl -X DELETE https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Applications/APdc46145309d14e97b62230cd3f269ed4
 ----
 
 No output for DELETE operation.
@@ -160,7 +160,7 @@ No output for DELETE operation.
 Get a List of available Applications
 
 ----
-curl -X GET http://ACae6e420f425248d6a26948c17a9e2acf:f8b593f84593130c39700c11ee996c0e@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Applications.json
+curl -X GET https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Applications.json
 ----
 
 The output of the command will be similar to the one below
@@ -176,7 +176,7 @@ The output of the command will be similar to the one below
     "api_version": "2012-04-24",
     "voice_caller_id_lookup": false,
     "uri": "/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Applications/AP73926e7113fa4d95981aa96b76eca854.json",
-    "rcml_url": "/restcomm-rvd/services/apps/PR7addb947898443329cf50913103f77a2/controller",
+    "rcml_url": "/visual-designer/services/apps/PR7addb947898443329cf50913103f77a2/controller",
     "kind": "voice"
   },
   {
@@ -188,7 +188,7 @@ The output of the command will be similar to the one below
     "api_version": "2012-04-24",
     "voice_caller_id_lookup": false,
     "uri": "/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Applications/AP81cf45088cba4abcac1261385916d582.json",
-    "rcml_url": "/restcomm-rvd/services/apps/PR2cbed2a2a56947cdbeaa8b0af8a6c02d/controller",
+    "rcml_url": "/visual-designer/services/apps/PR2cbed2a2a56947cdbeaa8b0af8a6c02d/controller",
     "kind": "voice"
   }
  ]

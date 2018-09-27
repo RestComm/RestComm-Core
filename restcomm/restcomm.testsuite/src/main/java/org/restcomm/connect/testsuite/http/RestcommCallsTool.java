@@ -100,11 +100,11 @@ public class RestcommCallsTool {
     }
 
     public JsonObject getCalls(String deploymentUrl, String username, String authToken) {
-        return (JsonObject) getCalls(deploymentUrl, username, authToken, null, null, true);
+        return (JsonObject) getCalls(deploymentUrl, username, authToken, null, null, null, true);
     }
 
-    public JsonObject getCalls(String deploymentUrl, String username, String authToken, Integer page, Integer pageSize,
-            Boolean json) {
+    public JsonObject getCalls(String deploymentUrl, String username, String authToken, Integer page, Integer pageSize, String sortingParameters,
+            Boolean json) throws UniformInterfaceException {
 
         Client jerseyClient = Client.create();
         jerseyClient.addFilter(new HTTPBasicAuthFilter(username, authToken));
@@ -115,16 +115,22 @@ public class RestcommCallsTool {
 
         String response = null;
 
-        if (page != null || pageSize != null) {
-            MultivaluedMap<String, String> params = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> params = new MultivaluedMapImpl();
 
+        if (sortingParameters != null) {
+            params.add("SortBy", sortingParameters);
+        }
+
+        if (page != null || pageSize != null) {
             if (page != null) {
                 params.add("Page", String.valueOf(page));
             }
             if (pageSize != null) {
                 params.add("PageSize", String.valueOf(pageSize));
             }
+        }
 
+        if (!params.isEmpty()) {
             response = webResource.queryParams(params).accept(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML)
                     .get(String.class);
         } else {

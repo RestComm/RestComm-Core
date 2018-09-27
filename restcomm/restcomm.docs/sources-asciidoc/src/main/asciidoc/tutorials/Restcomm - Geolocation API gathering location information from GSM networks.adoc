@@ -52,7 +52,7 @@ BROADCAST_ADDRESS='192.168.26.255'
 
 * Login to Restcomm-Connect. For this example this would happen by introducing the user credentials in `http://192.168.26.132:8080`. Restcomm-Connect's dashboard will appear, then get the `Account SID` and `Auth Token` values. For this example, we will use `Account SID = ACae6e420f425248d6a26948c17a9e2acf` and `Auth Token = f8bc1274677b173d1a1cf3b9924eaa7e` values, as obtained from the image below. Please notice that these values change accordingly to your credentials (Email/Account SID and password used to sign in to Restcomm-Connect).
 
-image:./images/RestComm_Dashboard_AccountSID-AuthToken.png[restcomm-rvd-smstest1,width=900,height=200]
+image:./images/RestComm_Dashboard_AccountSID-AuthToken.png[visual-designer-smstest1,width=900,height=200]
 
 
 == Step 4.1 - Immediate type of Geolocation requests 

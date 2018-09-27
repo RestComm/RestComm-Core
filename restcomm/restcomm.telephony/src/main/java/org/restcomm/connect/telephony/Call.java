@@ -85,6 +85,7 @@ import org.restcomm.connect.dao.DaoManager;
 import org.restcomm.connect.dao.entities.CallDetailRecord;
 import org.restcomm.connect.dao.entities.MediaAttributes;
 import org.restcomm.connect.http.client.Downloader;
+import org.restcomm.connect.http.client.DownloaderResponse;
 import org.restcomm.connect.http.client.HttpRequestDescriptor;
 import org.restcomm.connect.mscontrol.api.MediaServerControllerFactory;
 import org.restcomm.connect.mscontrol.api.messages.CloseMediaSession;
@@ -101,6 +102,7 @@ import org.restcomm.connect.mscontrol.api.messages.MediaSessionInfo;
 import org.restcomm.connect.mscontrol.api.messages.Mute;
 import org.restcomm.connect.mscontrol.api.messages.Play;
 import org.restcomm.connect.mscontrol.api.messages.Record;
+import org.restcomm.connect.mscontrol.api.messages.RecordStoped;
 import org.restcomm.connect.mscontrol.api.messages.StartRecording;
 import org.restcomm.connect.mscontrol.api.messages.Stop;
 import org.restcomm.connect.mscontrol.api.messages.StopMediaGroup;
@@ -137,6 +139,10 @@ import akka.actor.UntypedActorContext;
 import akka.actor.UntypedActorFactory;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import akka.pattern.Patterns;
+import akka.util.Timeout;
+import scala.concurrent.Await;
+import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 
 /**
@@ -226,6 +232,7 @@ public final class Call extends RestcommUntypedActor implements TransitionEndLis
     private boolean muted;
     private boolean webrtc;
     private boolean initialInviteOkSent;
+    private boolean isStoppingRecord = false;
 
     // Conferencing
     private ActorRef conference;
@@ -273,6 +280,8 @@ public final class Call extends RestcommUntypedActor implements TransitionEndLis
     private int callDuration;
     private DateTime recordingStart;
     private long recordingDuration;
+
+    private String msCompatibilityMode;
 
     private HttpRequestDescriptor requestCallback;
     ActorRef downloader = null;
@@ -445,6 +454,7 @@ public final class Call extends RestcommUntypedActor implements TransitionEndLis
         }
 
         this.enable200OkDelay = runtime.getBoolean("enable-200-ok-delay",false);
+        this.msCompatibilityMode = this.configuration.subset("mscontrol").getString("compatibility", "rms");
         if(!runtime.subset("ims-authentication").isEmpty()){
             final Configuration imsAuthentication = runtime.subset("ims-authentication");
             this.actAsImsUa = imsAuthentication.getBoolean("act-as-ims-ua");
@@ -585,7 +595,7 @@ public final class Call extends RestcommUntypedActor implements TransitionEndLis
         return parameters;
     }
 
-    private void executeStatusCallback(final CallbackState state) {
+    private void executeStatusCallback(final CallbackState state, boolean ask) {
         if (statusCallback != null) {
             if (statusCallbackEvent.remove(state.toString())) {
                 if (logger.isDebugEnabled()) {
@@ -599,7 +609,18 @@ public final class Call extends RestcommUntypedActor implements TransitionEndLis
 
                 if (parameters != null) {
                     requestCallback = new HttpRequestDescriptor(statusCallback, statusCallbackMethod, parameters);
-                    downloader.tell(requestCallback, null);
+                    if (!ask) {
+                        downloader.tell(requestCallback, null);
+                    } else {
+                        final Timeout timeout = new Timeout(Duration.create(5, TimeUnit.SECONDS));
+                        Future<Object> future = (Future<Object>) Patterns.ask(downloader, requestCallback, timeout);
+                        DownloaderResponse downloaderResponse = null;
+                        try {
+                            downloaderResponse = (DownloaderResponse) Await.result(future, Duration.create(10, TimeUnit.SECONDS));
+                        } catch (Exception e) {
+                            logger.error("Exception during callback with ask pattern");
+                        }
+                    }
                 }
             } else {
                 if (logger.isDebugEnabled()) {
@@ -759,6 +780,8 @@ public final class Call extends RestcommUntypedActor implements TransitionEndLis
             onCallHoldStateChange((CallHoldStateChange)message, sender);
         } else if (StopWaiting.class.equals(klass)) {
             onStopWaiting((StopWaiting)message, sender);
+        } else if (RecordStoped.class.equals(klass)) {
+            onRecordStoped((RecordStoped) message, sender);
         }
     }
 
@@ -803,6 +826,14 @@ public final class Call extends RestcommUntypedActor implements TransitionEndLis
                 messageRequest.send();
                 isOnHold = false;
             }
+        }
+    }
+
+    private void onRecordStoped (RecordStoped message, ActorRef sender) {
+        isStoppingRecord = false;
+        if (is(stopping)) {
+            msController.tell(new CloseMediaSession(), self());
+            context().setReceiveTimeout(Duration.create(2000, TimeUnit.MILLISECONDS));
         }
     }
 
@@ -1061,7 +1092,7 @@ public final class Call extends RestcommUntypedActor implements TransitionEndLis
 //                String msg = String.format("Deadline left %s", deadline.timeLeft().toSeconds());
 //                logger.debug(msg);
 //            }
-            executeStatusCallback(CallbackState.INITIATED);
+            executeStatusCallback(CallbackState.INITIATED, false);
         }
 
         /**
@@ -1139,7 +1170,7 @@ public final class Call extends RestcommUntypedActor implements TransitionEndLis
                 if (initialInetUri != null) {
                     ((SipServletResponse)message).getSession().setAttribute("realInetUri", initialInetUri);
                 }
-                executeStatusCallback(CallbackState.RINGING);
+                executeStatusCallback(CallbackState.RINGING, false);
             }
 
             // Notify the observers.
@@ -1317,7 +1348,7 @@ public final class Call extends RestcommUntypedActor implements TransitionEndLis
             }
 
             if(isOutbound()){
-                executeStatusCallback(CallbackState.COMPLETED);
+                executeStatusCallback(CallbackState.COMPLETED, true);
             }
         }
     }
@@ -1442,6 +1473,10 @@ public final class Call extends RestcommUntypedActor implements TransitionEndLis
             if (outgoingCallRecord != null && isOutbound()) {
                 outgoingCallRecord = outgoingCallRecord.setStatus(external.name());
                 recordsDao.updateCallDetailRecord(outgoingCallRecord);
+            }
+
+            if(isOutbound()){
+                executeStatusCallback(CallbackState.COMPLETED, true);
             }
         }
     }
@@ -1715,7 +1750,7 @@ public final class Call extends RestcommUntypedActor implements TransitionEndLis
                     recordsDao.updateCallDetailRecord(outgoingCallRecord);
                 }
                 if (isOutbound()) {
-                    executeStatusCallback(CallbackState.ANSWERED);
+                    executeStatusCallback(CallbackState.ANSWERED, false);
                 }
             }
         }
@@ -1776,11 +1811,14 @@ public final class Call extends RestcommUntypedActor implements TransitionEndLis
                 }
             }
 
-            msController.tell(new CloseMediaSession(), source);
+            // If working with XMS and RC is trying to stop Recording, Should not send CloseMediaSession otherwise this signal will be Ignore by RC.
+            if (!isStoppingRecord || !msCompatibilityMode.equalsIgnoreCase("xms")) {
+                msController.tell(new CloseMediaSession(), source);
 
-            //Github issue 2261 - https://github.com/RestComm/Restcomm-Connect/issues/2261
-            //Set a ReceivedTimeout duration to make sure call doesn't block waiting for the response from MmsCallController
-            context().setReceiveTimeout(Duration.create(2000, TimeUnit.MILLISECONDS));
+                //Github issue 2261 - https://github.com/RestComm/Restcomm-Connect/issues/2261
+                //Set a ReceivedTimeout duration to make sure call doesn't block waiting for the response from MmsCallController
+                context().setReceiveTimeout(Duration.create(2000, TimeUnit.MILLISECONDS));
+            }
         }
     }
 
@@ -1829,7 +1867,7 @@ public final class Call extends RestcommUntypedActor implements TransitionEndLis
                 }
             }
             if (isOutbound()) {
-                executeStatusCallback(CallbackState.COMPLETED);
+                executeStatusCallback(CallbackState.COMPLETED, true);
             }
         }
     }
@@ -2091,6 +2129,7 @@ public final class Call extends RestcommUntypedActor implements TransitionEndLis
                 if (!direction.contains("outbound")) {
                     // Initial Call sent BYE
                     recording = false;
+                    isStoppingRecord = true;
                     if(logger.isInfoEnabled()) {
                         logger.info("Call Direction: " + direction);
                         logger.info("Initial Call - Will stop recording now");
@@ -2400,10 +2439,20 @@ public final class Call extends RestcommUntypedActor implements TransitionEndLis
                 if(logger.isInfoEnabled()){
                     logger.info("We are behind LoadBalancer and will remove the first two RecordRoutes since they are the LB node");
                 }
-                recordRouteList.next();
-                recordRouteList.remove();
-                recordRouteList.next();
-                recordRouteList.remove();
+
+                if(recordRouteList.hasNext()) {
+                    recordRouteList.next();
+                    recordRouteList.remove();
+
+                    if(recordRouteList.hasNext()) {
+                        recordRouteList.next();
+                        recordRouteList.remove();
+                    } else {
+                        logger.warning("Missing second LB Record Route record");
+                    }
+                } else {
+                    logger.warning("Missing LB Record Route records");
+                }
             }
             if (recordRouteList.hasNext()) {
                 if(logger.isInfoEnabled()) {

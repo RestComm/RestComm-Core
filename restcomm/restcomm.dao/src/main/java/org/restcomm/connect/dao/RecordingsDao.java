@@ -20,7 +20,6 @@
 package org.restcomm.connect.dao;
 
 import org.restcomm.connect.commons.dao.Sid;
-import org.restcomm.connect.dao.entities.MediaAttributes;
 import org.restcomm.connect.dao.entities.Recording;
 import org.restcomm.connect.dao.entities.RecordingFilter;
 
@@ -30,7 +29,7 @@ import java.util.List;
  * @author quintana.thomas@gmail.com (Thomas Quintana)
  */
 public interface RecordingsDao {
-    void addRecording(Recording recording, MediaAttributes.MediaType mediaType);
+    void addRecording(Recording recording);
 
     Recording getRecording(Sid sid);
 

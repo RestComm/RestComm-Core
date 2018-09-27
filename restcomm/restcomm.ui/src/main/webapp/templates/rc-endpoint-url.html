@@ -45,7 +45,7 @@
         <button type="button" class="btn btn-default" ng-click="clearSelectedApp()" ng-show="!!appNameVar"><i class="fa fa-times"></i></button>
         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"><i class="fa fa-sitemap"></i> <span class="caret"></span></button>
         <ul class="dropdown-menu scrollable-menu">
-            <li><a href="/restcomm-rvd/" target="_blank"><i class="fa fa-sitemap"></i> Create New...</a></li>
+            <li><a href="/visual-designer/" target="_blank"><i class="fa fa-sitemap"></i> Create New...</a></li>
             <li class="divider"></li>
             <li ng-repeat="app in apps|orderBy:'projectName'">
                 <a href title="{{app.startUrl}}" ng-click="setApplication(app)">{{app.projectName}}</a>

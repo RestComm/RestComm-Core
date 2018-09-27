@@ -9,7 +9,7 @@ Restcomm Visual Designer (RVD) is an intuitive web interface which helps develop
 
 = Step 1
 
-* Log into RVD on your Restcomm installation: http://IP_ADDRESS:8080/restcomm-rvd/
+* Log into RVD on your Restcomm installation: http://IP_ADDRESS:8080/visual-designer/
 * Create a new project
 * Change the name of the Welcome module to *AskWeight*
 * In the text area, edit the default RVD welcome message to the following: "Welcome to the ideal weight monitor!"

@@ -19,24 +19,25 @@
  */
 package org.restcomm.connect.http.security;
 
+import com.sun.jersey.spi.container.ContainerRequest;
+import com.sun.jersey.spi.container.ContainerRequestFilter;
+import org.apache.log4j.Logger;
+import org.restcomm.connect.dao.AccountsDao;
+import org.restcomm.connect.dao.DaoManager;
+import org.restcomm.connect.dao.entities.Account;
+import org.restcomm.connect.dao.entities.Organization;
+import org.restcomm.connect.identity.UserIdentityContext;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.Provider;
-
-import org.apache.log4j.Logger;
-import org.restcomm.connect.dao.AccountsDao;
-import org.restcomm.connect.dao.DaoManager;
-import org.restcomm.connect.dao.entities.Account;
-import org.restcomm.connect.identity.UserIdentityContext;
-
-import com.sun.jersey.spi.container.ContainerRequest;
-import com.sun.jersey.spi.container.ContainerRequestFilter;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
+
 import static javax.ws.rs.core.Response.status;
 
 @Provider
@@ -67,6 +68,8 @@ public class SecurityFilter implements ContainerRequestFilter {
         if (!isUnprotected(cr)) {
             checkAuthenticatedAccount(userIdentityContext);
             filterClosedAccounts(userIdentityContext, cr.getPath());
+            //TODO temporarely disable organization domain validation - https://telestax.atlassian.net/browse/BS-408
+//            validateOrganizationAccess(userIdentityContext, storage, cr);
         }
         String scheme = cr.getAuthenticationScheme();
         AccountPrincipal aPrincipal = new AccountPrincipal(userIdentityContext);
@@ -106,5 +109,17 @@ public class SecurityFilter implements ContainerRequestFilter {
             }
             throw new WebApplicationException(status(Status.FORBIDDEN).entity("Provided Account is not active").build());
         }
+    }
+
+    protected void validateOrganizationAccess(UserIdentityContext userIdentityContext, DaoManager daoManager, ContainerRequest cr) {
+        Organization effectiveAccountOrg = daoManager.getOrganizationsDao().getOrganization(userIdentityContext.getEffectiveAccount().getOrganizationSid());
+        Organization requestOrg = daoManager.getOrganizationsDao().getOrganizationByDomainName(cr.getBaseUri().getHost());
+
+        //Organization SID discovered from the request host should match
+        // Organization SID from the effective Account
+        if (!requestOrg.getSid().equals(effectiveAccountOrg.getSid())) {
+            throw new WebApplicationException(status(Status.FORBIDDEN).entity("Account is not allowed to access requested organization").build());
+        }
+        return;
     }
 }

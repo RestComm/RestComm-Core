@@ -30,8 +30,10 @@ import org.apache.log4j.Logger;
 import org.restcomm.connect.commons.common.http.CustomHttpClientBuilder;
 import org.restcomm.connect.commons.configuration.sets.MainConfigurationSet;
 import org.restcomm.connect.commons.configuration.sets.RcmlserverConfigurationSet;
+import org.restcomm.connect.commons.dao.Sid;
 import org.restcomm.connect.commons.util.SecurityUtils;
-import org.restcomm.connect.commons.util.UriUtils;
+import org.restcomm.connect.core.service.RestcommConnectServiceProvider;
+import org.restcomm.connect.core.service.util.UriUtils;
 import org.restcomm.connect.dao.entities.Account;
 
 import java.net.URI;
@@ -75,13 +77,14 @@ public class RcmlserverApi {
     URI apiUrl;
     MainConfigurationSet mainConfig;
     RcmlserverConfigurationSet rcmlserverConfig;
+    UriUtils uriUtils = RestcommConnectServiceProvider.getInstance().uriUtils();
 
-    public RcmlserverApi(MainConfigurationSet mainConfig, RcmlserverConfigurationSet rcmlserverConfig) {
+    public RcmlserverApi(MainConfigurationSet mainConfig, RcmlserverConfigurationSet rcmlserverConfig, Sid accountSid) {
         try {
             // if there is no baseUrl configured we use the resolver to guess the location of the rcml server and the path
             if (StringUtils.isEmpty(rcmlserverConfig.getBaseUrl())) {
-                // resolve() should be run lazily to work. Make sure this constructor is invoked after the JBoss connectors have been set up.
-                apiUrl = UriUtils.resolve(new URI(rcmlserverConfig.getApiPath()));
+                // resolveWithBase() should be run lazily to work. Make sure this constructor is invoked after the JBoss connectors have been set up.
+                apiUrl = uriUtils.resolve(new URI(rcmlserverConfig.getApiPath()), accountSid);
             } // if baseUrl has been configured, concat baseUrl and path to find the location of rcml server. No resolving here.
             else {
                 String path = rcmlserverConfig.getApiPath();

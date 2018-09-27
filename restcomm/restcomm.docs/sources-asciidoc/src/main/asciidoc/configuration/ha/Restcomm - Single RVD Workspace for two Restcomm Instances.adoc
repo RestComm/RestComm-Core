@@ -53,9 +53,9 @@ Step 3 - Change the default RVD workspace on Restcomm Server1 to use the NFS dir
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Rename default RVD workspace to workspace-old as shown below
-* *mv $RESTCOMM_HOME/standalone/deployments/restcomm-rvd.war/workspace   $RESTCOMM_HOME/standalone/deployments/restcomm-rvd.war/workspace-old*
+* *mv $RESTCOMM_HOME/standalone/deployments/visual-designer.war/workspace   $RESTCOMM_HOME/standalone/deployments/visual-designer.war/workspace-old*
 * Create a new symbolic link directory that points to the NFS shared directory(replacing the default workspace directory)
-* *sudo ln -s /opt/telestax/restcomm-shared-workspace   /opt/telestax/$RESTCOMM_HOME/standalone/deployments/restcomm-rvd.war/workspace*
+* *sudo ln -s /opt/telestax/restcomm-shared-workspace   /opt/telestax/$RESTCOMM_HOME/standalone/deployments/visual-designer.war/workspace*
 * Copy the content of the directory workspace-old to workspace.(This content will be visible to both servers)
 
 [[step-4---change-the-default-rvd-workspace-on-restcomm-server2-to-use-the-nfs-directory]]
@@ -63,7 +63,7 @@ Step 4 - Change the default RVD workspace on Restcomm Server2 to use the NFS dir
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Rename default RVD workspace to workspace-old as shown below
-* *mv $RESTCOMM_HOME/standalone/deployments/restcomm-rvd.war/workspace   $RESTCOMM_HOME/standalone/deployments/restcomm-rvd.war/workspace-old*
+* *mv $RESTCOMM_HOME/standalone/deployments/visual-designer.war/workspace   $RESTCOMM_HOME/standalone/deployments/visual-designer.war/workspace-old*
 * Create a new symbolic link directory that points to the NFS mount shared directory(replacing the default workspace directory)
-* *sudo ln -s /opt/telestax/restcomm-mount-shared-workspace   /opt/telestax/$RESTCOMM_HOME/standalone/deployments/restcomm-rvd.war/workspace*
+* *sudo ln -s /opt/telestax/restcomm-mount-shared-workspace   /opt/telestax/$RESTCOMM_HOME/standalone/deployments/visual-designer.war/workspace*
 * Note the difference above that the directory is the restcomm-mount-shared-workspace.

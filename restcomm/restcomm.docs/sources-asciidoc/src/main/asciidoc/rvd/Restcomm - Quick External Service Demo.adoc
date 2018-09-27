@@ -8,7 +8,7 @@ This demo application invites a user to enter his user ID. If the ID is correct,
 
 == Step 1
 
-Go to the RVD url on your web browser. In this demo application, the RVD url is http://127.0.0.1:8080/restcomm-rvd
+Go to the RVD url on your web browser. In this demo application, the RVD url is http://127.0.0.1:8080/visual-designer
 
 * Next, create a new project
 * In the main dashboard,

@@ -20,9 +20,35 @@
 package org.restcomm.connect.core.service.api;
 
 import org.restcomm.connect.commons.dao.Sid;
+import org.restcomm.connect.dao.entities.MediaAttributes;
+
+import java.net.URI;
 
 public interface RecordingService {
 
+    /**
+     * Upload recording file to Amazon S3
+     * @param recordingSid
+     * @param mediaType
+     * @return
+     */
+    URI storeRecording(Sid recordingSid, MediaAttributes.MediaType mediaType);
+
+    /**
+     * Prepare Recording URL to store in the Recording.fileUrl property.
+     * This will be used later to access the recording file
+     * @param apiVersion
+     * @param accountSid
+     * @param recordingSid
+     * @param mediaType
+     * @return
+     */
+    URI prepareFileUrl (String apiVersion, String accountSid, String recordingSid, MediaAttributes.MediaType mediaType);
+
+    /**
+     *Remove recording file from Amazon S3
+     * @param recordingSid
+     */
     void removeRecording(Sid recordingSid);
 
 }

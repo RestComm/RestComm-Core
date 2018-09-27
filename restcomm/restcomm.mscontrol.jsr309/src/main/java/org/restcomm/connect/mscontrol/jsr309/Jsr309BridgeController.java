@@ -21,14 +21,38 @@
 
 package org.restcomm.connect.mscontrol.jsr309;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import akka.actor.ActorRef;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
+import org.apache.commons.configuration.Configuration;
+import org.restcomm.connect.commons.dao.Sid;
+import org.restcomm.connect.commons.fsm.FiniteStateMachine;
+import org.restcomm.connect.commons.fsm.State;
+import org.restcomm.connect.commons.fsm.Transition;
+import org.restcomm.connect.commons.fsm.TransitionFailedException;
+import org.restcomm.connect.commons.fsm.TransitionNotFoundException;
+import org.restcomm.connect.commons.fsm.TransitionRollbackException;
+import org.restcomm.connect.commons.patterns.Observe;
+import org.restcomm.connect.commons.patterns.Observing;
+import org.restcomm.connect.commons.patterns.StopObserving;
+import org.restcomm.connect.commons.util.WavUtils;
+import org.restcomm.connect.core.service.RestcommConnectServiceProvider;
+import org.restcomm.connect.dao.DaoManager;
+import org.restcomm.connect.dao.RecordingsDao;
+import org.restcomm.connect.dao.entities.MediaAttributes;
+import org.restcomm.connect.dao.entities.Recording;
+import org.restcomm.connect.mscontrol.api.MediaServerController;
+import org.restcomm.connect.mscontrol.api.MediaServerInfo;
+import org.restcomm.connect.mscontrol.api.exceptions.MediaServerControllerException;
+import org.restcomm.connect.mscontrol.api.messages.CreateMediaSession;
+import org.restcomm.connect.mscontrol.api.messages.JoinBridge;
+import org.restcomm.connect.mscontrol.api.messages.JoinCall;
+import org.restcomm.connect.mscontrol.api.messages.MediaGroupResponse;
+import org.restcomm.connect.mscontrol.api.messages.MediaServerControllerError;
+import org.restcomm.connect.mscontrol.api.messages.MediaServerControllerStateChanged;
+import org.restcomm.connect.mscontrol.api.messages.MediaServerControllerStateChanged.MediaServerControllerState;
+import org.restcomm.connect.mscontrol.api.messages.StartRecording;
+import org.restcomm.connect.mscontrol.api.messages.Stop;
 
 import javax.media.mscontrol.EventType;
 import javax.media.mscontrol.MediaEvent;
@@ -48,39 +72,14 @@ import javax.media.mscontrol.resource.AllocationEvent;
 import javax.media.mscontrol.resource.AllocationEventListener;
 import javax.media.mscontrol.resource.RTC;
 import javax.sound.sampled.UnsupportedAudioFileException;
-
-import org.apache.commons.configuration.Configuration;
-import org.restcomm.connect.dao.DaoManager;
-import org.restcomm.connect.dao.RecordingsDao;
-import org.restcomm.connect.dao.entities.MediaAttributes;
-import org.restcomm.connect.dao.entities.Recording;
-import org.restcomm.connect.commons.dao.Sid;
-import org.restcomm.connect.commons.fsm.FiniteStateMachine;
-import org.restcomm.connect.commons.fsm.State;
-import org.restcomm.connect.commons.fsm.Transition;
-import org.restcomm.connect.commons.fsm.TransitionFailedException;
-import org.restcomm.connect.commons.fsm.TransitionNotFoundException;
-import org.restcomm.connect.commons.fsm.TransitionRollbackException;
-import org.restcomm.connect.mscontrol.api.MediaServerController;
-import org.restcomm.connect.mscontrol.api.MediaServerInfo;
-import org.restcomm.connect.mscontrol.api.exceptions.MediaServerControllerException;
-import org.restcomm.connect.mscontrol.api.messages.CreateMediaSession;
-import org.restcomm.connect.mscontrol.api.messages.JoinBridge;
-import org.restcomm.connect.mscontrol.api.messages.JoinCall;
-import org.restcomm.connect.mscontrol.api.messages.MediaGroupResponse;
-import org.restcomm.connect.mscontrol.api.messages.MediaServerControllerError;
-import org.restcomm.connect.mscontrol.api.messages.MediaServerControllerStateChanged;
-import org.restcomm.connect.mscontrol.api.messages.MediaServerControllerStateChanged.MediaServerControllerState;
-import org.restcomm.connect.mscontrol.api.messages.StartRecording;
-import org.restcomm.connect.mscontrol.api.messages.Stop;
-import org.restcomm.connect.commons.patterns.Observe;
-import org.restcomm.connect.commons.patterns.Observing;
-import org.restcomm.connect.commons.patterns.StopObserving;
-import org.restcomm.connect.commons.util.WavUtils;
-
-import akka.actor.ActorRef;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Henrique Rosa (henrique.rosa@telestax.com)
@@ -264,15 +263,25 @@ public class Jsr309BridgeController extends MediaServerController {
                 builder.setAccountSid(accountId);
                 builder.setCallSid(callId);
                 builder.setDuration(duration);
-                builder.setApiVersion(runtimeSettings.getString("api-version"));
+                String apiVersion = runtimeSettings.getString("api-version");
+                builder.setApiVersion(apiVersion);
+
                 StringBuilder buffer = new StringBuilder();
-                buffer.append("/").append(runtimeSettings.getString("api-version")).append("/Accounts/")
-                        .append(accountId.toString());
+                buffer.append("/").append(apiVersion).append("/Accounts/").append(accountId.toString());
                 buffer.append("/Recordings/").append(recordingSid.toString());
                 builder.setUri(URI.create(buffer.toString()));
+
+                builder.setFileUri(RestcommConnectServiceProvider.getInstance().recordingService()
+                        .prepareFileUrl(apiVersion, accountId.toString(), recordingSid.toString(), MediaAttributes.MediaType.AUDIO_ONLY));
+
+                URI s3Uri = RestcommConnectServiceProvider.getInstance().recordingService().storeRecording(recordingSid, MediaAttributes.MediaType.AUDIO_ONLY);
+                if (s3Uri != null) {
+                    builder.setS3Uri(s3Uri);
+                }
+
                 final Recording recording = builder.build();
                 RecordingsDao recordsDao = daoManager.getRecordingsDao();
-                recordsDao.addRecording(recording, MediaAttributes.MediaType.AUDIO_ONLY);
+                recordsDao.addRecording(recording);
                 getContext().system().eventStream().publish(recording);
             } else {
                 if(logger.isInfoEnabled()) {

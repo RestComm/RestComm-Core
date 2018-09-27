@@ -57,17 +57,17 @@ A *Call* represents a connection between a phone or user agent and RestComm. Thi
 |Method |The HTTP method RestComm should use when making its request to the above Url. Defaults to POST.
 |FallbackUrl |The URL that RestComm will request if execution of Url fails for any reason.
 |FallbackMethod |The HTTP method that RestComm should use to request the FallbackUrl. Must be either GET or POST. Defaults to POST.
-|statusCallbackEvent |`initiated`, `ringing`, `answered`, `completed`. Default none
-|statusCallback |any url. Default none
-|statusCallbackMethod |`GET`, `POST`. Default `POST`
+|StatusCallbackEvent |`initiated`, `ringing`, `answered`, `completed`. Default none
+|StatusCallback |any url. Default none
+|StatusCallbackMethod |`GET`, `POST`. Default `POST`
 |Timeout |The number of seconds that RestComm should allow the phone to ring before assuming there is no answer. The default is 60 seconds.
 |==========================================================================================================================================
 
-==== statusCallbackEvent
+==== StatusCallbackEvent
 
-When creating a Call using the Calls API, an outbound call is initiated. The call transitions from the initiated state to the ringing state when the phone starts ringing. It transitions to the answered state when the call is picked up, and finally to the completed state when the call is over. With **statusCallbackEvent**, you can subscribe to receive webhooks for the different call progress events: initiated, ringing, answered, or completed for a given call.
+When creating a Call using the Calls API, an outbound call is initiated. The call transitions from the initiated state to the ringing state when the phone starts ringing. It transitions to the answered state when the call is picked up, and finally to the completed state when the call is over. With **StatusCallbackEvent**, you can subscribe to receive webhooks for the different call progress events: initiated, ringing, answered, or completed for a given call.
 
-The *statusCallbackEvent* attribute allows you to specify which events Restcomm should webhook on. To specify multiple events separate them with a space: initiated ringing answered completed. If a statusCallback is provided and no status callback events are specified the completed event will be sent by default.
+The *StatusCallbackEvent* attribute allows you to specify which events Restcomm should webhook on. To specify multiple events separate them with a space: initiated ringing answered completed. If a StatusCallback is provided and no status callback events are specified the completed event will be sent by default.
 
 image::images/status-callback-events-dial.png[Outbound Dial call events diagram]
 
@@ -77,17 +77,17 @@ image::images/status-callback-events-dial.png[Outbound Dial call events diagram]
 |initiated |The `initiated` event is fired when Restcomm starts dialing the call.
 |ringing |The `ringing` event is fired when the call starts ringing.
 |answered |The `answered` event is fired when the call is answered.
-|completed |The `completed` event is fired when the call is completed regardless of the termination status: `busy`, `canceled`, `completed`, `failed`, or `no-answer`. If no `statusCallbackEvent` is specified, `completed` will be fired by default.
+|completed |The `completed` event is fired when the call is completed regardless of the termination status: `busy`, `canceled`, `completed`, `failed`, or `no-answer`. If no `StatusCallbackEvent` is specified, `completed` will be fired by default.
 |==============================================================================================================================================================================================================================================================
 
 [[attributes-status-callback]]
-==== statusCallback
+==== StatusCallback
 
-The *statusCallback* attribute allows you to specify a URL for Restcomm to send webhook requests to on each event specified in the statusCallbackEvent attribute.
+The *StatusCallback* attribute allows you to specify a URL for Restcomm to send webhook requests to on each event specified in the StatusCallbackEvent attribute.
 
-==== statusCallbackMethod
+==== StatusCallbackMethod
 
-The *statusCallbackMethod* attribute allows you to specify which HTTP method Restcomm should use when requesting the URL in the statusCallback attribute. The default is POST.
+The *StatusCallbackMethod* attribute allows you to specify which HTTP method Restcomm should use when requesting the URL in the StatusCallback attribute. The default is POST.
 
 ==== Status Callback HTTP Parameters
 
@@ -114,7 +114,7 @@ When the call progress events are fired, the Status Callback request also passes
 Restcomm will make a call to any SIP account that is reachable. It the example below, the *SIP* account is listening on port **5060**. When you make the call, the SIP phone on which Alice is registered will ring and the hello-play.xml file will be played.
 
 ....
-curl -X POST https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls.json -d "From=+16175551212" -d "To=sip:alice@127.0.0.1:5060" -d "Url=http://127.0.0.1:8080/restcomm/demos/hello-play.xml"
+curl -X POST https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls.json -d "From=+16175551212" -d "To=sip:alice@127.0.0.1:5060" -d "Url=https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/demos/hello-play.xml"
 ....
 
 == Making a call to a Restcomm client
@@ -122,14 +122,14 @@ curl -X POST https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b0
 You must first create a RestComm client. In the example below, the Restcomm client created is called Alice. When you make the call, the SIP phone on which Alice is registered will ring and the *hello-play.xml* file will be played.
 
 ....
-curl -X POST https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls.json -d "From=+16175551212" -d "To=client:alice" -d "Url=http://127.0.0.1:8080/restcomm/demos/hello-play.xml"
+curl -X POST https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls.json -d "From=+16175551212" -d "To=client:alice" -d "Url=https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/demos/hello-play.xml"
 ....
 
 This Client URI may contain URI params to declare propietary SIP headers to be 
 included in the outgoing INVITE message.
 
 ----
-curl -X POST https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls.json -d "From=+16175551212" -d "To=client:alice?X-Custom-Header1=1234&X-Custom-Header2=432" -d "Url=http://127.0.0.1:8080/restcomm/demos/hello-play.xml"
+curl -X POST https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls.json -d "From=+16175551212" -d "To=client:alice?X-Custom-Header1=1234&X-Custom-Header2=432" -d "Url=https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/demos/hello-play.xml"
 ----
 
 == Calling a DID number
@@ -140,12 +140,12 @@ The above example shows how to make a call to a SIP number. If you want to make 
 Using filter is a good practice on a server with thousands or millions of calls
 
 ....
-curl -X GET  https://administrator%40company.com:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls
+curl -X GET  https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls
 ....
 
 If the system hasn't received any calls, you will see the the output below
 
-[source,lang:xml,decode:true]
+[source,xml,decode:true]
 ----
 <RestcommResponse>
   <Calls page="0" numpages="0" pagesize="50" total="0" start="0" end="0" uri="/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls" firstpageuri="/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls?Page=0&amp;PageSize=50" previouspageuri="null" nextpageuri="null" lastpageuri=="/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls?Page=0&amp;PageSize=50"/>
@@ -239,40 +239,40 @@ Similar, application server can change an incoming call to Bob to a conference c
 == Examples
 
 === Redirect Call to a new RCML
-Live Call Modification POST request URL : *http://127.0.0.1:8080/restcomm/2012­04­24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls.json/CAd62f17e7c7f149ac8095f7574495d988*
+Live Call Modification POST request URL : *https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012­04­24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls.json/CAd62f17e7c7f149ac8095f7574495d988*
 
 ==== Parameters:
 
-**Url**=http://127.0.0.1:8080/restcomm/dial­alice.xml
+**Url**=https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/dial­alice.xml
 
 ----
 curl ­X POST
-http://ACae6e420f425248d6a26948c17a9e2acf:dcd25094354d425c8ab85b6621083d20@192.168.1.151:8080/restcomm/2012­04­24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls.json/CAccccfd3a0c394cc1993803af785abc60 ­-d
+https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012­04­24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls.json/CAccccfd3a0c394cc1993803af785abc60 ­-d
 "Url=http://192.168.1.151:8080/restcomm/demos/dial­alice.xml"
 ----
 
 === Redirect Call to a new RCML and connect both call legs
-Live Call Modification POST request URL: *http://127.0.0.1:8080/restcomm/2012­04­24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls.json/CAd62f17e7c7f149ac8095f7574495d988*
+Live Call Modification POST request URL: *https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012­04­24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls.json/CAd62f17e7c7f149ac8095f7574495d988*
 
 ==== Parameters
 
-**Url**=http://127.0.0.1:8080/restcomm/conference.xml
+**Url**=https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/conference.xml
 
 ----
 curl ­X POST
-http://ACae6e420f425248d6a26948c17a9e2acf:dcd25094354d425c8ab85b6621083d20@192.168.1.151:8080/restcomm/2012­04­24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls.json/CAccccfd3a0c394cc1993803af785abc60 ­-d
+https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012­04­24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls.json/CAccccfd3a0c394cc1993803af785abc60 ­-d
 "Url=http://192.168.1.151:8080/restcomm/demos/conference.xml" ­-d
 "MoveConnectedCallLeg=true"
 ----
 
 === Terminate In Progress call
-Live Call Modification POST request URL: *http://127.0.0.1:8080/restcomm/2012­04­24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls.json/CAe29bf33b54ba43dc952f0d3eb331567c*
+Live Call Modification POST request URL: *https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012­04­24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls.json/CAe29bf33b54ba43dc952f0d3eb331567c*
 
 ==== Parameters:
 **Status**=completed
 
 === Terminate Ringing call
-Live Call Modification POST request URL: *http://127.0.0.1:8080/restcomm/2012­04­24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls.json/CA312824ebd262419dbd4c00b057448d57*  
+Live Call Modification POST request URL: *https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012­04­24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls.json/CA312824ebd262419dbd4c00b057448d57*  
 
 ==== Parameters:
 **Status**=canceled  
@@ -289,7 +289,7 @@ Live Call Modification POST request URL: *http://127.0.0.1:8080/restcomm/2012­0
 Modifying a Live Call
 
 ----
-curl -X POST http://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls.json -d "From=+16175551212" -d "To=sip:alice@127.0.0.1:5061" -d "Url=http://127.0.0.1:8080/restcomm/demos/hello-play.xml"
+curl -X POST https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls.json -d "From=+16175551212" -d "To=sip:alice@127.0.0.1:5061" -d "Url=https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/demos/hello-play.xml"
 ----
 
 You will see an output similar to the one below:
@@ -321,7 +321,7 @@ Notice that the Call ID is referenced
 The call will now be redirected to the Url specified(hello-world.xml)
 
 ----
-curl -X POST http://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls/CAfa51b104354440b09213d04752f50271 -d "Url=http://127.0.0.1:8080/restcomm/demos/hello-world.xml"
+curl -X POST https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls/CAfa51b104354440b09213d04752f50271 -d "Url=https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/demos/hello-world.xml"
 ----
 
 The output showing the same Call ID
@@ -343,7 +343,7 @@ The output showing the same Call ID
 You can still redirect the current call back to the previous application
 
 ----
-curl -X POST http://ACae6e420f425248d6f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls/CAfa51b104354440b09213d04752f50271 -d "Url=http://127.0.0.1:8080/restcomm/demos/hello-play.xml"
+curl -X POST https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls/CAfa51b104354440b09213d04752f50271 -d "Url=https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/demos/hello-play.xml"
 ----
 
 The output showing the same Call ID
@@ -365,7 +365,7 @@ The output showing the same Call ID
 You can end the call using the Status=completed command as shown below
 
 ----
-curl -X POST http://ACae6e420f425248d6f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls/CAfa51b104354440b09213d04752f50271 -d "Status=completed"
+curl -X POST https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls/CAfa51b104354440b09213d04752f50271 -d "Status=completed"
 ----
 
 The output showing the same Call ID
@@ -462,7 +462,7 @@ The example below will only return Calls made from client Alice
 
 The result will be similar to the one below
 
-[source,lang:xml,decode:true]
+[source,xml,decode:true]
 ----
 <RestcommResponse>
   <Calls page="0" numpages="0" pagesize="50" total="0" start="0" end="1" uri="/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls" firstpageuri="/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls?Page=0&amp;PageSize=50" previouspageuri="null" nextpageuri="null" lastpageuri=="/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls?Page=0&amp;PageSize=50">
@@ -502,7 +502,7 @@ The result will be similar to the one below
 
 [cols=",",options="header",]
 |=======================================================================
-|PParameter |Description
+|Parameter |Description
 |Page |The current page number. Zero-indexed, so the first page is 0.
 |NumPages |The total number of pages.
 |PageSize |How many items are in each page
@@ -518,12 +518,12 @@ The result will be similar to the one below
 The command below will return a single item from the list of calls using the PageSize parameter
 
 ....
-curl -X GET  http://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls?PageSize=1
+curl -X GET  https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls?PageSize=1
 ....
 
 The result of the *PageSize* parameter
 
-[source,lang:xml,decode:true]
+[source,xml,decode:true]
 ----
 <RestcommResponse>
   <Calls page="0" numpages="7" pagesize="1" total="7" start="0" end="0" uri="/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls" firstpageuri="/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls?Page=0&amp;PageSize=1" previouspageuri="null" nextpageuri="/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls?Page=1&amp;PageSize=1&amp;AfterSid=CA4049cf008d6b4277b92ab863fd4ec7c8" lastpageuri=="/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls?Page=7&amp;PageSize=1">
@@ -555,9 +555,7 @@ The result of the *PageSize* parameter
   </Calls>
 ----
 
- 
-
-== Additional Paging Information.
+== Additional Paging Information
 
 The API returns URIs to the next, previous, first and last pages of the returned list as shown in the table below:
 
@@ -572,3 +570,74 @@ The API returns URIs to the next, previous, first and last pages of the returned
 |Previouspageuri |The URI for the previous page of this list.
 |Lastpageuri |The URI for the last page of this list.
 |============================================================
+
+
+== Sorting Information
+
+*HTTP GET.* You can use the *SortBy* GET query parameter to determine which attribute you want to sort by and in which direction; direction can either be 'asc' for ascending and 'desc' for descending sort ordering. Here's the overall format: *SortBy=<sorting attribute>:<direction>*. If no direction parameter is provided, then the listing of calls is sorted by the attribute in ascending order. Below you can find the possible attributes you can sort by:
+
+=== SortBy Attributes
+
+[cols=",",options="header",]
+|=======================================================================
+|Parameter |Description
+|DateCreated |Sort by date at which the call was created
+|From |Sort by the party who initiated the call
+|To |Sort by the party who received the call
+|Direction |Sort by the direction of the call
+|Status |Sort by the status of the call
+|Duration |Sort by the duration of the call
+|Price |Sort by the price of the call, if applicable
+|=======================================================================
+
+
+=== Example
+
+The command below will return calls sorted by the creation date in ascending order using SortBy parameter:
+
+....
+curl -X GET  https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/<accountSid>/Calls?SortBy=DateCreated:asc
+....
+
+The result of the *SortBy* parameter:
+
+[source,xml,decode:true]
+----
+<RestcommResponse>
+    <Calls page="0" numpages="0" pagesize="50" total="0" start="0" end="3" uri="/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls" firstpageuri="/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls?Page=0&amp;PageSize=50" previouspageuri="null" nextpageuri="null" lastpageuri="/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Calls?Page=0&amp;PageSize=50">
+        <Call>
+            <Sid>ID8555f97abe0441e0a07ca2da3a081871-CAaf146bdb9ea04cd7a9a6f76d955f1aed</Sid>
+            <InstanceId>ID8555f97abe0441e0a07ca2da3a081871</InstanceId>
+            <DateCreated>Thu, 28 Jun 2018 16:56:33 +0300</DateCreated>
+            <DateUpdated>Thu, 28 Jun 2018 16:56:36 +0300</DateUpdated>
+            <To>+112233</To>
+            <From>alice</From>
+            <Status>completed</Status>
+            <Duration>8</Duration>
+             ...
+        </Call>
+        <Call>
+            <Sid>ID8555f97abe0441e0a07ca2da3a081871-CA898196ba193342769877eb218d5008d3</Sid>
+            <InstanceId>ID8555f97abe0441e0a07ca2da3a081871</InstanceId>
+            <DateCreated>Thu, 28 Jun 2018 16:56:39 +0300</DateCreated>
+            <DateUpdated>Thu, 28 Jun 2018 16:56:42 +0300</DateUpdated>
+            <To>+1234</To>
+            <From>alice</From>
+            <Status>completed</Status>
+            <Duration>12</Duration>
+            ...
+        </Call>
+        <Call>
+            <Sid>ID8555f97abe0441e0a07ca2da3a081871-CA4458385933b4447aa3fa02389426a99d</Sid>
+            <InstanceId>ID8555f97abe0441e0a07ca2da3a081871</InstanceId>
+            <DateCreated>Thu, 28 Jun 2018 16:56:44 +0300</DateCreated>
+            <DateUpdated>Thu, 28 Jun 2018 16:56:50 +0300</DateUpdated>
+            <To>+112233</To>
+            <From>bob</From>
+            <Status>completed</Status>
+            <Duration>15</Duration>
+            ...
+        </Call>
+    </Calls>
+</RestcommResponse>
+----

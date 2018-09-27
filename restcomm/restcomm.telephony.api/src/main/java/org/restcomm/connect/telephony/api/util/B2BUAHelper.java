@@ -61,6 +61,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
+import javax.servlet.sip.SipApplicationSession;
 
 /**
   * Helper methods for proxying SIP messages between Restcomm clients that are connecting in peer to peer mode
@@ -70,7 +71,7 @@ import java.util.Vector;
   * @author gvagenas@telestax.com
   */
  public class B2BUAHelper {
-
+     public static final String B2BUA_CALL = "org.restcomm.connect.telephony.api.util.B2BUAHelper";
      public static final String FROM_INET_URI = "fromInetURI";
      public static final String TO_INET_URI = "toInetURI";
      public static final String B2BUA_LAST_REQUEST = "lastRequest";
@@ -236,6 +237,8 @@ import java.util.Vector;
                  outgoingSession.setAttribute(CDR_TO, toClient.getLogin());
 
                  sendCallInfoStreamEvent(system, request, CallStateChanged.State.QUEUED);
+
+                 outgoingSession.getApplicationSession().setAttribute(B2BUA_CALL, "Client-To-Client");
 
                  return true; // successfully proxied the SIP request between two registered clients
              }
@@ -418,6 +421,8 @@ import java.util.Vector;
              outgoingSession.setAttribute(CDR_TO, to.toString());
 
              sendCallInfoStreamEvent(system, request, CallStateChanged.State.QUEUED);
+
+             outgoingSession.getApplicationSession().setAttribute(B2BUA_CALL, "Client-To-Client");
 
              return true; // successfully proxied the SIP request
          } catch (IOException exception) {
@@ -864,5 +869,26 @@ import java.util.Vector;
              );
              system.eventStream().publish(new CallInfoStreamEvent(callInfo));
          }
+     }
+
+     public static void dropB2BUA(SipApplicationSession application) {
+        //finish sessions
+        Iterator<?> sessions = application.getSessions();
+        while(sessions.hasNext()) {
+            Object next = sessions.next();
+            if (next instanceof SipSession) {
+                try {
+                    SipSession session = (SipSession) next;
+                    SipServletRequest createRequest = session.createRequest("BYE");
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("sending BYE");
+                    }
+                    createRequest.send();
+                } catch (IOException | IllegalStateException ex) {
+                    logger.debug("Unable to drop session.", ex);
+                }
+            }
+
+        }
      }
  }

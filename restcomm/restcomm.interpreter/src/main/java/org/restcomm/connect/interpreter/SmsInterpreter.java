@@ -94,6 +94,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import org.restcomm.connect.interpreter.rcml.SmsVerb;
 
 /**
  * @author quintana.thomas@gmail.com (Thomas Quintana)
@@ -805,28 +806,6 @@ public final class SmsInterpreter extends RestcommUntypedActor {
             } else {
                 // Start observing events from the sms session.
                 session.tell(new Observe(source), source);
-                // Store the status callback in the sms session.
-                attribute = verb.attribute("statusCallback");
-                if (attribute != null) {
-                    String callback = attribute.value();
-                    if (callback != null && !callback.isEmpty()) {
-                        URI target = null;
-                        try {
-                            target = URI.create(callback);
-                        } catch (final Exception exception) {
-                            final Notification notification = notification(ERROR_NOTIFICATION, 14105, callback
-                                    + " is an invalid URI.");
-                            notifications.addNotification(notification);
-                            service.tell(new DestroySmsSession(session), source);
-                            final StopInterpreter stop = new StopInterpreter();
-                            source.tell(stop, source);
-                            return;
-                        }
-                        final URI base = request.getUri();
-                        final URI uri = resolve(base, target);
-                        session.tell(new SmsSessionAttribute("callback", uri), source);
-                    }
-                }
                 // Create an SMS detail record.
                 final Sid sid = Sid.generate(Sid.Type.SMS_MESSAGE);
                 final SmsMessage.Builder builder = SmsMessage.builder();
@@ -847,6 +826,7 @@ public final class SmsInterpreter extends RestcommUntypedActor {
                 buffer.append(sid.toString());
                 final URI uri = URI.create(buffer.toString());
                 builder.setUri(uri);
+                SmsVerb.populateAttributes(verb, builder);
                 final SmsMessage record = builder.build();
                 final SmsMessagesDao messages = storage.getSmsMessagesDao();
                 messages.addSmsMessage(record);

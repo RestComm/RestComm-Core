@@ -23,10 +23,11 @@ import com.sun.jersey.spi.container.ContainerRequest;
 import com.sun.jersey.spi.container.ContainerRequestFilter;
 import com.sun.jersey.spi.container.ContainerResponseFilter;
 import com.sun.jersey.spi.container.ResourceFilter;
-import java.net.URI;
-import javax.ws.rs.ext.Provider;
 import org.apache.log4j.Logger;
-import org.restcomm.connect.commons.util.UriUtils;
+import org.restcomm.connect.core.service.RestcommConnectServiceProvider;
+
+import javax.ws.rs.ext.Provider;
+import java.net.URI;
 
 /**
  * Ensures UriInfo builders build proper link scheme depending on container
@@ -47,7 +48,7 @@ public class SchemeRewriteFilter implements ResourceFilter, ContainerRequestFilt
 
     @Override
     public ContainerRequest filter(ContainerRequest cr) {
-        String connectorScheme = UriUtils.getHttpConnector().getScheme();
+        String connectorScheme = RestcommConnectServiceProvider.getInstance().uriUtils().getHttpConnector().getScheme();
         if (connectorScheme.equalsIgnoreCase(HTTPS_SCHEME)) {
             URI newUri = cr.getRequestUriBuilder().scheme(HTTPS_SCHEME).build();
             URI baseUri = cr.getBaseUriBuilder().scheme(HTTPS_SCHEME).build();

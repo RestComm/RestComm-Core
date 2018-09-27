@@ -21,10 +21,16 @@
 
 package org.restcomm.connect.interpreter.mediagroup;
 
-import akka.actor.*;
+import akka.actor.Actor;
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.actor.Props;
+import akka.actor.ReceiveTimeout;
+import akka.actor.UntypedActorFactory;
 import akka.testkit.JavaTestKit;
 import akka.testkit.TestActorRef;
 import com.google.common.base.Function;
+import junit.runner.Version;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
@@ -34,6 +40,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.restcomm.connect.commons.HttpConnector;
 import org.restcomm.connect.commons.cache.DiskCacheRequest;
 import org.restcomm.connect.commons.cache.DiskCacheResponse;
 import org.restcomm.connect.commons.configuration.RestcommConfiguration;
@@ -41,25 +48,37 @@ import org.restcomm.connect.commons.dao.Sid;
 import org.restcomm.connect.commons.fsm.State;
 import org.restcomm.connect.commons.patterns.Observe;
 import org.restcomm.connect.commons.telephony.CreateCallType;
+import org.restcomm.connect.core.service.RestcommConnectServiceProvider;
+import org.restcomm.connect.core.service.util.UriUtils;
 import org.restcomm.connect.dao.CallDetailRecordsDao;
 import org.restcomm.connect.dao.DaoManager;
+import org.restcomm.connect.dao.IncomingPhoneNumbersDao;
+import org.restcomm.connect.dao.entities.MediaAttributes;
 import org.restcomm.connect.http.client.DownloaderResponse;
 import org.restcomm.connect.http.client.HttpRequestDescriptor;
 import org.restcomm.connect.http.client.HttpResponseDescriptor;
-import org.restcomm.connect.interpreter.*;
+import org.restcomm.connect.interpreter.Fork;
+import org.restcomm.connect.interpreter.StartInterpreter;
+import org.restcomm.connect.interpreter.VoiceInterpreter;
+import org.restcomm.connect.interpreter.VoiceInterpreterParams;
 import org.restcomm.connect.interpreter.rcml.MockedActor;
 import org.restcomm.connect.mscontrol.api.messages.MediaGroupResponse;
 import org.restcomm.connect.mscontrol.api.messages.Play;
 import org.restcomm.connect.mscontrol.api.messages.StopMediaGroup;
-import org.restcomm.connect.telephony.api.*;
-import junit.runner.Version;
+import org.restcomm.connect.telephony.api.CallInfo;
+import org.restcomm.connect.telephony.api.CallResponse;
+import org.restcomm.connect.telephony.api.CallStateChanged;
+import org.restcomm.connect.telephony.api.GetCallInfo;
+import org.restcomm.connect.telephony.api.Hangup;
+import scala.concurrent.ExecutionContext;
 
+import javax.servlet.ServletContext;
 import java.net.URI;
-import org.restcomm.connect.dao.entities.MediaAttributes;
 
 /**
  * @author guilherme.jansen@telestax.com
  */
+
 public class StopMediaGroupTest {
 
     private static ActorSystem system;
@@ -116,14 +135,20 @@ public class StopMediaGroupTest {
         return builder.build();
     }
 
-    private TestActorRef<VoiceInterpreter> createVoiceInterpreter(final ActorRef observer, final String ... fsmStateBypass) {
+    private TestActorRef<Actor> createVoiceInterpreter(final ActorRef observer, final String ... fsmStateBypass) {
         System.out.println("JUnit version is: " + Version.id());
 
+        DaoManager storage = Mockito.mock(DaoManager.class);
+        UriUtils uriUtils = Mockito.mock(UriUtils.class);
+        RestcommConnectServiceProvider.getInstance().setUriUtils(uriUtils);
+
+        Mockito.when(uriUtils.resolve(Mockito.any(URI.class), Mockito.any(Sid.class))).thenReturn(URI.create("http://127.0.0.1"));
         //dao
         final CallDetailRecordsDao recordsDao = Mockito.mock(CallDetailRecordsDao.class);
         Mockito.when(recordsDao.getCallDetailRecord(Mockito.any(Sid.class))).thenReturn(null);
 
-        final DaoManager storage = Mockito.mock(DaoManager.class);
+
+        IncomingPhoneNumbersDao incomingPhoneNumbersDao = Mockito.mock(IncomingPhoneNumbersDao.class);
         Mockito.when(storage.getCallDetailRecordsDao()).thenReturn(recordsDao);
 
         //actors
@@ -163,11 +188,6 @@ public class StopMediaGroupTest {
                     @Override
                     public ActorRef getCache() {
                         return downloader;
-                    }
-
-                    @Override
-                    protected URI resolve(URI uri){
-                        return uri;
                     }
 
                     @Override

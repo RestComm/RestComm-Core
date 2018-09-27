@@ -38,7 +38,9 @@ The *<Gather>* verb supports two modes: *DTMF* and *SPEECH*. In DTMF mode it "ga
 * *finishOnKey.* The 'finishOnKey' attribute lets you choose one value that submits the received data when entered. For example, if you set 'finishOnKey' to '\#' and the user enters '1234#', RestComm will immediately stop waiting for more input when the '\#' is received and will submit "Digits=1234" to the 'action' URL. Note that the 'finishOnKey' value is not sent. The allowed values are the digits 0-9, '#', '*' and the empty string (set 'finishOnKey' to ''). If the empty string is used, <Gather> captures all input and no key will end the <Gather> when pressed. In this case RestComm will submit the entered digits to the 'action' URL only after the timeout has been reached. The value can only be a single character.
 * *numDigits.* The 'numDigits' attribute lets you set the number of digits you are expecting, and submits the data to the 'action' URL once the caller enters that number of digits.
 * *input* A list of inputs that RestComm should accept for <Gather>. Can be "dtmf" or "speech". Defaults to "dtmf".
-* *partialResultCallback* A relative or fully qualified URL. Is a mandatory attribute for “speech” mode. RestComm will make requests to your partialResultCallback in real-time as speech is recognized.
+* *partialResultCallback* A relative or fully qualified URL. Is a mandatory attribute for “speech” mode. RestComm will make requests to your partialResultCallback in real-time as speech is recognized.  These webhooks will contain UnstableSpeechResult parameter with partial transcriptions that may change as the recognition progresses.
+
+NOTE: The Webhooks to partialResultCallback are async and doesn't accept RCML back. If you want to act based on the partial result, then use the REST API to Live Modify the call.
 
 === Request Parameters
 

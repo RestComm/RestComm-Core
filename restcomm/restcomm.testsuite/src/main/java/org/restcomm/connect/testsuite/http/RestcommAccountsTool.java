@@ -10,9 +10,11 @@ import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
-import java.util.logging.Logger;
+
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
+import java.net.URI;
+import java.util.logging.Logger;
 
 /**
  * @author <a href="mailto:gvagenas@gmail.com">gvagenas</a>
@@ -187,7 +189,7 @@ public class RestcommAccountsTool {
         Client jerseyClient = Client.create();
         jerseyClient.addFilter(new HTTPBasicAuthFilter(adminUsername, adminAuthToken));
 
-        WebResource webResource = jerseyClient.resource(getAccountsUrl(deploymentUrl));
+        WebResource webResource = jerseyClient.resource(URI.create(getAccountsUrl(deploymentUrl)));
 
         String response = webResource.path(username).get(String.class);
         JsonParser parser = new JsonParser();
@@ -206,6 +208,7 @@ public class RestcommAccountsTool {
      * status code etc.
      */
     public ClientResponse getAccountResponse(String deploymentUrl, String username, String authtoken, String accountSid) {
+
         Client jerseyClient = Client.create();
         jerseyClient.addFilter(new HTTPBasicAuthFilter(username, authtoken));
         WebResource webResource = jerseyClient.resource(getAccountsUrl(deploymentUrl));

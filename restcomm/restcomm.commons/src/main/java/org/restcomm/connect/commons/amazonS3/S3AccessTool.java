@@ -30,6 +30,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.S3ClientOptions;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -109,10 +110,7 @@ public class S3AccessTool {
         try {
             URI fileUri = URI.create(fileToUpload);
             File file = new File(fileUri);
-            StringBuffer bucket = new StringBuffer();
-            bucket.append(bucketName);
-            if (folder != null && !folder.isEmpty())
-                bucket.append("/").append(folder);
+            String bucket = prepareBucket();
             if (logger.isInfoEnabled()) {
                 logger.info("File to upload to S3: " + fileUri.toString());
             }
@@ -123,7 +121,7 @@ public class S3AccessTool {
 
             if (fileExists(file)) {
                 start = DateTime.now();
-                PutObjectRequest putRequest = new PutObjectRequest(bucket.toString(), file.getName(), file);
+                PutObjectRequest putRequest = new PutObjectRequest(bucket, file.getName(), file);
                 ObjectMetadata metadata = new ObjectMetadata();
                 metadata.setContentType(new MimetypesFileTypeMap().getContentType(file));
                 putRequest.setMetadata(metadata);
@@ -163,6 +161,14 @@ public class S3AccessTool {
         }
     }
 
+    private String prepareBucket () {
+        StringBuffer bucket = new StringBuffer();
+        bucket.append(bucketName);
+        if (folder != null && !folder.isEmpty())
+            bucket.append("/").append(folder);
+        return bucket.toString();
+    }
+
     private boolean fileExists(final File file) {
         if (file.exists()) {
             return true;
@@ -175,15 +181,13 @@ public class S3AccessTool {
         if (s3client == null) {
             s3client = getS3client();
         }
-        StringBuffer bucket = new StringBuffer();
-        bucket.append(bucketName);
-        if (folder != null && !folder.isEmpty())
-            bucket.append("/").append(folder);
+
+        String bucket = prepareBucket();
         URI fileUri = URI.create(fileToUpload);
         File file = new File(fileUri);
         URI recordingS3Uri = null;
         try {
-            recordingS3Uri = s3client.getUrl(bucketName, file.getName()).toURI();
+            recordingS3Uri = s3client.getUrl(bucket, file.getName()).toURI();
         } catch (URISyntaxException e) {
             logger.error("Problem during creation of S3 URI");
         }
@@ -206,10 +210,7 @@ public class S3AccessTool {
             logger.info(msg);
         }
         date = cal.getTime();
-        String bucket = bucketName;
-        if (folder != null && !folder.isEmpty()) {
-            bucket = bucket.concat("/").concat(folder);
-        }
+        String bucket = prepareBucket();
         GeneratePresignedUrlRequest generatePresignedUrlRequestGET =
                 new GeneratePresignedUrlRequest(bucket, fileName);
         generatePresignedUrlRequestGET.setMethod(HttpMethod.GET);
@@ -226,11 +227,16 @@ public class S3AccessTool {
         }
     }
 
-    public void removeS3Uri(URI s3Uri) {
+    public void removeS3Uri(String recordingSid) {
         if (s3client == null) {
             s3client = getS3client();
         }
+        String bucket = prepareBucket();
+        String recordingKey = recordingSid.concat(".wav");
+        if (logger.isInfoEnabled()) {
+            logger.info("Bucket: "+bucket+", object key to remove: "+recordingKey);
+        }
         //S3 URI: https://hastaging-restcomm-as-a-service.s3.amazonaws.com/REffff84e4fa224d89b213ff25362a2cb1.wav
-        s3client.deleteObject(bucketName, s3Uri.getPath());
+        s3client.deleteObject(new DeleteObjectRequest(bucket, recordingKey));
     }
 }

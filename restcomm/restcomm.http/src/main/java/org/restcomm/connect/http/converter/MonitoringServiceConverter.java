@@ -32,7 +32,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.restcomm.connect.commons.Version;
-import org.restcomm.connect.commons.util.UriUtils;
+import org.restcomm.connect.core.service.RestcommConnectServiceProvider;
 import org.restcomm.connect.telephony.api.CallInfo;
 import org.restcomm.connect.telephony.api.MonitoringServiceResponse;
 
@@ -95,7 +95,7 @@ public class MonitoringServiceConverter extends AbstractConverter implements Jso
             }
             result.add("LiveCallDetails", callsArray);
         } else {
-            result.addProperty("LiveCallDetails", UriUtils.resolve(monitoringServiceResponse.getCallDetailsUrl()).toString());
+            result.addProperty("LiveCallDetails", RestcommConnectServiceProvider.getInstance().uriUtils().resolve(monitoringServiceResponse.getCallDetailsUrl(), monitoringServiceResponse.getAccountSid()).toString());
         }
         return result;
     }
@@ -149,7 +149,7 @@ public class MonitoringServiceConverter extends AbstractConverter implements Jso
                 writer.endNode();
             } else {
                 writer.startNode("LiveCallDetails");
-                writer.setValue(UriUtils.resolve(monitoringServiceResponse.getCallDetailsUrl()).toString());
+                writer.setValue(RestcommConnectServiceProvider.getInstance().uriUtils().resolve(monitoringServiceResponse.getCallDetailsUrl(), monitoringServiceResponse.getAccountSid()).toString());
                 writer.endNode();
             }
         }

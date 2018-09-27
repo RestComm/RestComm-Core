@@ -11,7 +11,7 @@ RESTCOMM_BIN=$RESTCOMM_HOME/bin
 RESTCOMM_DARS=$RESTCOMM_HOME/standalone/configuration/dars
 RESTCOMM_CONF=$RESTCOMM_HOME/standalone/configuration
 RESTCOMM_DEPLOY=$RESTCOMM_HOME/standalone/deployments/restcomm.war
-RVD_DEPLOY_PATH=$RESTCOMM_HOME/standalone/deployments/restcomm-rvd.war
+RVD_DEPLOY_PATH=$RESTCOMM_HOME/standalone/deployments/visual-designer.war
 
 ## FUNCTIONS
 
@@ -608,13 +608,11 @@ configRestCommURIs() {
 
 		sed -i "s|<prompts-uri>.*</prompts-uri>|<prompts-uri>$REMOTE_ADDRESS/restcomm/audio<\/prompts-uri>|" $FILE
 		sed -i "s|<cache-uri>.*</cache-uri>|<cache-uri>$REMOTE_ADDRESS/restcomm/cache</cache-uri>|" $FILE
-		sed -i "s|<cache-path>.*</cache-path>|<cache-path>$CACHE_PATH</cache-path>|" $FILE
 		sed -i "s|<error-dictionary-uri>.*</error-dictionary-uri>|<error-dictionary-uri>$REMOTE_ADDRESS/restcomm/errors</error-dictionary-uri>|" $FILE
 
                 #Equivalent changes in case XML tags are empty after empty values
 		sed -i "s|<prompts-uri/>|<prompts-uri>$REMOTE_ADDRESS/restcomm/audio<\/prompts-uri>|" $FILE
 		sed -i "s|<cache-uri/>|<cache-uri>$REMOTE_ADDRESS/restcomm/cache</cache-uri>|" $FILE
-                sed -i "s|<cache-path/>|<cache-path>$CACHE_PATH</cache-path>|" $FILE
 		sed -i "s|<error-dictionary-uri/>|<error-dictionary-uri>$REMOTE_ADDRESS/restcomm/errors</error-dictionary-uri>|" $FILE
 
 		echo "Updated prompts-uri cache-uri error-dictionary-uri External MSaddress for "
@@ -710,6 +708,11 @@ otherRestCommConf(){
 
     echo "CACHE_NO_WAV $CACHE_NO_WAV"
     sed -i "s|<cache-no-wav>.*</cache-no-wav>|<cache-no-wav>${CACHE_NO_WAV}</cache-no-wav>|" $FILE
+    
+    echo "CACHE_PATH $CACHE_PATH"
+    sed -i "s|<cache-path>.*</cache-path>|<cache-path>$CACHE_PATH</cache-path>|" $FILE
+    sed -i "s|<cache-path/>|<cache-path>$CACHE_PATH</cache-path>|" $FILE		
+    
 
     #Configure USESBC
     echo "USESBC: $RCUSESBC"
@@ -861,6 +864,11 @@ configConferenceTimeout(){
 	xmlstarlet ed --inplace -u "/restcomm/runtime-settings/conference-timeout" -v "$CONFERENCE_TIMEOUT" $FILE
 }
 
+configMaxP2PCallLength(){
+    echo "Configure Max P2P Call Length $MAX_P2P_CALL_LENGTH"
+    xmlstarlet ed --inplace -u "/restcomm/runtime-settings/max-p2p-call-length" -v "$MAX_P2P_CALL_LENGTH" $FILE
+}
+
 configSdrService(){
     xmlstarlet ed --inplace -d "/restcomm/runtime-settings/sdr-service" $FILE
     if  [ -n "$SDR_SERVICE_CLASS" ]; then
@@ -924,5 +932,6 @@ configRMSNetworking
 configAsrDriver
 configDnsProvisioningManager
 configConferenceTimeout
+configMaxP2PCallLength
 configSdrService
 echo 'Configured RestComm!'

@@ -455,7 +455,7 @@ public class DialRecordingS3UploadSecureTest {
 		assertNotNull(recording);
 		assertEquals(1, recording.size());
 		double duration = recording.get(0).getAsJsonObject().get("duration").getAsDouble();
-		assertEquals(3.0,duration, 0.5);
+		assertEquals(3.0,duration, 1.0);
 		assertTrue(recording.get(0).getAsJsonObject().get("file_uri").getAsString().contains("restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Recordings/"));
 
 		//Since we are in secure mode the s3_uri shouldn't be here
@@ -559,7 +559,6 @@ public class DialRecordingS3UploadSecureTest {
 	final String recordCallWithAction = "<Response><Record timeout=\"15\" maxLength=\"60\" action=\"http://127.0.0.1:8090/record-action\"/></Response>";
 	final String hangupRcml = "<Response><Hangup/></Response>";
 	@Test
-    @Category(UnstableTests.class)
 	public synchronized void testRecordCallWithAction() throws InterruptedException, ParseException {
 		stubFor(get(urlPathEqualTo("/1111"))
 				.willReturn(aResponse()
@@ -572,6 +571,17 @@ public class DialRecordingS3UploadSecureTest {
 						.withStatus(200)
 						.withHeader("Content-Type", "text/xml")
 						.withBody(hangupRcml)));
+
+		stubFor(put(urlPathEqualTo("/s3"))
+				.willReturn(aResponse()
+								.withStatus(200)
+								.withHeader("x-amz-id-2","LriYPLdmOdAiIfgSm/F1YsViT1LW94/xUQxMsF7xiEb1a0wiIOIxl+zbwZ163pt7")
+								.withHeader("x-amz-request-id","0A49CE4060975EAC")
+								.withHeader("Date", DateTime.now().toString())
+								.withHeader("x-amz-expiration", "expiry-date="+DateTime.now().plusDays(3).toString()+"\", rule-id=\"1\"")
+//							.withHeader("ETag", "1b2cf535f27731c974343645a3985328")
+								.withHeader("Server", "AmazonS3")
+				));
 
 		// Create outgoing call with first phone
 		final SipCall bobCall = bobPhone.createSipCall();
@@ -602,18 +612,20 @@ public class DialRecordingS3UploadSecureTest {
 		assertEquals(1,liveCalls);
 		assertEquals(1, liveCallsArraySize);
 
-		Thread.sleep(3000);
+		bobCall.listenForDisconnect();
 
-		bobCall.disconnect();
+		Thread.sleep(8000);
 
-		Thread.sleep(7000);
+		assertTrue(bobCall.waitForDisconnect(5000));
+
+		Thread.sleep(1000);
 
 		//Check recording
 		JsonArray recording = RestcommCallsTool.getInstance().getCallRecordings(deploymentUrl.toString(),adminAccountSid,adminAuthToken,callSid);
 		assertNotNull(recording);
 		assertEquals(1, recording.size());
 		double duration = recording.get(0).getAsJsonObject().get("duration").getAsDouble();
-		assertEquals(3.0, duration,1);
+		assertEquals(6.0, duration,1);
 		assertTrue(recording.get(0).getAsJsonObject().get("file_uri").getAsString().contains("restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/Recordings/"));
 
 		//Since we are in secure mode the s3_uri shouldn't be here

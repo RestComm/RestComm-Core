@@ -23,12 +23,17 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.sun.jersey.api.client.UniformInterfaceException;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
+
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.junit.FixMethodOrder;
@@ -57,35 +62,35 @@ public class NotificationEndpointTest extends EndpointTest{
         JsonArray firstPageNotificationsArray = firstPage.get("notifications").getAsJsonArray();
         int firstPageNotificationsArraySize = firstPageNotificationsArray.size();
 
-        assertTrue(firstPageNotificationsArraySize == 34);
-        assertTrue(firstPage.get("start").getAsInt() == 0);
-        assertTrue(firstPage.get("end").getAsInt() == 34);
-        assertTrue(totalSize == 34);
+        assertEquals(34, firstPageNotificationsArraySize);
+        assertEquals(0, firstPage.get("start").getAsInt());
+        assertEquals(34, firstPage.get("end").getAsInt());
+        assertEquals(34, totalSize);
     }
 
     @Test
     @Category(FeatureAltTests.class)
     public void getNotificationListUsingPageSize() {
         JsonObject firstPage = NotificationEndpointTool.getInstance().getNotificationList(deploymentUrl.toString(), adminAccountSid,
-                adminAuthToken, null, 10, true);
+                adminAuthToken, null, 10, null, true);
         JsonArray firstPageNotificationsArray = firstPage.get("notifications").getAsJsonArray();
-        assertTrue(firstPageNotificationsArray.size() == 10);
-        assertTrue(firstPage.get("start").getAsInt() == 0);
-        assertTrue(firstPage.get("end").getAsInt() == 9);
+        assertEquals(10, firstPageNotificationsArray.size());
+        assertEquals(0, firstPage.get("start").getAsInt());
+        assertEquals(9, firstPage.get("end").getAsInt());
 
         JsonObject secondPage = (JsonObject) NotificationEndpointTool.getInstance().getNotificationList(deploymentUrl.toString(),
-                adminAccountSid, adminAuthToken, 2, 10, true);
+                adminAccountSid, adminAuthToken, 2, 10, null, true);
         JsonArray secondPageNotificationsArray = secondPage.get("notifications").getAsJsonArray();
-        assertTrue(secondPageNotificationsArray.size() == 10);
-        assertTrue(secondPage.get("start").getAsInt() == 20);
-        assertTrue(secondPage.get("end").getAsInt() == 29);
+        assertEquals(10, secondPageNotificationsArray.size());
+        assertEquals(20, secondPage.get("start").getAsInt());
+        assertEquals(29, secondPage.get("end").getAsInt());
 
         JsonObject lastPage = (JsonObject) NotificationEndpointTool.getInstance().getNotificationList(deploymentUrl.toString(), adminAccountSid,
-        adminAuthToken, firstPage.get("num_pages").getAsInt(), 10, true);
+        adminAuthToken, firstPage.get("num_pages").getAsInt(), 10, null,  true);
         JsonArray lastPageNotificationsArray = lastPage.get("notifications").getAsJsonArray();
-        assertTrue(lastPageNotificationsArray.size() == 4);
-        assertTrue(lastPage.get("start").getAsInt() == 30);
-        assertTrue(lastPage.get("end").getAsInt() == 34);
+        assertEquals(4, lastPageNotificationsArray.size());
+        assertEquals(30, lastPage.get("start").getAsInt());
+        assertEquals(34, lastPage.get("end").getAsInt());
     }
 
     @Test
@@ -97,9 +102,9 @@ public class NotificationEndpointTest extends EndpointTest{
         JsonObject filteredNotificationsByStartTime = NotificationEndpointTool.getInstance().getNotificationListUsingFilter(deploymentUrl.toString(),
                 adminAccountSid, adminAuthToken, filters);
 
-        assertTrue(filteredNotificationsByStartTime.get("notifications").getAsJsonArray().size() == 24);
-        assertTrue(filteredNotificationsByStartTime.get("start").getAsInt() == 0);
-        assertTrue(filteredNotificationsByStartTime.get("end").getAsInt() == 24);
+        assertEquals(14, filteredNotificationsByStartTime.get("notifications").getAsJsonArray().size());
+        assertEquals(0, filteredNotificationsByStartTime.get("start").getAsInt());
+        assertEquals(14, filteredNotificationsByStartTime.get("end").getAsInt());
     }
 
     @Test
@@ -112,9 +117,9 @@ public class NotificationEndpointTest extends EndpointTest{
         JsonObject filteredNotificationsByEndTime = NotificationEndpointTool.getInstance().getNotificationListUsingFilter(deploymentUrl.toString(),
                 adminAccountSid, adminAuthToken, filters);
 
-        assertTrue(filteredNotificationsByEndTime.get("notifications").getAsJsonArray().size() == 20);
-        assertTrue(filteredNotificationsByEndTime.get("start").getAsInt() == 0);
-        assertTrue(filteredNotificationsByEndTime.get("end").getAsInt() == 20);
+        assertEquals(30, filteredNotificationsByEndTime.get("notifications").getAsJsonArray().size());
+        assertEquals(0, filteredNotificationsByEndTime.get("start").getAsInt());
+        assertEquals(30, filteredNotificationsByEndTime.get("end").getAsInt());
     }
 
     @Test
@@ -126,9 +131,9 @@ public class NotificationEndpointTest extends EndpointTest{
         JsonObject filteredNotificationsByErrorCode = NotificationEndpointTool.getInstance().getNotificationListUsingFilter(deploymentUrl.toString(),
                 adminAccountSid, adminAuthToken, filters);
 
-        assertTrue(filteredNotificationsByErrorCode.get("notifications").getAsJsonArray().size() == 19);
-        assertTrue(filteredNotificationsByErrorCode.get("start").getAsInt() == 0);
-        assertTrue(filteredNotificationsByErrorCode.get("end").getAsInt() == 19);
+        assertEquals(9, filteredNotificationsByErrorCode.get("notifications").getAsJsonArray().size());
+        assertEquals(0, filteredNotificationsByErrorCode.get("start").getAsInt());
+        assertEquals(9, filteredNotificationsByErrorCode.get("end").getAsInt());
     }
 
     @Test
@@ -140,9 +145,9 @@ public class NotificationEndpointTest extends EndpointTest{
         JsonObject filteredNotificationsByRequestUrl = NotificationEndpointTool.getInstance().getNotificationListUsingFilter(deploymentUrl.toString(),
                 adminAccountSid, adminAuthToken, filters);
 
-        assertTrue(filteredNotificationsByRequestUrl.get("notifications").getAsJsonArray().size() == 18);
-        assertTrue(filteredNotificationsByRequestUrl.get("start").getAsInt() == 0);
-        assertTrue(filteredNotificationsByRequestUrl.get("end").getAsInt() == 18);
+        assertEquals(20, filteredNotificationsByRequestUrl.get("notifications").getAsJsonArray().size());
+        assertEquals(0, filteredNotificationsByRequestUrl.get("start").getAsInt());
+        assertEquals(20, filteredNotificationsByRequestUrl.get("end").getAsInt());
     }
 
     @Test
@@ -154,9 +159,82 @@ public class NotificationEndpointTest extends EndpointTest{
         JsonObject filteredNotificationsByMessageText = NotificationEndpointTool.getInstance().getNotificationListUsingFilter(deploymentUrl.toString(),
                 adminAccountSid, adminAuthToken, filters);
 
-        assertTrue(filteredNotificationsByMessageText.get("notifications").getAsJsonArray().size() == 15);
-        assertTrue(filteredNotificationsByMessageText.get("start").getAsInt() == 0);
-        assertTrue(filteredNotificationsByMessageText.get("end").getAsInt() == 15);
+        assertEquals(17, filteredNotificationsByMessageText.get("notifications").getAsJsonArray().size());
+        assertEquals(0, filteredNotificationsByMessageText.get("start").getAsInt());
+        assertEquals(17, filteredNotificationsByMessageText.get("end").getAsInt());
+    }
+
+    @Test
+    public void getNotificationListUsingSorting() {
+        int pageSize = 30;
+        // Provide both sort field and direction
+        // Provide ascending sorting and verify that the first row is indeed the earliest one
+        JsonObject response = NotificationEndpointTool.getInstance().getNotificationList(deploymentUrl.toString(),
+                adminAccountSid, adminAuthToken, 0, pageSize, "DateCreated:asc", true);
+        // Remember there is a discrepancy between the sort parameters and the result attribute in the .json response. For example DateCreated:asc, means
+        // to sort based of DateCreated field, but in the response the field is called 'date_created', not DateCreated. This only happens only for .json; in
+        // .xml the naming seems to be respected.
+        // Notice that we are removing the timezone part from the end of the string, because CI potentially uses different timezone that messes the test up
+        assertEquals("Fri, 30 Aug 2013 16:28:33", ((JsonObject)response.get("notifications").getAsJsonArray().get(0)).get("date_created").getAsString().replaceFirst("\\s*\\+.*", ""));
+
+        // Provide only sort field; all fields default to ascending
+        response = NotificationEndpointTool.getInstance().getNotificationList(deploymentUrl.toString(),
+                adminAccountSid, adminAuthToken, 0, pageSize, "DateCreated", true);
+        assertEquals("Fri, 30 Aug 2013 16:28:33", ((JsonObject)response.get("notifications").getAsJsonArray().get(0)).get("date_created").getAsString().replaceFirst("\\s*\\+.*", ""));
+
+        response = NotificationEndpointTool.getInstance().getNotificationList(deploymentUrl.toString(),
+                adminAccountSid, adminAuthToken, 0, pageSize, "DateCreated:desc", true);
+        assertEquals("Wed, 30 Oct 2013 16:28:33", ((JsonObject)response.get("notifications").getAsJsonArray().get(0)).get("date_created").getAsString().replaceFirst("\\s*\\+.*", ""));
+
+        try {
+            // provide only direction, should cause an exception
+            NotificationEndpointTool.getInstance().getNotificationList(deploymentUrl.toString(),
+                    adminAccountSid, adminAuthToken, 0, pageSize, ":asc", true);
+        }
+        catch (UniformInterfaceException e) {
+            assertEquals(BAD_REQUEST.getStatusCode(), e.getResponse().getStatus());
+        }
+
+        try {
+            // provide sort field and direction, but direction is invalid (neither of asc or desc)
+            NotificationEndpointTool.getInstance().getNotificationList(deploymentUrl.toString(),
+                    adminAccountSid, adminAuthToken, 0, pageSize, "DateCreated:invalid", true);
+        }
+        catch (UniformInterfaceException e) {
+            assertEquals(BAD_REQUEST.getStatusCode(), e.getResponse().getStatus());
+        }
+
+        // Log
+        response = NotificationEndpointTool.getInstance().getNotificationList(deploymentUrl.toString(),
+                adminAccountSid, adminAuthToken, 0, pageSize, "Log:asc", true);
+        assertEquals("0", ((JsonObject)response.get("notifications").getAsJsonArray().get(0)).get("log").getAsString());
+        response = NotificationEndpointTool.getInstance().getNotificationList(deploymentUrl.toString(),
+                adminAccountSid, adminAuthToken, 0, pageSize, "Log:desc", true);
+        assertEquals("1", ((JsonObject)response.get("notifications").getAsJsonArray().get(0)).get("log").getAsString());
+
+        // Error Code
+        response = NotificationEndpointTool.getInstance().getNotificationList(deploymentUrl.toString(),
+                adminAccountSid, adminAuthToken, 0, pageSize, "ErrorCode:asc", true);
+        assertEquals("0", ((JsonObject)response.get("notifications").getAsJsonArray().get(0)).get("error_code").getAsString());
+        response = NotificationEndpointTool.getInstance().getNotificationList(deploymentUrl.toString(),
+                adminAccountSid, adminAuthToken, 0, pageSize, "ErrorCode:desc", true);
+        assertEquals("100", ((JsonObject)response.get("notifications").getAsJsonArray().get(0)).get("error_code").getAsString());
+
+        // CallSid
+        response = NotificationEndpointTool.getInstance().getNotificationList(deploymentUrl.toString(),
+                adminAccountSid, adminAuthToken, 0, pageSize, "CallSid:asc", true);
+        assertEquals("CA5EB00000000000000000000000000002", ((JsonObject)response.get("notifications").getAsJsonArray().get(0)).get("call_sid").getAsString());
+        response = NotificationEndpointTool.getInstance().getNotificationList(deploymentUrl.toString(),
+                adminAccountSid, adminAuthToken, 0, pageSize, "CallSid:desc", true);
+        assertEquals("CA5EB00000000000000000000000000009", ((JsonObject)response.get("notifications").getAsJsonArray().get(0)).get("call_sid").getAsString());
+
+        // Message Text
+        response = NotificationEndpointTool.getInstance().getNotificationList(deploymentUrl.toString(),
+                adminAccountSid, adminAuthToken, 0, pageSize, "MessageText:asc", true);
+        assertEquals("Another fictitious message for testing", ((JsonObject)response.get("notifications").getAsJsonArray().get(0)).get("message_text").getAsString());
+        response = NotificationEndpointTool.getInstance().getNotificationList(deploymentUrl.toString(),
+                adminAccountSid, adminAuthToken, 0, pageSize, "MessageText:desc", true);
+        assertEquals("Workspace migration skipped in 2016-12-28 21:12:25.758", ((JsonObject)response.get("notifications").getAsJsonArray().get(0)).get("message_text").getAsString());
     }
 
     @Deployment(name = "NotificationEndpointTest", managed = true, testable = false)

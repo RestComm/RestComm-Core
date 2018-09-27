@@ -25,7 +25,7 @@ A *SMS Message* resource represents an inbound or outbound SMS message.
 |Status |The status of this SMS message. Possible values are queued, sending, sent, failed, received, delivered, and undelivered.
 |Direction |The direction of this SMS message. Possible values are incoming, outbound-api, outbound-call.
 |ApiVersion |The API version RestComm used to handle the SMS message.
-|Uri |The URI for this account, relative to https://localhost/restcomm.
+|Uri |The URI for this account, relative to https://cloud.restcomm.com/restcomm.
 |error_code | In case message status is *failed* or *undelivered*, this will give you more information about failure reason. If not, the content will be simply null.
 |error_message | Same as *error_code*, but providing human readable text.
 |========================================================================================================
@@ -93,10 +93,10 @@ You need to configure Restcomm to send SMS messages and DID phone calls to a Ser
 
 == Send SMS Messages
 
-Note the encoding used *%2B13216549878* instead of the **+13216549878**  The *+* sign is encoded to to send SMS from the command line. "**From**" DID number The "**From**" number should be the DID SMS enabled number from VoIP Innovations. From the bash terminal, you can run the command below:
+Note the encoding used *%2B13216549878* instead of the **+13216549878**  The *+* sign is encoded to to send SMS from the command line. "**From**" DID number The "**From**" number should be the DID SMS enabled number from your Service Provider. From the bash terminal, you can run the command below:
 
 ....
-curl -X POST https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/SMS/Messages -d "To=%2B13216549878" -d "From=%2B19876543212" -d "Body=This is a test from RestComm"
+curl -X POST https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/SMS/Messages -d "To=%2B13216549878" -d "From=%2B19876543212" -d "Body=This is a test from RestComm"
 ....
 
 == Get list of SMS Messages
@@ -106,7 +106,7 @@ This will display list of message sent
 From the bash terminal, you can run the command below:
 
 ....
-curl -X GET https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/SMS/Messages  
+curl -X GET https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/SMS/Messages  
 ....
 
 [[example-post-response---xml-and-json]]
@@ -115,7 +115,7 @@ curl -X GET https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b03
 === XML POST Response
 
 ----
-curl -X POST https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e0f425248d6a26948c17a9e2acf/SMS/Messages -d "To=%2B1321654879" -d "From=%2B1654123987" -d "Body=This is a test from RestComm"
+curl -X POST https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e0f425248d6a26948c17a9e2acf/SMS/Messages -d "To=%2B1321654879" -d "From=%2B1654123987" -d "Body=This is a test from RestComm"
 ---- 
 
 
@@ -142,7 +142,7 @@ curl -X POST https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b0
 === JSON POST Response
 
 ----
-curl -X POST https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-20f425248d6a26948c17a9e2acf/SMS/Messages.json -d "To=%2B1321654879" -d "From=%2B1654123987" -d "Body=This is a test from RestComm"
+curl -X POST https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-20f425248d6a26948c17a9e2acf/SMS/Messages.json -d "To=%2B1321654879" -d "From=%2B1654123987" -d "Body=This is a test from RestComm"
 ----
 
 
@@ -170,7 +170,7 @@ curl -X POST https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b0
 === JSON GET Response
 
 ----
-curl -X GET https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/SMS/Messages.json 
+curl -X GET https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/SMS/Messages.json 
 ----
 
 
@@ -202,7 +202,7 @@ curl -X GET https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b03
 == Get Response Using SMS SID
 
 ----
-curl -X GET https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e42f425248d6a26948c17a9e2acf/SMS/Messages/SM55ce5cf07b9649c283cbacab4dae56a9.json 
+curl -X GET https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e42f425248d6a26948c17a9e2acf/SMS/Messages/SM55ce5cf07b9649c283cbacab4dae56a9.json 
 ----
 
 
@@ -249,7 +249,7 @@ curl -X GET https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b03
 The example below will only return Messages made from client Alice
 
 ....
- curl -X GET  https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/SMS/Messages.json?From=alice
+ curl -X GET  https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/SMS/Messages.json?From=alice
 ....
 
 The result will be similar to the one below
@@ -302,7 +302,7 @@ The result will be similar to the one below
 The command below will return a single item from the list of messages using the PageSize parameter
 
 ....
-curl -X GET  https://ACae6e420f425248d6a26948c17a9e2acf:77f8c12cc7b8f8423e5c38b035249166@127.0.0.1:8080/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/SMS/Messages.json?PageSize=1
+curl -X GET  https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/ACae6e420f425248d6a26948c17a9e2acf/SMS/Messages.json?PageSize=1
 ....
 
 The result of the *PageSize* parameter
@@ -347,3 +347,60 @@ The API returns URIs to the next, previous, first and last pages of the returned
 |Previouspageuri |The URI for the previous page of this list.
 |Lastpageuri |The URI for the last page of this list.
 |============================================================
+
+
+== Sorting Information
+
+*HTTP GET.* You can use the *SortBy* GET query parameter to determine which attribute you want to sort by and in which direction; direction can either be 'asc' for ascending and 'desc' for descending sort ordering. Here's the overall format: *SortBy=<sorting attribute>:<direction>*. If no direction parameter is provided, then the listing of messages is sorted by the attribute in ascending order. Below you can find the possible attributes you can sort by:
+
+=== SortBy Attributes
+
+[cols=",",options="header",]
+|=======================================================================
+|Parameter |Description
+|DateCreated |Sort by date at which the message was sent
+|From |Sort by the party who initiated the message
+|To |Sort by the party who received the message
+|Direction |Sort by the direction of the message
+|Status |Sort by the status of the message
+|Body |Sort by the text body of the message
+|Price |Sort by the price of the message, if applicable
+|=======================================================================
+
+
+=== Example
+
+The command below will return messages sorted by the creation date in ascending order using SortBy parameter:
+
+....
+curl -X GET  https://<accountSid>:<authToken>@cloud.restcomm.com/restcomm/2012-04-24/Accounts/<accountSid>/SMS/Messages?SortBy=DateCreated:asc
+....
+
+The result of the *SortBy* parameter:
+
+[source,xml,decode:true]
+----
+<RestcommResponse>
+    <SMSMessages>
+        <SMSMessage>
+            <Sid>SM316e8344154d4acc963641be78b2b401</Sid>
+            <DateCreated>Thu, 5 Jul 2018 10:46:45 +0300</DateCreated>
+            <DateUpdated>Thu, 5 Jul 2018 10:46:45 +0300</DateUpdated>
+            <From>alice</From>
+            <To>1235</To>
+            <Body>Hello there!</Body>
+            ...
+        </SMSMessage>
+        <SMSMessage>
+            <Sid>SMcb0a3712e56f4b2b8c5c2eba59d25ceb</Sid>
+            <DateCreated>Thu, 5 Jul 2018 10:46:54 +0300</DateCreated>
+            <DateUpdated>Thu, 5 Jul 2018 10:46:54 +0300</DateUpdated>
+            <From>bob</From>
+            <To>1235</To>
+            <Body>How are you doing?</Body>
+             ....
+        </SMSMessage>
+        ...
+    </SMSMessages>
+</RestcommResponse>
+----

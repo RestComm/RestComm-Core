@@ -122,8 +122,54 @@
             <if test="endTime != null">
                     AND "date_created" &lt;= DATE_ADD(#{endTime},INTERVAL 1 DAY)
             </if>
-            order by "date_created"
-            LIMIT #{limit} OFFSET #{offset}
+            <choose>
+                <when test="sortByDate != null">
+                    <if test="sortByDate.name() == 'ASC'">
+                        order by "date_created" ASC
+                    </if>
+                    <if test="sortByDate.name() == 'DESC'">
+                        order by "date_created" DESC
+                    </if>
+                </when>
+                <when test="sortByLog != null">
+                    <if test="sortByLog.name() == 'ASC'">
+                        order by "log" ASC, "date_created" DESC
+                    </if>
+                    <if test="sortByLog.name() == 'DESC'">
+                        order by "log" DESC, "date_created" DESC
+                    </if>
+                </when>
+                <when test="sortByErrorCode != null">
+                    <if test="sortByErrorCode.name() == 'ASC'">
+                        order by "error_code" ASC, "date_created" DESC
+                    </if>
+                    <if test="sortByErrorCode.name() == 'DESC'">
+                        order by "error_code" DESC, "date_created" DESC
+                    </if>
+                </when>
+                <when test="sortByCallSid != null">
+                    <if test="sortByCallSid.name() == 'ASC'">
+                        order by "call_sid" ASC, "date_created" DESC
+                    </if>
+                    <if test="sortByCallSid.name() == 'DESC'">
+                        order by "call_sid" DESC, "date_created" DESC
+                    </if>
+                </when>
+                <when test="sortByMessageText != null">
+                    <if test="sortByMessageText.name() == 'ASC'">
+                        order by "message_text" ASC, "date_created" DESC
+                    </if>
+                    <if test="sortByMessageText.name() == 'DESC'">
+                        order by "message_text" DESC, "date_created" DESC
+                    </if>
+                </when>
+                <otherwise>
+                    order by "date_created" DESC
+                </otherwise>
+            </choose>
+            <if test="limit != null">
+                LIMIT #{limit} OFFSET #{offset}
+            </if>
     </select>
     
 </mapper>

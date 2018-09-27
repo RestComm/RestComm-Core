@@ -19,6 +19,7 @@
  */
 package org.restcomm.connect.testsuite.http;
 
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -26,6 +27,8 @@ import static org.junit.Assert.assertTrue;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.sun.jersey.api.client.UniformInterfaceException;
+import junit.framework.Assert;
 import org.apache.log4j.Logger;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
@@ -74,21 +77,21 @@ public class SmsMessagesEndpointTest extends EndpointTest{
     @Category(FeatureAltTests.class)
     public void getSmsMessageListUsingPageSize() {
         JsonObject firstPage = SmsEndpointTool.getInstance().getSmsMessageList(deploymentUrl.toString(), adminAccountSid,
-                adminAuthToken, null, 10, true);
+                adminAuthToken, null, 10, null, true);
         JsonArray firstPageMessagesArray = firstPage.get("messages").getAsJsonArray();
         assertTrue(firstPageMessagesArray.size() == 10);
         assertTrue(firstPage.get("start").getAsInt() == 0);
         assertTrue(firstPage.get("end").getAsInt() == 9);
 
         JsonObject secondPage = (JsonObject) SmsEndpointTool.getInstance().getSmsMessageList(deploymentUrl.toString(),
-                adminAccountSid, adminAuthToken, 2, 10, true);
+                adminAccountSid, adminAuthToken, 2, 10, null, true);
         JsonArray secondPageMessagesArray = secondPage.get("messages").getAsJsonArray();
         assertTrue(secondPageMessagesArray.size() == 10);
         assertTrue(secondPage.get("start").getAsInt() == 20);
         assertTrue(secondPage.get("end").getAsInt() == 29);
 
         JsonObject lastPage = (JsonObject) SmsEndpointTool.getInstance().getSmsMessageList(deploymentUrl.toString(), adminAccountSid,
-        adminAuthToken, firstPage.get("num_pages").getAsInt(), 10, true);
+        adminAuthToken, firstPage.get("num_pages").getAsInt(), 10, null, true);
         JsonArray lastPageMessagesArray = lastPage.get("messages").getAsJsonArray();
         assertTrue(lastPageMessagesArray.size() == 4);
         assertTrue(lastPage.get("start").getAsInt() == 30);
@@ -177,6 +180,95 @@ public class SmsMessagesEndpointTest extends EndpointTest{
         assertEquals(SmsMessage.Status.SENT.toString(), smsMessageJson.get("status").getAsString());
         assertEquals(MessageError.UNKNOWN_ERROR.getErrorCode().intValue(), smsMessageJson.get("error_code").getAsInt());
         assertEquals(MessageError.UNKNOWN_ERROR.getErrorMessage(), smsMessageJson.get("error_message").getAsString());
+    }
+
+    @Test
+    public void getSmsMessageListUsingSorting() {
+        int pageSize = 30;
+        // Provide both sort field and direction
+        // Provide ascending sorting and verify that the first row is indeed the earliest one
+        JsonObject response = SmsEndpointTool.getInstance().getSmsMessageList(deploymentUrl.toString(),
+                adminAccountSid, adminAuthToken, 0, pageSize, "DateCreated:asc", true);
+        // Remember there is a discrepancy between the sort parameters and the result attribute in the .json response. For example DateCreated:asc, means
+        // to sort based of DateCreated field, but in the response the field is called 'date_created', not DateCreated. This only happens only for .json; in
+        // .xml the naming seems to be respected.
+        // Notice that we are removing the timezone part from the end of the string, because CI potentially uses different timezone that messes the test up
+        assertEquals("Fri, 5 Jul 2013 21:32:40", ((JsonObject)response.get("messages").getAsJsonArray().get(0)).get("date_created").getAsString().replaceFirst("\\s*\\+.*", ""));
+
+        // Provide only sort field; all fields default to ascending
+        response = SmsEndpointTool.getInstance().getSmsMessageList(deploymentUrl.toString(),
+                adminAccountSid, adminAuthToken, 0, pageSize, "DateCreated", true);
+        assertEquals("Fri, 5 Jul 2013 21:32:40", ((JsonObject)response.get("messages").getAsJsonArray().get(0)).get("date_created").getAsString().replaceFirst("\\s*\\+.*", ""));
+
+        response = SmsEndpointTool.getInstance().getSmsMessageList(deploymentUrl.toString(),
+                adminAccountSid, adminAuthToken, 0, pageSize, "DateCreated:desc", true);
+        assertEquals("Thu, 11 Jul 2013 15:39:32", ((JsonObject)response.get("messages").getAsJsonArray().get(0)).get("date_created").getAsString().replaceFirst("\\s*\\+.*", ""));
+
+        try {
+            // provide only direction, should cause an exception
+            SmsEndpointTool.getInstance().getSmsMessageList(deploymentUrl.toString(),
+                    adminAccountSid, adminAuthToken, 0, pageSize, ":asc", true);
+        }
+        catch (UniformInterfaceException e) {
+            assertEquals(BAD_REQUEST.getStatusCode(), e.getResponse().getStatus());
+        }
+
+        try {
+            // provide sort field and direction, but direction is invalid (neither of asc or desc)
+            SmsEndpointTool.getInstance().getSmsMessageList(deploymentUrl.toString(),
+                    adminAccountSid, adminAuthToken, 0, pageSize, "DateCreated:invalid", true);
+        }
+        catch (UniformInterfaceException e) {
+            assertEquals(BAD_REQUEST.getStatusCode(), e.getResponse().getStatus());
+        }
+
+        // From
+        response = SmsEndpointTool.getInstance().getSmsMessageList(deploymentUrl.toString(),
+                adminAccountSid, adminAuthToken, 0, pageSize, "From:asc", true);
+        assertEquals("+13213557674", ((JsonObject)response.get("messages").getAsJsonArray().get(0)).get("from").getAsString());
+        response = SmsEndpointTool.getInstance().getSmsMessageList(deploymentUrl.toString(),
+                adminAccountSid, adminAuthToken, 0, pageSize, "From:desc", true);
+        assertEquals("19549376176", ((JsonObject)response.get("messages").getAsJsonArray().get(0)).get("from").getAsString());
+
+        // To
+        response = SmsEndpointTool.getInstance().getSmsMessageList(deploymentUrl.toString(),
+                adminAccountSid, adminAuthToken, 0, pageSize, "To:asc", true);
+        assertEquals("+13213557674", ((JsonObject)response.get("messages").getAsJsonArray().get(0)).get("to").getAsString());
+        response = SmsEndpointTool.getInstance().getSmsMessageList(deploymentUrl.toString(),
+                adminAccountSid, adminAuthToken, 0, pageSize, "To:desc", true);
+        assertEquals("19549376176", ((JsonObject)response.get("messages").getAsJsonArray().get(0)).get("to").getAsString());
+
+        // Direction
+        response = SmsEndpointTool.getInstance().getSmsMessageList(deploymentUrl.toString(),
+                adminAccountSid, adminAuthToken, 0, pageSize, "Direction:asc", true);
+        assertEquals("inbound", ((JsonObject)response.get("messages").getAsJsonArray().get(0)).get("direction").getAsString());
+        response = SmsEndpointTool.getInstance().getSmsMessageList(deploymentUrl.toString(),
+                adminAccountSid, adminAuthToken, 0, pageSize, "Direction:desc", true);
+        assertEquals("outbound-reply", ((JsonObject)response.get("messages").getAsJsonArray().get(0)).get("direction").getAsString());
+
+        // Status
+        response = SmsEndpointTool.getInstance().getSmsMessageList(deploymentUrl.toString(),
+                adminAccountSid, adminAuthToken, 0, pageSize, "Status:asc", true);
+        assertEquals("failed", ((JsonObject)response.get("messages").getAsJsonArray().get(0)).get("status").getAsString());
+        response = SmsEndpointTool.getInstance().getSmsMessageList(deploymentUrl.toString(),
+                adminAccountSid, adminAuthToken, 0, pageSize, "Status:desc", true);
+        assertEquals("sent", ((JsonObject)response.get("messages").getAsJsonArray().get(0)).get("status").getAsString());
+
+        // Body
+        response = SmsEndpointTool.getInstance().getSmsMessageList(deploymentUrl.toString(),
+                adminAccountSid, adminAuthToken, 0, 34, "Body:asc", true);
+        assertEquals("Hello", ((JsonObject)response.get("messages").getAsJsonArray().get(0)).get("body").getAsString());
+        response = SmsEndpointTool.getInstance().getSmsMessageList(deploymentUrl.toString(),
+                adminAccountSid, adminAuthToken, 0, pageSize, "Body:desc", true);
+        assertEquals("take 3", ((JsonObject)response.get("messages").getAsJsonArray().get(0)).get("body").getAsString());
+
+        // Price
+        response = SmsEndpointTool.getInstance().getSmsMessageList(deploymentUrl.toString(),
+                adminAccountSid, adminAuthToken, 0, pageSize, "Price:asc", true);
+        assertEquals("0.00", ((JsonObject)response.get("messages").getAsJsonArray().get(0)).get("price").getAsString());
+        response = SmsEndpointTool.getInstance().getSmsMessageList(deploymentUrl.toString(),
+                adminAccountSid, adminAuthToken, 0, pageSize, "Price:desc", true);
+        assertEquals("120.00", ((JsonObject)response.get("messages").getAsJsonArray().get(0)).get("price").getAsString());
     }
 
     @Deployment(name = "SmsMessagesEndpointTest", managed = true, testable = false)

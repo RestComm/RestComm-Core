@@ -37,7 +37,7 @@
     </environments>
 
 
-    <mappers>
-        <mapper  url="file:MYBATIS_SANDBOX_PATH/call-detail-records.xml"/>
-    </mappers>
+  <mappers>
+    <mapper resource="org/restcomm/connect/dao/mybatis/call-detail-records.xml"/>
+  </mappers>
 </configuration>

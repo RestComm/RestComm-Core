@@ -80,6 +80,8 @@ import scala.concurrent.duration.Duration;
  * @author maria-farooq@live.com (Maria Farooq)
  */
 public final class SmsSession extends RestcommUntypedActor {
+
+    private static final String SMS_RECORD = "record";
     // Logger
     private final LoggingAdapter logger = Logging.getLogger(getContext().system(), this);
     // Runtime stuff.
@@ -234,7 +236,7 @@ public final class SmsSession extends RestcommUntypedActor {
         } else if (SmsSessionAttribute.class.equals(klass)) {
             final SmsSessionAttribute attribute = (SmsSessionAttribute) message;
             attributes.put(attribute.name(), attribute.value());
-            Object record = attributes.get("record");
+            Object record = attributes.get(SMS_RECORD);
             if (record != null) {
                 system.eventStream().publish(record);
             }
@@ -252,7 +254,7 @@ public final class SmsSession extends RestcommUntypedActor {
     @Override
     public void postStop() {
         super.postStop();
-        Object record = attributes.get("record");
+        Object record = attributes.get(SMS_RECORD);
         if (record != null) {
             system.eventStream().publish(record);
         }
@@ -261,9 +263,9 @@ public final class SmsSession extends RestcommUntypedActor {
     private void response(final Object message) {
         final SipServletResponse response = (SipServletResponse) message;
         final int status = response.getStatus();
-        final SmsSessionInfo info = info();
+        SmsSessionInfo info = info();
         SmsSessionResponse result = null;
-        Object record = info.attributes().get("record");
+        Object record = info.attributes().get(SMS_RECORD);
         if (SipServletResponse.SC_ACCEPTED == status || SipServletResponse.SC_OK == status) {
             if (record != null) {
                 SmsMessage toBeUpdated = ((SmsMessage)record);
@@ -271,7 +273,8 @@ public final class SmsSession extends RestcommUntypedActor {
                 builder.copyMessage(toBeUpdated);
                 builder.setDateSent(DateTime.now());
                 builder.setStatus(SmsMessage.Status.SENT);
-                info.attributes().put("record", builder.build());
+                this.attributes.put(SMS_RECORD, builder.build());
+                info = info();
             }
             result = new SmsSessionResponse(info, true);
         } else {
@@ -280,7 +283,8 @@ public final class SmsSession extends RestcommUntypedActor {
                 SmsMessage.Builder builder = SmsMessage.builder();
                 builder.copyMessage(toBeUpdated);
                 builder.setStatus(SmsMessage.Status.FAILED);
-                info.attributes().put("record", builder.build());
+                this.attributes.put(SMS_RECORD, builder.build());
+                info = info();
             }
             result = new SmsSessionResponse(info, false);
         }
@@ -359,7 +363,7 @@ public final class SmsSession extends RestcommUntypedActor {
                 logger.info("Encoding:  " + encoding );
             }
 
-            SmsMessage record = (SmsMessage)this.attributes.get("record");
+            SmsMessage record = (SmsMessage)this.attributes.get(SMS_RECORD);
             Sid sid = null;
             if(record!=null) {
                 sid = record.getSid();
@@ -431,16 +435,17 @@ public final class SmsSession extends RestcommUntypedActor {
             sms.send();
         } catch (final Exception exception) {
             // Notify the observers.
-            final SmsSessionInfo info = info();
-            final SmsSessionResponse error = new SmsSessionResponse(info, false);
-            Object record = info.attributes().get("record");
+            SmsSessionInfo info = info();
+            Object record = info.attributes().get(SMS_RECORD);
             if (record != null) {
                 SmsMessage toBeUpdated = ((SmsMessage)record);
                 SmsMessage.Builder builder = SmsMessage.builder();
                 builder.copyMessage(toBeUpdated);
                 builder.setStatus(SmsMessage.Status.FAILED);
-                info.attributes().put("record", builder.build());
+                this.attributes.put(SMS_RECORD, builder.build());
+                info = info();
             }
+            final SmsSessionResponse error = new SmsSessionResponse(info, false);
             for (final ActorRef observer : observers) {
                 observer.tell(error, self());
             }

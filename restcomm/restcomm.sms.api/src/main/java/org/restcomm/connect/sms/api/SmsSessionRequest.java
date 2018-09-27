@@ -36,7 +36,6 @@ public final class SmsSessionRequest {
     private final Encoding encoding;
     private final SipServletRequest origRequest;
     private final ConcurrentHashMap<String, String> customHeaders;
-    private final TlvSet tlvSet;
 
     public enum Encoding {
         UCS_2("UCS-2"),
@@ -71,7 +70,6 @@ public final class SmsSessionRequest {
         this.body = body;
         this.customHeaders = customHeaders;
         this.encoding = encoding;
-        this.tlvSet = tlvSet;
 
     }
 
@@ -85,7 +83,7 @@ public final class SmsSessionRequest {
     }
 
     public SmsSessionRequest(final String from, final String to, final String body, final SipServletRequest origRequest, final TlvSet tlvSet, final ConcurrentHashMap<String, String> customHeaders) {
-        this(from, to, body, Encoding.GSM, origRequest, tlvSet, customHeaders);
+        this(from, to, body, Encoding.GSM, origRequest, customHeaders);
     }
 
     public SmsSessionRequest(final String from, final String to, final String body, final SipServletRequest origRequest, final ConcurrentHashMap<String, String> customHeaders) {
@@ -122,10 +120,6 @@ public final class SmsSessionRequest {
 
     public Encoding encoding() {
         return encoding;
-    }
-
-    public TlvSet getTlvSet() {
-        return tlvSet;
     }
 
     public SipServletRequest getOrigRequest() {

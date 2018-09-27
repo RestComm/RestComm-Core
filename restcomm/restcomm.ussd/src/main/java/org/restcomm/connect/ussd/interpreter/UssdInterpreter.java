@@ -43,7 +43,8 @@ import org.restcomm.connect.commons.fsm.State;
 import org.restcomm.connect.commons.fsm.Transition;
 import org.restcomm.connect.commons.patterns.Observe;
 import org.restcomm.connect.commons.telephony.CreateCallType;
-import org.restcomm.connect.commons.util.UriUtils;
+import org.restcomm.connect.core.service.RestcommConnectServiceProvider;
+import org.restcomm.connect.core.service.util.UriUtils;
 import org.restcomm.connect.dao.CallDetailRecordsDao;
 import org.restcomm.connect.dao.DaoManager;
 import org.restcomm.connect.dao.NotificationsDao;
@@ -183,6 +184,8 @@ public class UssdInterpreter extends RestcommUntypedActor {
     //List of extensions for UssdInterpreter
     List<RestcommExtensionGeneric> extensions;
 
+    private UriUtils uriUtils;
+
     public UssdInterpreter(final UssdInterpreterParams params) {
         super();
         final ActorRef source = self();
@@ -254,6 +257,8 @@ public class UssdInterpreter extends RestcommUntypedActor {
         sentBye = false;
 
         extensions = ExtensionController.getInstance().getExtensions(ExtensionType.FeatureAccessControl);
+
+        uriUtils = RestcommConnectServiceProvider.getInstance().uriUtils();
     }
 
     public static Props props(final UssdInterpreterParams params) {
@@ -1014,7 +1019,7 @@ public class UssdInterpreter extends RestcommUntypedActor {
                     return;
                 }
                 final URI base = request.getUri();
-                final URI uri = UriUtils.resolve(base, target);
+                final URI uri = uriUtils.resolveWithBase(base, target);
                 // Parse "method".
                 String method = "POST";
                 Attribute attribute = null;

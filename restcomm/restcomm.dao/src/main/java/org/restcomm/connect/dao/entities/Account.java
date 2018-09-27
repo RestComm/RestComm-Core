@@ -32,7 +32,7 @@ import org.restcomm.connect.commons.dao.Sid;
  * @author maria-farooq@live.com (Maria Farooq)
  */
 @Immutable
-public final class Account {
+public class Account {
     private final Sid sid;
     private final DateTime dateCreated;
     private final DateTime dateUpdated;
