@@ -820,6 +820,8 @@ public abstract class BaseVoiceInterpreter extends RestcommUntypedActor {
             if (attribute != null) {
                 final URI callback = (URI) attribute;
                 final List<NameValuePair> parameters = parameters();
+	        parameters.add(new BasicNameValuePair("SmsSid", record.getSid().toString()));
+                parameters.add(new BasicNameValuePair("SmsStatus", record.getStatus().toString()));
                 request = new HttpRequestDescriptor(callback, "POST", parameters);
                 downloader.tell(request, null);
             }
