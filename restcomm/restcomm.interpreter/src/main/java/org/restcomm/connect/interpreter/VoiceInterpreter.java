@@ -916,7 +916,8 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
             }
 
             if (msStopingRingTone) {
-                msStopingRingTone = !(((MediaGroupResponse) message).get() instanceof CollectedResult);
+                Object data =  ((MediaGroupResponse) message).get();
+                msStopingRingTone = !((data instanceof CollectedResult) || (data instanceof String && data.toString().equalsIgnoreCase("PLAY_COMPLETED"))) ;
             }
         } else {
             fsm.transition(message, hangingUp);
