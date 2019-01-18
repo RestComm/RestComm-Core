@@ -35,9 +35,14 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
+import java.util.regex.Matcher; //added
+import java.util.regex.Pattern; //added
+
 
 import static javax.xml.stream.XMLStreamConstants.*;
 
@@ -118,16 +123,21 @@ public final class Parser extends RestcommUntypedActor {
     }
 
     private Tag next() throws LimitExceededException{
+	boolean AttributteValidator; // new variable
         if (iterator != null) {
             while (iterator.hasNext()) {
                 final Tag tag = iterator.next();
                 if (Verbs.isVerb(tag)) {
+				
+					AttributteValidator=validation(tag); // add new validation, invoke to class
+					
                     if (current != null && current.hasChildren()) {
                         final List<Tag> children = current.children();
                         if (children.contains(tag)) {
                             continue;
                         }
                     }
+                    
                     if (tag.name().equals(Verbs.gather) && tag.hasAttribute(GatherAttributes.ATTRIBUTE_HINTS) && !StringUtils.isEmpty(tag.attribute(GatherAttributes.ATTRIBUTE_HINTS).value())) {
                         String hotWords = tag.attribute(GatherAttributes.ATTRIBUTE_HINTS).value();
                         List<String> hintList = Arrays.asList(hotWords.split(","));
@@ -152,6 +162,47 @@ public final class Parser extends RestcommUntypedActor {
         return null;
     }
 
+	///////////////////////////////////////////// new class -- validate
+    private boolean validation(Tag tag) {
+    	boolean ValidationPass=true;
+    	AttributeValidator AttValidator=new Validator();
+    	
+    	switch (tag.name()) {
+    	case "Record":
+        	ValidationPass=AttValidator.RecordValidator(tag);
+    		break;
+    	case "Dial":
+    		ValidationPass=AttValidator.DialValidator(tag);
+    		break;
+    	case "Email":
+    		ValidationPass=AttValidator.EmailValidator(tag);
+    		break;
+    	case "Pause":
+    		ValidationPass=AttValidator.PauseValidator(tag);
+    		break;
+    	case "Sms":
+    		ValidationPass=AttValidator.SmsAndFaxValidator(tag);
+    		break;
+    	case "Fax":
+    		ValidationPass=AttValidator.SmsAndFaxValidator(tag);
+    		break;
+    	case "Gather":
+    		ValidationPass=AttValidator.GatherValidator(tag);
+    		break;
+    	case "Play":
+    		ValidationPass=AttValidator.PlayAndSayValidator(tag);
+    		break;
+    	case "Say":
+    		ValidationPass=AttValidator.PlayAndSayValidator(tag);
+    		break;
+    		
+    	}
+
+    	return ValidationPass;
+    	
+    }
+///////////////// end new class
+	
     private Tag parse(final XMLStreamReader stream) throws IOException, XMLStreamException {
         final Stack<Tag.Builder> builders = new Stack<Tag.Builder>();
         while (stream.hasNext()) {
