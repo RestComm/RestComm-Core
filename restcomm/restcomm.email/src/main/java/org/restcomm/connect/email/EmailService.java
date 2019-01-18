@@ -154,14 +154,13 @@ public class EmailService extends RestcommUntypedActor {
             } else {
                 from = new InternetAddress(user);
             }
-            final InternetAddress to = new InternetAddress(mail.to());
             final MimeMessage email = new MimeMessage(session);
             email.setFrom(from);
-            email.addRecipient(Message.RecipientType.TO, to);
+            email.addRecipients(Message.RecipientType.TO, InternetAddress.parse(mail.to(), false));
             email.setSubject(mail.subject());
             email.setContent(mail.body(), mail.contentType());
             email.addRecipients(Message.RecipientType.CC, InternetAddress.parse(mail.cc(), false));
-            email.addRecipients(Message.RecipientType.BCC,InternetAddress.parse(mail.bcc(),false));
+            email.addRecipients(Message.RecipientType.BCC, InternetAddress.parse(mail.bcc(),false));
             //Transport.send(email);
             transport.connect (host, Integer.parseInt(port), user, password);
             transport.sendMessage(email, email.getRecipients(Message.RecipientType.TO));
@@ -180,14 +179,13 @@ public class EmailService extends RestcommUntypedActor {
             } else {
                 from = new InternetAddress(user);
             }
-            final InternetAddress to = new InternetAddress(mail.to());
             final MimeMessage email = new MimeMessage(session);
             email.setFrom(from);
-            email.addRecipient(Message.RecipientType.TO, to);
+            email.addRecipients(Message.RecipientType.TO, InternetAddress.parse(mail.to(), false));
             email.setSubject(mail.subject());
             email.setContent(mail.body(), mail.contentType());
             email.addRecipients(Message.RecipientType.CC, InternetAddress.parse(mail.cc(), false));
-            email.addRecipients(Message.RecipientType.BCC,InternetAddress.parse(mail.bcc(),false));
+            email.addRecipients(Message.RecipientType.BCC, InternetAddress.parse(mail.bcc(),false));
             Transport.send(email);
             return new EmailResponse(mail);
         } catch (final MessagingException exception) {

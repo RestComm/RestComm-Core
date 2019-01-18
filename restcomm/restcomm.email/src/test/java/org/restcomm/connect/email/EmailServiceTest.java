@@ -120,6 +120,36 @@ public final class EmailServiceTest {
         };
     }
 
+   @Test
+    public void testSendEmailWithMultipleTos() {
+        new JavaTestKit(system) {
+            {
+                final ActorRef observer = getRef();
+
+                // Send the email.
+                final Mail emailMsg = new Mail("hascode@localhost", "someone@localhost.com, someone2@localhost.com, someone3@localhost.com","Testing Email Service" ,"This is the subject of the email service testing", "someone2@localhost.com, test@localhost.com, test3@localhost.com", "someone3@localhost.com, test2@localhost.com");
+                emailService.tell(new EmailRequest(emailMsg), observer);
+
+                final EmailResponse response = expectMsgClass(FiniteDuration.create(60, TimeUnit.SECONDS), EmailResponse.class);
+                assertTrue(response.succeeded());
+
+                // fetch messages from server
+                MimeMessage[] messages = mailServer.getReceivedMessages();
+                assertNotNull(messages);
+                assertEquals(8, messages.length);
+                MimeMessage m = messages[0];
+                try {
+                assertEquals(emailMsg.subject(), m.getSubject());
+                assertTrue(String.valueOf(m.getContent()).contains(emailMsg.body()));
+                assertEquals(emailMsg.from(), m.getFrom()[0].toString());
+                assertEquals(emailMsg.contentType(), "text/plain");
+                } catch(Exception e){
+                    assertTrue(false);
+            }
+            }
+        };
+    }
+
     @Test
     public void testSendHTMLEmail() throws IOException, MessagingException {
         new JavaTestKit(system) {
@@ -137,6 +167,32 @@ public final class EmailServiceTest {
                 MimeMessage[] messages = mailServer.getReceivedMessages();
                 assertNotNull(messages);
                 assertEquals(6, messages.length);
+                MimeMessage m = messages[0];
+                assertEquals(emailMsg.subject(), m.getSubject());
+                assertTrue(String.valueOf(m.getContent()).contains(emailMsg.body()));
+                assertEquals(emailMsg.from(), m.getFrom()[0].toString());
+                assertEquals(emailMsg.contentType(), "text/html");
+            }
+        };
+    }
+
+    @Test
+    public void testSendHTMLEmailWithMultipleTos() throws IOException, MessagingException {
+        new JavaTestKit(system) {
+            {
+                final ActorRef observer = getRef();
+
+                // Send the email.
+                final Mail emailMsg = new Mail("hascode@localhost", "someone@localhost.com, someone2@localhost.com, someone3@localhost.com","Testing Email Service" ,"This is the subject of the email service testing", "someone2@localhost.com, test@localhost.com, test3@localhost.com", "someone3@localhost.com, test2@localhost.com", null, null, "text/html");
+                emailService.tell(new EmailRequest(emailMsg), observer);
+
+                final EmailResponse response = expectMsgClass(FiniteDuration.create(60, TimeUnit.SECONDS), EmailResponse.class);
+                assertTrue(response.succeeded());
+
+                // fetch messages from server
+                MimeMessage[] messages = mailServer.getReceivedMessages();
+                assertNotNull(messages);
+                assertEquals(8, messages.length);
                 MimeMessage m = messages[0];
                 assertEquals(emailMsg.subject(), m.getSubject());
                 assertTrue(String.valueOf(m.getContent()).contains(emailMsg.body()));
