@@ -71,7 +71,7 @@
                     AND "sender" like #{sender}
             </if>
             <if test="body != null">
-                    AND "body" like '%'|| #{body} ||'%'
+                    AND "body" like #{body}
             </if>
             <!-- select * from "restcomm_sms_messages" where "start_time" >= '2013-08-23' order by "start_time" ; -->
             <if test="startTime != null">
@@ -115,7 +115,7 @@
                     AND "status" like #{status}
             </if>
             <if test="body != null">
-                    AND "body" like '%'|| #{body} ||'%'
+                    AND "body" like #{body}
             </if>
             <!-- select * from "restcomm_sms_messages" where "start_time" >= '2013-08-23' order by "start_time" ; -->
             <if test="startTime != null">

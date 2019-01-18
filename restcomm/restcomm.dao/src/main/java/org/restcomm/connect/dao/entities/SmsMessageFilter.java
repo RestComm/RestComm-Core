@@ -73,6 +73,8 @@ public class SmsMessageFilter {
             recipient = "%".concat(recipient);
         if (sender != null)
             sender = "%".concat(sender);
+        if (body != null)
+            body = "%" + body + '%';
 
         this.recipient = recipient;
         this.sender = sender;
