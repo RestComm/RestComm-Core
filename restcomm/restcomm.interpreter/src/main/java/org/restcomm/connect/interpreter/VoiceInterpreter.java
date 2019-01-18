@@ -1287,7 +1287,7 @@ public class VoiceInterpreter extends BaseVoiceInterpreter {
                             removeDialBranch(message, sender);
                             checkDialBranch(message, sender, action);
                         }
-                        else {
+                        else if (liveCallModification){
                             //case for LCM testTerminateDialForkCallWhileRinging_LCM_to_dial_branches
                             callState = event.state();
                     }
