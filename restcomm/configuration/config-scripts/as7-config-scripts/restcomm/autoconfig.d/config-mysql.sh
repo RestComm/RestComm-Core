@@ -110,6 +110,12 @@ else
         \                        <prepared-statement-cache-size>100</prepared-statement-cache-size> \
         \                        <share-prepared-statements/> \
         \                    </statement> \
+        \                    <validation> \
+        \                       <background-validation>true</background-validation> \
+        \                       <valid-connection-checker class-name="org.jboss.jca.adapters.jdbc.extensions.mysql.MySQLValidConnectionChecker"></valid-connection-checker> \
+        \                       <exception-sorter class-name="org.jboss.jca.adapters.jdbc.extensions.mysql.MySQLExceptionSorter"></exception-sorter> \
+        \                       <check-valid-connection-sql>select 1</check-valid-connection-sql> \
+        \                   </validation> \
         \                </datasource>' $STANDALONE_SIP > $STANDALONE_SIP.bak
             mv $STANDALONE_SIP.bak $STANDALONE_SIP
    fi
