@@ -11,6 +11,19 @@ RESTCOMM_DARS=$RESTCOMM_HOME/standalone/configuration/dars
 RESTCOMM_CONF=$RESTCOMM_HOME/standalone/configuration
 RESTCOMM_DEPLOY=$RESTCOMM_HOME/standalone/deployments/restcomm.war
 
+
+#### Make sure password doesn't contain non-alphanumeric characters
+checkPassword(){
+if [[ $TRUSTSTORE_PASSWORD == *[^a-zA-Z0-9_]* ]]
+then
+  echo "***************Password refused for SSL********************"
+  echo "********Only alphanumeric characters are allowed************"
+  echo "****please change the password in the advanced.conf file**"
+  exit 1
+fi
+}
+
+
 ###Functions for SECURESSL=false###
 #Disable HTTPS when SECURESSL=false for RC.
 NoSslRestConf(){
@@ -212,6 +225,7 @@ if [[ "$SECURESSL" = "SELF" ||  "$SECURESSL" = "AUTH" ]]; then
   		echo 'Need to set all: TRUSTSTORE_ALIAS, TRUSTSTORE_PASSWORD,TRUSTSTORE_FILE '
 	else
   		echo "SECURE $SECURESSL"
+		checkPassword
 		SslRestCommConf
 		CertConfigure
 		MssStackConf
