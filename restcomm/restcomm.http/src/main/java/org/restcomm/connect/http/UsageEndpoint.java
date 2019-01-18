@@ -115,12 +115,15 @@ public class UsageEndpoint extends AbstractEndpoint {
             userIdentityContext);
 
     String categoryStr = info.getQueryParameters().getFirst("Category");
+    if (categoryStr != null) {
+      categoryStr = categoryStr.toLowerCase();
+    }
     String startDateStr = info.getQueryParameters().getFirst("StartDate");
     String endDateStr = info.getQueryParameters().getFirst("EndDate");
     //pass in reqUri without query params
     String reqUri = servletRequest.getServletPath() + "/" + info.getPath(false);
 
-    Usage.Category category = categoryStr != null ? Usage.Category.valueOf(categoryStr) : null;
+    Usage.Category category = categoryStr != null ? Usage.Category.getCategoryValue(categoryStr) : null;
     DateTime startDate = new DateTime(0).withTimeAtStartOfDay();
     if (startDateStr != null) {
       try {

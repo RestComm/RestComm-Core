@@ -129,7 +129,7 @@ public final class Usage implements Serializable {
 
     private final String text;
 
-    private Category(final String text) {
+    Category(final String text) {
       this.text = text;
     }
 
