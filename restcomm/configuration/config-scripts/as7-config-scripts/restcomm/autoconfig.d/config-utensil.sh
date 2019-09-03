@@ -75,17 +75,17 @@ configSMTP(){
     else
             echo "SMTP_USER $SMTP_USER SMTP_PASSWORD $SMTP_PASSWORD SMTP_HOST $SMTP_HOST"
             sed -i "/<smtp-notify>/ {
-            N; s|<host>.*</host>|<host>${SMTP_HOST}</host>|
-            N; s|<user>.*</user>|<user>${SMTP_USER}</user>|
-            N; s|<password>.*</password>|<password>${SMTP_PASSWORD}</password>|
-            N; s|<port>.*</port>|<port>${SMTP_PORT}</port>|
+            N; s|<host.*>.*|<host>${SMTP_HOST}</host>|
+            N; s|<user.*>.*</user>|<user>${SMTP_USER}</user>|
+            N; s|<password.*>.*</password>|<password>${SMTP_PASSWORD}</password>|
+            N; s|<port.*>.*</port>|<port>${SMTP_PORT}</port>|
             }" $FILE
 
             sed -i "/<smtp-service>/ {
-            N; s|<host>.*</host>|<host>${SMTP_HOST}</host>|
-            N; s|<user>.*</user>|<user>${SMTP_USER}</user>|
-            N; s|<password>.*</password>|<password>${SMTP_PASSWORD}</password>|
-            N; s|<port>.*</port>|<port>${SMTP_PORT}</port>|
+            N; s|<host.*>.*|<host>${SMTP_HOST}</host>|
+            N; s|<user.*>.*|<user>${SMTP_USER}</user>|
+            N; s|<password.*>.*|<password>${SMTP_PASSWORD}</password>|
+            N; s|<port.*>.*|<port>${SMTP_PORT}</port>|
             }" $FILE
     fi
 }
