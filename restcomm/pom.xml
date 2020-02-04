@@ -100,7 +100,7 @@
         <staxapi.version>1.0.1</staxapi.version>
         <staximpl.version>1.2.0</staximpl.version>
         <servlet-api.version>7.0.50</servlet-api.version>
-        <shirocore.version>1.2.0</shirocore.version>
+        <shirocore.version>1.4.2</shirocore.version>
         <shiroweb.version>1.2.0</shiroweb.version>
         <jersey.version>1.13</jersey.version>
         <httpclient.version>4.5.2</httpclient.version>
