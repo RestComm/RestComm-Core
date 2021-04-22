@@ -108,7 +108,7 @@
         <gson.version>2.3.1</gson.version>
         <xstream.version>1.4.2</xstream.version>
         <mongodb.version>2.7.2</mongodb.version>
-        <mybatis.version>3.2.2</mybatis.version>
+        <mybatis.version>3.5.6</mybatis.version>
         <jodatime.version>2.9.7</jodatime.version>
         <libphonenumber.version>4.3</libphonenumber.version>
         <junit.version>4.11</junit.version>
