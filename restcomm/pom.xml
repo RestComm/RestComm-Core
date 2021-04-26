@@ -88,7 +88,7 @@
         <log4j.version>1.2.16</log4j.version>
         <slf4j.version>1.5.5</slf4j.version>
         <commons-configuration.version>1.7</commons-configuration.version>
-        <commons-io.version>2.4</commons-io.version>
+        <commons-io.version>2.7</commons-io.version>
         <commons-codec.version>1.10</commons-codec.version>
         <commons-lang.version>2.6</commons-lang.version>
         <jain.mgcp.version>1.0</jain.mgcp.version>
