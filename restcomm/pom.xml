@@ -103,7 +103,7 @@
         <shirocore.version>1.2.0</shirocore.version>
         <shiroweb.version>1.2.0</shiroweb.version>
         <jersey.version>1.13</jersey.version>
-        <httpclient.version>4.5.2</httpclient.version>
+        <httpclient.version>4.5.13</httpclient.version>
         <httpasyncclient.version>4.1.3</httpasyncclient.version>
         <gson.version>2.3.1</gson.version>
         <xstream.version>1.4.2</xstream.version>
